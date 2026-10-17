@@ -1,0 +1,4 @@
+# nothing generated belongs here except index.html, which is the deployed page
+__pycache__/
+*.pyc
+.DS_Store
