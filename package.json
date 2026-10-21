@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DevRaedFelfel/Programming-AI.git"
+    "url": "git+https://github.com/shamsfelfel/programming-ai.git"
   },
   "scripts": {
     "build": "python build.py && python scripts/build-sw.py",

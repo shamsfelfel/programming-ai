@@ -6,7 +6,7 @@ code. It is a static site with no server, no framework and no network request
 at run time — open it once and it works with the network off, and the browser
 will offer to install it as an app.
 
-**Read it:** <https://devraedfelfel.github.io/Programming-AI/>
+**Read it:** <https://shamsfelfel.github.io/programming-ai/>
 
 ## Chapter 1 — Object-Oriented Python
 
