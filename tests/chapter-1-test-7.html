@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 7 · Python OOP by Example" data-ar="اختبار 7 · البرمجة الكائنية بلغة بايثون">Test 7 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="1" data-page="test-07" data-path="tests/chapter-1-test-7.html">
+<main>
+<section class="page" id="test-07">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Test 7</span>
+  <h1><span class="en">Lesson 7 Test &mdash; Capstone: Two Styles, One Program</span><span class="ar">اختبار الدرس 7 &mdash; المشروع الختامي: أسلوبان لبرنامج واحد</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 7 alone: reading both programs as designs: which change is cheap in which file, and when a class is the wrong answer. Every question is labelled with its difficulty and the topics it covers, and each topic links back to the exact paragraph that teaches it.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 7 وحده: قراءة البرنامجين كتصميمين: أي تغيير رخيص في أي ملف، ومتى يكون الصنف هو الجواب الخطأ. وكل سؤال موسوم بمستوى صعوبته والمواضيع التي يغطيها، وكل موضوع يرتبط بالفقرة التي تعلّمه بالضبط.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Read <a href="../lessons/chapter-1-lesson-7.html#lesson-07">Lesson 7</a> first and do its exercises. This test assumes nothing from later lessons, so an answer that needs an idea you have not met yet is not expected of you.</p>
+    <p class="ar">اقرأ <a href="../lessons/chapter-1-lesson-7.html#lesson-07">الدرس 7</a> أولًا وأنجز تمارينه. ولا يفترض هذا الاختبار شيئًا من الدروس اللاحقة، فلا يُنتظر منك جواب يحتاج فكرة لم تقابلها بعد.</p>
+  </div>
+
+  <div class="assess" data-bank="test-07" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">That is the last lesson test. Both chapter tests are next: <a href="../exams/chapter-1-exam-a.html#chapter-test-a">Chapter Test A</a> checks that every idea stuck, and <a href="../exams/chapter-1-exam-b.html#chapter-test-b">Chapter Test B</a> makes you combine them.</p>
+    <p class="ar">ذلك آخر اختبار درس. واختبارا الفصل هما التالي: <a href="../exams/chapter-1-exam-a.html#chapter-test-a">اختبار الفصل أ</a> يفحص أن كل فكرة قد ثبتت، و<a href="../exams/chapter-1-exam-b.html#chapter-test-b">اختبار الفصل ب</a> يجعلك تدمجها معًا.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-07.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

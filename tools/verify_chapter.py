@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
-"""Structural checks on the built course. Exits non-zero on any failure.
+"""Structural checks on the built site. Exits non-zero on any failure.
 
-Covers what a browser will not tell you until a student hits it: a topic
-chip pointing at a heading that was renamed, a question shipped without an
-explanation, a trace step naming a line its program does not have, an
-English sentence with no Arabic beside it.
+Covers what a browser will not tell you until a student hits it: a topic chip
+pointing at a heading that was renamed, a link to a page that is not there, a
+question shipped without an explanation, a trace step naming a line its program
+does not have, an English sentence with no Arabic beside it.
+
+Since the course became many pages, two of those checks got harder and more
+worth having: a link now has to name both a file and an anchor inside it, and
+the question banks live on pages separate from the headings their topics point
+at. Both are resolved here across the whole built site, not one file at a time.
 
     python3 tools/verify_chapter.py
 """
 import io
 import json
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -18,6 +24,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REQUIRED_TYPES = ["tf", "mcq", "multi", "fill", "order", "match",
                   "error", "complete", "compare", "output", "trace"]
+
+PAGE_DIRS = ["chapters", "lessons", "tests", "exams", "labs"]
 
 problems = []
 notes = []
@@ -31,20 +39,34 @@ def read(rel):
     return io.open(os.path.join(ROOT, rel), encoding="utf-8").read()
 
 
+def built_pages():
+    """{site-relative path: html} for every page build.py wrote."""
+    pages = {}
+    if os.path.exists(os.path.join(ROOT, "index.html")):
+        pages["index.html"] = read("index.html")
+    for d in PAGE_DIRS:
+        full = os.path.join(ROOT, d)
+        if not os.path.isdir(full):
+            continue
+        for f in sorted(os.listdir(full)):
+            if f.endswith(".html"):
+                rel = "%s/%s" % (d, f)
+                pages[rel] = read(rel)
+    return pages
+
+
 def dump_data():
-    """Run the data + engine files under node and hand back the banks."""
-    files = sorted(
-        f for f in os.listdir(os.path.join(ROOT, "src", "data"))
-        if f.endswith(".js")
-    )
+    """Run the data files under node and hand back what they define."""
+    d = os.path.join(ROOT, "assets", "data")
+    files = sorted(f for f in os.listdir(d) if f.endswith(".js"))
     script = "global.window = {};\n"
     for f in files:
-        script += "require(%s);\n" % json.dumps(os.path.join(ROOT, "src", "data", f))
+        script += "require(%s);\n" % json.dumps(os.path.join(d, f))
     script += ("process.stdout.write(JSON.stringify({"
                "banks: global.window.OOPBanks || {},"
                "topics: global.window.OOPTopics || {},"
                "traces: global.window.OOPTraces || {}}));")
-    out = subprocess.run([ "node", "-e", script ], capture_output=True, text=True)
+    out = subprocess.run(["node", "-e", script], capture_output=True, text=True, encoding="utf-8")
     if out.returncode != 0:
         fail("data files do not load under node:\n" + out.stderr.strip())
         return None
@@ -53,21 +75,28 @@ def dump_data():
 
 def check_build():
     r = subprocess.run([sys.executable, os.path.join(ROOT, "build.py"), "--check"],
-                       capture_output=True, text=True, cwd=ROOT)
+                       capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
     if r.returncode != 0:
-        fail("index.html is stale — run python3 build.py")
+        fail("the built pages are stale - run python3 build.py\n    " +
+             r.stderr.strip())
+
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "build-sw.py"),
+                        "--check"], capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
+    if r.returncode != 0:
+        fail("sw.js is out of step with the site - run python3 scripts/build-sw.py\n    " +
+             r.stderr.strip())
 
 
 def check_syntax():
     for sub in ("js", "data"):
-        d = os.path.join(ROOT, "src", sub)
+        d = os.path.join(ROOT, "assets", sub)
         for f in sorted(os.listdir(d)):
             if not f.endswith(".js"):
                 continue
             r = subprocess.run(["node", "--check", os.path.join(d, f)],
-                               capture_output=True, text=True)
+                               capture_output=True, text=True, encoding="utf-8")
             if r.returncode != 0:
-                fail("syntax error in src/%s/%s:\n%s" % (sub, f, r.stderr.strip()))
+                fail("syntax error in assets/%s/%s:\n%s" % (sub, f, r.stderr.strip()))
 
 
 def strip_scripts(html):
@@ -76,24 +105,80 @@ def strip_scripts(html):
     return re.sub(r"<script\b.*?</script>", "", html, flags=re.S)
 
 
-def check_links(html):
-    html = strip_scripts(html)
-    ids = set(re.findall(r'\sid="([^"]+)"', html))
-    missing = {}
-    for href in re.findall(r'href="#([^"]+)"', html):
-        if href and href not in ids:
-            missing[href] = missing.get(href, 0) + 1
-    for href in sorted(missing):
-        fail("dangling link to #%s (%d time(s))" % (href, missing[href]))
-    notes.append("%d anchors, %d internal links" % (len(ids), len(re.findall(r'href="#', html))))
+def ids_of(html):
+    return set(re.findall(r'\sid="([^"]+)"', strip_scripts(html)))
 
 
-def check_bilingual(html):
-    en = len(re.findall(r'<span class="en">', html))
-    ar = len(re.findall(r'<span class="ar">', html))
-    if en != ar:
-        fail("bilingual spans unbalanced in content: %d en vs %d ar" % (en, ar))
-    notes.append("%d bilingual span pairs in markup" % en)
+def check_links(pages):
+    """Every link lands somewhere that exists: the file, and the anchor in it.
+
+    Only <a> is followed. A <link rel="stylesheet"> also has an href, but it
+    points at a file rather than a page, and those are checked separately by
+    check_assets().
+    """
+    ids = {path: ids_of(html) for path, html in pages.items()}
+    internal = 0
+
+    for path, html in pages.items():
+        body = strip_scripts(html)
+        here = posixpath.dirname(path)
+        for href in re.findall(r'<a [^>]*?href="([^"]+)"', body):
+            if href.startswith(("http://", "https://", "mailto:")):
+                continue
+            internal += 1
+            file_part, _, anchor = href.partition("#")
+
+            if not file_part:                       # "#x" - same page
+                target = path
+            else:
+                target = posixpath.normpath(posixpath.join(here, file_part))
+                if target not in pages:
+                    fail("%s links to %s, which is not a page" % (path, file_part))
+                    continue
+
+            if anchor and anchor not in ids[target]:
+                fail("%s links to #%s on %s, which has no such anchor"
+                     % (path, anchor, target))
+
+    notes.append("%d pages, %d internal links, %d anchors"
+                 % (len(pages), internal, sum(len(v) for v in ids.values())))
+
+
+def check_assets(pages):
+    """Every stylesheet, script and icon a page pulls in exists on disk.
+
+    This is the check that catches a wrong number of ../ in a generated page,
+    which otherwise shows up as an unstyled page in one directory only.
+    """
+    refs = 0
+    for path, html in pages.items():
+        here = posixpath.dirname(path)
+        found = (re.findall(r'<link [^>]*?href="([^"]+)"', html) +
+                 re.findall(r'<script [^>]*?src="([^"]+)"', html))
+        for ref in found:
+            if ref.startswith(("http://", "https://", "data:")):
+                continue
+            refs += 1
+            target = posixpath.normpath(posixpath.join(here, ref.split("#")[0]))
+            if not os.path.exists(os.path.join(ROOT, target.replace("/", os.sep))):
+                fail("%s loads %s, which does not exist" % (path, ref))
+    notes.append("%d asset references, all resolved" % refs)
+
+
+def check_bilingual():
+    """Every English span in the authored content has an Arabic one beside it."""
+    src = os.path.join(ROOT, "src", "content")
+    total_en = 0
+    for f in sorted(os.listdir(src)):
+        if not f.endswith(".html"):
+            continue
+        html = read("src/content/" + f)
+        en = len(re.findall(r'<span class="en">', html))
+        ar = len(re.findall(r'<span class="ar">', html))
+        if en != ar:
+            fail("bilingual spans unbalanced in %s: %d en vs %d ar" % (f, en, ar))
+        total_en += en
+    notes.append("%d bilingual span pairs in markup" % total_en)
 
 
 def walk_bilingual(obj, where, seen):
@@ -113,9 +198,26 @@ def walk_bilingual(obj, where, seen):
             walk_bilingual(v, "%s[%d]" % (where, i), seen)
 
 
-def check_banks(data, html):
+def check_anchor_map(pages):
+    """The generated map has to agree with the pages that were written."""
+    src = read("assets/js/anchors.js")
+    m = re.search(r"window\.OOPAnchors = (\{.*?\});", src, re.S)
+    if not m:
+        fail("assets/js/anchors.js does not define OOPAnchors")
+        return {}
+    anchors = json.loads(m.group(1))
+    for anchor, page in sorted(anchors.items()):
+        if page not in pages:
+            fail("anchors.js maps #%s to %s, which is not a page" % (anchor, page))
+        elif anchor not in ids_of(pages[page]):
+            fail("anchors.js maps #%s to %s, which has no such id" % (anchor, page))
+    notes.append("%d anchors mapped to pages" % len(anchors))
+    return anchors
+
+
+def check_banks(data, pages, anchors):
     banks, topics = data["banks"], data["topics"]
-    ids = set(re.findall(r'\sid="([^"]+)"', html))
+    all_html = "\n".join(pages.values())
     seen_ids = {}
     types = {}
     levels = {}
@@ -123,13 +225,13 @@ def check_banks(data, html):
 
     for key in sorted(topics):
         href = topics[key].get("href")
-        if href not in ids:
-            fail("topic %r points at missing anchor #%s" % (key, href))
+        if href not in anchors:
+            fail("topic %r points at #%s, which is on no page" % (key, href))
 
     for bname in sorted(banks):
         bank = banks[bname]
-        if ('data-bank="%s"' % bname) not in html:
-            fail("bank %r has no placeholder in the content" % bname)
+        if ('data-bank="%s"' % bname) not in all_html:
+            fail("bank %r has no placeholder on any page" % bname)
         qs = bank.get("questions") or []
         if not qs:
             fail("bank %r has no questions" % bname)
@@ -212,8 +314,9 @@ def check_banks(data, html):
                                         for l in ("easy", "medium", "hard")))
 
 
-def check_traces(data, html):
+def check_traces(data, pages):
     traces = data["traces"]
+    all_html = "\n".join(pages.values())
     for key in sorted(traces):
         tr = traces[key]
         n = len(str(tr.get("code", "")).strip("\n").split("\n"))
@@ -228,23 +331,62 @@ def check_traces(data, html):
         walk_bilingual(tr, "trace " + key, bl)
         for m in bl:
             fail(m)
-    for key in re.findall(r'data-trace-id="([^"]+)"', html):
+    for key in re.findall(r'data-trace-id="([^"]+)"', all_html):
         if key not in traces:
             fail("content mounts trace %r, which is not defined" % key)
     notes.append("%d traces, %d steps"
                  % (len(traces), sum(len(t.get("steps") or []) for t in traces.values())))
 
 
+def check_page_assets(pages):
+    """Every page loads the shell, and only the pages that need the heavy
+    files load them. This is the promise the split was made for."""
+    for path, html in pages.items():
+        for must in ("assets/js/course.js", "assets/js/app.js",
+                     "assets/css/tokens.css", "assets/css/base.css"):
+            if must.rsplit("/", 1)[-1] not in html:
+                fail("%s does not load %s" % (path, must))
+
+        has_bank = 'data-bank="' in html
+        loads_assess = "assess.js" in html
+        if has_bank and not loads_assess:
+            fail("%s has a question bank but does not load assess.js" % path)
+        if loads_assess and not has_bank:
+            fail("%s loads assess.js but has no question bank" % path)
+
+        has_trace = "data-trace-id=" in html
+        loads_trace = "assets/js/trace.js" in html
+        if has_trace and not loads_trace:
+            fail("%s mounts a trace but does not load trace.js" % path)
+        if loads_trace and not has_trace:
+            fail("%s loads trace.js but mounts no trace" % path)
+
+        banks_loaded = re.findall(r'assets/data/questions-([a-z0-9-]+)\.js', html)
+        if len(banks_loaded) > 1:
+            fail("%s loads %d question banks; a page needs only its own"
+                 % (path, len(banks_loaded)))
+
+
 def main():
     check_build()
     check_syntax()
-    html = read("index.html")
-    check_links(html)
-    check_bilingual(read("src/content/chapter-01.html"))
+    pages = built_pages()
+    if not pages:
+        fail("no built pages found - run python3 build.py")
+        print("\n%d problem(s):" % len(problems))
+        for p in problems:
+            print("  - " + p)
+        return 1
+
+    check_links(pages)
+    check_assets(pages)
+    check_bilingual()
+    check_page_assets(pages)
+    anchors = check_anchor_map(pages)
     data = dump_data()
     if data:
-        check_banks(data, html)
-        check_traces(data, html)
+        check_banks(data, pages, anchors)
+        check_traces(data, pages)
 
     for n in notes:
         print("  " + n)

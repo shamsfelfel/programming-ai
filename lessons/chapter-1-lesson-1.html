@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Objects &amp; Classes · Python OOP by Example" data-ar="الكائنات والأصناف · البرمجة الكائنية بلغة بايثون">Objects &amp; Classes · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-01" data-path="lessons/chapter-1-lesson-1.html">
+<main>
+<section class="page" id="lesson-01">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 1</span>
+  <h1><span class="en">Objects &amp; Classes</span><span class="ar">الكائنات والأصناف</span></h1>
+
+  <p class="lede en">By the end of this lesson you will take a script built from three parallel lists, watch it quietly report the wrong borrower for every book, and rebuild it so that each book is one object that carries its own data and its own verbs.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستأخذ برنامجًا مبنيًا من ثلاث قوائم متوازية، وسترى كيف ينسب كل كتاب إلى المستعير الخطأ بصمت، ثم تعيد بناءه ليصبح كل كتاب كائنًا واحدًا يحمل بياناته وأفعاله معه.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A small school library in the neighbourhood. One librarian, a few shelves, and a Python script that tracks which books are borrowed and by whom. Everything in this lesson is that one library.</p>
+    <p class="ar">مكتبة مدرسية صغيرة في الحي. أمين مكتبة واحد، وبضعة رفوف، وبرنامج بايثون يتابع الكتب المستعارة ومن استعارها. كل ما في هذا الدرس يدور حول هذه المكتبة.</p>
+  </div>
+
+  <h2 id="l1-h1"><span class="en">Concept 1 — Data that belongs together must travel together</span><span class="ar">المفهوم 1 — البيانات المترابطة يجب أن تنتقل معًا</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The librarian keeps three lists: <code>titles</code>, <code>copies_left</code> and <code>borrowers</code>. Nothing ties them together except a shared index — position 2 in one list is supposed to mean the same book as position 2 in the others. That agreement exists only in the librarian's head.</p>
+    <p class="ar">يحتفظ أمين المكتبة بثلاث قوائم: <code>titles</code> و<code>copies_left</code> و<code>borrowers</code>. لا شيء يربطها سوى الفهرس المشترك — فالموضع 2 في قائمة يُفترض أنه الكتاب نفسه في الموضع 2 من القوائم الأخرى. هذا الاتفاق موجود في ذهن أمين المكتبة فقط.</p>
+    <p class="en">A book is withdrawn from the shelf. He deletes it from two lists and forgets the third. Nothing crashes. No error appears. Instead every later book is now printed next to the wrong borrower — and the last borrower disappears entirely. A parent is told their child is holding a book they never touched.</p>
+    <p class="ar">يُسحب كتاب من الرف. فيحذفه من قائمتين وينسى الثالثة. لا ينهار البرنامج ولا تظهر أي رسالة خطأ. بدلًا من ذلك يُطبع كل كتاب لاحق إلى جانب المستعير الخطأ — ويختفي آخر مستعير تمامًا. فيُقال لأحد الأهل إن ابنه يحتفظ بكتاب لم يلمسه قط.</p>
+  </div>
+
+  <h3 id="l1-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is plain Python you already know: lists, a function and a loop. Type it and run it.</p>
+  <p class="ar">هذا كود بايثون عادي تعرفه مسبقًا: قوائم ودالة وحلقة. اكتبه وشغّله.</p>
+
+<pre class="code bad"><code>titles = ["Kalila wa Dimna", "The Prophet",
+          "Men in the Sun", "Gate of the Sun"]
+copies_left = [3, 1, 2, 4]
+borrowers = ["Huda", "Yousef", "Amal", "Kareem"]
+
+
+def remove_book(index):
+    del titles[index]
+    del copies_left[index]
+    # the librarian meant to delete the borrower too,
+    # and forgot this one line:
+    # del borrowers[index]
+
+
+def print_shelf():
+    for i in range(len(titles)):
+        print(f"{titles[i]} | {copies_left[i]} left"
+              f" | with {borrowers[i]}")
+
+
+print("--- shelf before ---")
+print_shelf()
+remove_book(1)
+print("--- shelf after removing index 1 ---")
+print_shelf()
+</code></pre>
+
+  <p class="en">Here is what it actually prints:</p>
+  <p class="ar">وهذا ما يطبعه فعلًا:</p>
+
+  <div class="output">--- shelf before ---
+Kalila wa Dimna | 3 left | with Huda
+The Prophet | 1 left | with Yousef
+Men in the Sun | 2 left | with Amal
+Gate of the Sun | 4 left | with Kareem
+--- shelf after removing index 1 ---
+Kalila wa Dimna | 3 left | with Huda
+Men in the Sun | 2 left | with Yousef
+Gate of the Sun | 4 left | with Amal</div>
+
+  <div class="warn">
+    <h4><span class="en">Read that output again</span><span class="ar">اقرأ هذا الناتج مرة أخرى</span></h4>
+    <p class="en">"Men in the Sun" was borrowed by Amal, and is now reported as being with Yousef. "Gate of the Sun" was with Kareem, and is now with Amal. Kareem has vanished. The program did not fail — it lied, politely, in a clean column layout.</p>
+    <p class="ar">"رجال في الشمس" استعارته أمل، وأصبح الآن مسجَّلًا باسم يوسف. و"باب الشمس" كان مع كريم، وأصبح مع أمل. أما كريم فقد اختفى. البرنامج لم يفشل — بل كذب بلطف، في جدول أنيق مرتَّب.</p>
+  </div>
+
+  <h3 id="l1-s2"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The three lists describe one thing — a book — but they are three separate objects in memory. The connection between them is an unwritten rule, and an unwritten rule cannot be enforced by Python. Every function that touches one list must remember to touch all of them, forever, without being reminded.</p>
+  <p class="ar">القوائم الثلاث تصف شيئًا واحدًا — كتابًا — لكنها ثلاثة كيانات منفصلة في الذاكرة. والرابط بينها قاعدة غير مكتوبة، والقاعدة غير المكتوبة لا تستطيع بايثون فرضها. فكل دالة تلمس قائمة واحدة عليها أن تتذكر لمس القوائم كلها، إلى الأبد، ودون أن يذكّرها أحد.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — one dictionary per book</span><span class="ar">الخطوة 1 — قاموس واحد لكل كتاب</span></span>
+    <p class="en">The obvious improvement: stop using the index as glue. Put each book's three fields in one dictionary, and keep a list of those dictionaries. Now deleting a book deletes its whole record at once — the bug above becomes impossible.</p>
+    <p class="ar">التحسين البديهي: أوقف استخدام الفهرس كصمغ يربط البيانات. ضع حقول كل كتاب الثلاثة في قاموس واحد، واحتفظ بقائمة من هذه القواميس. الآن حذف كتاب يحذف سجله كاملًا في خطوة واحدة — فيصبح الخلل السابق مستحيلًا.</p>
+
+<pre class="code"><code>shelf = [
+    {"title": "Kalila wa Dimna", "copies_left": 3,
+     "borrower": "Huda"},
+    {"title": "The Prophet", "copies_left": 1,
+     "borrower": "Yousef"},
+    {"title": "Men in the Sun", "copies_left": 2,
+     "borrower": "Amal"},
+]
+
+del shelf[1]
+
+for book in shelf:
+    print(f"{book['title']} | {book['copies_left']} left"
+          f" | with {book['borrower']}")
+</code></pre>
+
+    <div class="output">Kalila wa Dimna | 3 left | with Huda
+Men in the Sun | 2 left | with Amal</div>
+
+    <p class="en">Correct. One record moved as one unit, and the borrowers stayed attached to their books. This is real progress — but the dictionary has its own weakness.</p>
+    <p class="ar">صحيح. انتقل السجل كوحدة واحدة، وبقي كل مستعير مرتبطًا بكتابه. هذا تقدم حقيقي — لكن للقاموس نقطة ضعف خاصة به.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — where the dictionary still hurts</span><span class="ar">الخطوة 2 — أين يبقى الألم في القاموس</span></span>
+    <p class="en">Nothing in Python guarantees that two dictionaries in the same list have the same keys. A new book added months later with <code>copys_left</code> instead of <code>copies_left</code> is accepted silently, and then breaks the next loop that reads the shelf.</p>
+    <p class="ar">لا شيء في بايثون يضمن أن قاموسين في القائمة نفسها يحملان المفاتيح نفسها. فكتاب جديد يُضاف بعد أشهر بالمفتاح <code>copys_left</code> بدلًا من <code>copies_left</code> يُقبل بصمت، ثم يُعطِّل أول حلقة تقرأ الرف بعد ذلك.</p>
+
+<pre class="code bad"><code>shelf.append({"title": "Gate of the Sun",
+              "copys_left": 4,          # typo, accepted
+              "borrower": "Kareem"})
+
+for book in shelf:
+    print(book["title"], book["copies_left"])
+</code></pre>
+
+    <div class="output">Kalila wa Dimna 3
+Men in the Sun 2
+Traceback (most recent call last):
+  File "shelf.py", line 18, in &lt;module&gt;
+    print(book["title"], book["copies_left"])
+                         ~~~~^^^^^^^^^^^^^^^
+KeyError: 'copies_left'</div>
+
+    <p class="en">Note when the failure arrives: not at the moment the bad book was added, but later, half way through a report, after two lines were already printed. The dictionary accepts any shape you hand it, so the mistake and the crash are far apart.</p>
+    <p class="ar">لاحظ متى يصل الفشل: ليس لحظة إضافة الكتاب الخاطئ، بل لاحقًا، في منتصف تقرير، بعد أن طُبع سطران فعلًا. القاموس يقبل أي شكل تمنحه له، فيصبح الخطأ والانهيار بعيدين عن بعضهما.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — a class: one shape, enforced</span><span class="ar">الخطوة 3 — الصنف: شكل واحد مفروض</span></span>
+    <p class="en">A <code>class</code> is a written description of what a book <em>is</em>: which fields every book has, and what a book can do. Once you write it down, Python builds every book from that same description, so the shape stops being a hope.</p>
+    <p class="ar">الـ <code>class</code> (الصنف) هو وصف مكتوب لما <em>هو</em> الكتاب: ما الحقول التي يملكها كل كتاب، وما يستطيع الكتاب فعله. وبمجرد كتابته، تبني بايثون كل كتاب من الوصف نفسه، فيتوقف الشكل عن أن يكون مجرد أمل.</p>
+
+<pre class="code good"><code>class Book:
+    def __init__(self, title, copies_left, borrower):
+        self.title = title
+        self.copies_left = copies_left
+        self.borrower = borrower
+
+    def describe(self):
+        return (f"{self.title} | {self.copies_left} left"
+                f" | with {self.borrower}")
+
+
+kalila = Book("Kalila wa Dimna", 3, "Huda")
+prophet = Book("The Prophet", 1, "Yousef")
+
+print(kalila.describe())
+print(prophet.describe())
+</code></pre>
+
+    <div class="output">Kalila wa Dimna | 3 left | with Huda
+The Prophet | 1 left | with Yousef</div>
+  </div>
+
+  <h3 id="l1-s3"><span class="en">The four words you just used</span><span class="ar">الكلمات الأربع التي استخدمتها الآن</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Word</span><span class="ar">المصطلح</span></th>
+        <th><span class="en">What it means here</span><span class="ar">معناه هنا</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>class Book</code></td>
+        <td><span class="en">The description, written once. Like the blank borrowing form the library prints: it defines the fields, but it is not any particular book.</span><span class="ar">الوصف، يُكتب مرة واحدة. مثل نموذج الاستعارة الفارغ الذي تطبعه المكتبة: يحدد الحقول، لكنه ليس كتابًا بعينه.</span></td>
+      </tr>
+      <tr>
+        <td><code>kalila</code></td>
+        <td><span class="en">An object, also called an instance: one filled-in form, one real book on the shelf, with its own values.</span><span class="ar">كائن، ويسمى أيضًا نسخة (instance): نموذج واحد مُعبَّأ، كتاب حقيقي واحد على الرف، بقيمه الخاصة.</span></td>
+      </tr>
+      <tr>
+        <td><code>__init__</code></td>
+        <td><span class="en">Runs automatically when you call <code>Book(...)</code>. Its job is to fill in the fields of the new object.</span><span class="ar">يُنفَّذ تلقائيًا عند استدعاء <code>Book(...)</code>. ومهمته تعبئة حقول الكائن الجديد.</span></td>
+      </tr>
+      <tr>
+        <td><code>self</code></td>
+        <td><span class="en">The object being worked on, handed to the method automatically. <code>self.title</code> means "the title of this particular book".</span><span class="ar">الكائن الذي يُعمل عليه، ويُمرَّر إلى الدالة تلقائيًا. فـ <code>self.title</code> تعني «عنوان هذا الكتاب بالتحديد».</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <h4><span class="en">You never pass self yourself</span><span class="ar">أنت لا تمرر self بنفسك</span></h4>
+    <p class="en"><code>describe</code> is defined with one parameter, <code>self</code>, but you call it as <code>kalila.describe()</code> with no arguments. Python turns that into <code>describe(kalila)</code> for you. The dot before the method name <em>is</em> the argument.</p>
+    <p class="ar">الدالة <code>describe</code> معرَّفة بمعامل واحد هو <code>self</code>، لكنك تستدعيها كـ <code>kalila.describe()</code> بدون أي وسيط. بايثون تحوّلها نيابةً عنك إلى <code>describe(kalila)</code>. فالنقطة قبل اسم الدالة <em>هي</em> الوسيط.</p>
+  </div>
+
+  <h3 id="l1-s4"><span class="en">Two objects, two separate lives</span><span class="ar">كائنان، حياتان منفصلتان</span></h3>
+
+  <p class="en">Each call to <code>Book(...)</code> creates a brand new, independent object. Changing one does not touch the other — this is the thing the parallel lists could never promise.</p>
+  <p class="ar">كل استدعاء لـ <code>Book(...)</code> ينشئ كائنًا جديدًا ومستقلًا تمامًا. وتغيير أحدهما لا يمس الآخر — وهذا بالتحديد ما لم تستطع القوائم المتوازية أن تضمنه.</p>
+
+<pre class="code good"><code>kalila = Book("Kalila wa Dimna", 3, "Huda")
+prophet = Book("The Prophet", 1, "Yousef")
+
+prophet.copies_left = 0        # only this book changes
+
+print(kalila.describe())
+print(prophet.describe())
+</code></pre>
+
+  <div class="output">Kalila wa Dimna | 3 left | with Huda
+The Prophet | 0 left | with Yousef</div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What is the difference between <code>Book</code> and <code>kalila</code>?</span><span class="ar">ما الفرق بين <code>Book</code> و<code>kalila</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">They are the same thing written two ways; <code>kalila</code> is just a shorter name for the class.</span><span class="ar">هما الشيء نفسه بصيغتين؛ و<code>kalila</code> مجرد اسم أقصر للصنف.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en"><code>Book</code> is the description of what every book has and does; <code>kalila</code> is one actual book built from it, holding its own values.</span><span class="ar"><code>Book</code> هو وصف ما يملكه كل كتاب وما يفعله؛ و<code>kalila</code> كتاب فعلي واحد بُني منه، يحمل قيمه الخاصة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>Book</code> stores the data and <code>kalila</code> stores the methods.</span><span class="ar"><code>Book</code> يخزّن البيانات و<code>kalila</code> يخزّن الدوال.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>kalila</code> is a copy of <code>Book</code>, so editing <code>kalila</code> edits <code>Book</code> too.</span><span class="ar"><code>kalila</code> نسخة من <code>Book</code>، لذا تعديل <code>kalila</code> يعدّل <code>Book</code> أيضًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The class is the description; the object is one thing built from it. The tempting wrong answer is the last one: it sounds right because we said objects are "built from" the class, but <code>prophet.copies_left = 0</code> above changed only that one book — <code>kalila</code> kept its 3 copies, and <code>Book</code> itself holds no book data at all. Objects read their shape from the class once at birth; after that they live separately.</div>
+      <div class="ar">الصنف هو الوصف، والكائن شيء واحد مبني منه. والإجابة المغرية الخاطئة هي الأخيرة: تبدو صحيحة لأننا قلنا إن الكائنات «تُبنى من» الصنف، لكن <code>prophet.copies_left = 0</code> أعلاه غيّر ذلك الكتاب وحده — فقد احتفظ <code>kalila</code> بنسخه الثلاث، و<code>Book</code> نفسه لا يحمل أي بيانات كتاب إطلاقًا. الكائنات تأخذ شكلها من الصنف مرة واحدة عند النشأة، ثم تعيش بعد ذلك منفصلة.</div>
+    </div>
+  </div>
+
+  <h3 id="l1-s5"><span class="en">Second example — a clinic's vaccine fridge</span><span class="ar">مثال ثانٍ — ثلاجة المطاعيم في عيادة</span></h3>
+
+  <p class="en">Different domain, same single idea. A clinic logs its vaccine vials, and the first version gives each vial its own set of loose variables. Three fields describe one vial, but their only connection is a shared prefix in the variable names.</p>
+  <p class="ar">مجال مختلف والفكرة الواحدة نفسها. عيادة تسجّل قوارير المطاعيم، والنسخة الأولى تمنح كل قارورة مجموعة متغيرات سائبة خاصة بها. ثلاثة حقول تصف قارورة واحدة، لكن رابطها الوحيد هو بادئة مشتركة في أسماء المتغيرات.</p>
+
+<pre class="code bad"><code># one set of variables per vial - this does not scale
+vial_a_code = "BCG-7"
+vial_a_doses = 12
+vial_a_fridge = "F1"
+
+vial_b_code = "OPV-3"
+vial_b_doses = 5
+vial_b_fridge = "F2"
+
+print(f"{vial_a_code} | {vial_a_doses} doses | {vial_a_fridge}")
+print(f"{vial_b_code} | {vial_b_doses} doses | {vial_b_fridge}")
+</code></pre>
+
+  <div class="output">BCG-7 | 12 doses | F1
+OPV-3 | 5 doses | F2</div>
+
+  <p class="en">A third vial means three more variables and another hand-written <code>print</code>. You cannot loop over these, because a loop needs a collection and there is nothing here to iterate. One class removes both problems at once.</p>
+  <p class="ar">إضافة قارورة ثالثة تعني ثلاثة متغيرات أخرى وسطر <code>print</code> جديدًا مكتوبًا باليد. ولا يمكنك المرور عليها بحلقة، لأن الحلقة تحتاج مجموعة ولا يوجد هنا ما يمكن المرور عليه. وصنف واحد يزيل المشكلتين معًا.</p>
+
+<pre class="code good"><code>class Vial:
+    def __init__(self, code, doses, fridge):
+        self.code = code
+        self.doses = doses
+        self.fridge = fridge
+
+
+stock = [
+    Vial("BCG-7", 12, "F1"),
+    Vial("OPV-3", 5, "F2"),
+    Vial("MMR-1", 8, "F1"),
+]
+
+for vial in stock:
+    print(f"{vial.code} | {vial.doses} doses | {vial.fridge}")
+</code></pre>
+
+  <div class="output">BCG-7 | 12 doses | F1
+OPV-3 | 5 doses | F2
+MMR-1 | 8 doses | F1</div>
+
+  <p class="en">The third vial cost one line, and the printing loop did not change at all. Because each vial's three fields now live in one object, the objects can sit in a list and be handled together — which is exactly what loose variables can never do.</p>
+  <p class="ar">كلّفت القارورة الثالثة سطرًا واحدًا، ولم تتغير حلقة الطباعة إطلاقًا. ولأن حقول كل قارورة الثلاثة تعيش الآن في كائن واحد، يمكن للكائنات أن تستقر في قائمة وتُعالج معًا — وهو بالضبط ما لا تستطيعه المتغيرات السائبة أبدًا.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — Add a total and an availability check</span><span class="ar">تمرين 1.1 — أضف الإجمالي وفحص التوفر</span></h4>
+    <p class="en">Give <code>Book</code> a third attribute <code>copies_total</code> (how many copies the library owns in all), and a method <code>is_available()</code> that returns <code>True</code> when <code>copies_left</code> is greater than zero and <code>False</code> otherwise.</p>
+    <p class="ar">أضف إلى <code>Book</code> خاصية ثالثة هي <code>copies_total</code> (عدد النسخ التي تملكها المكتبة كلها)، ودالة <code>is_available()</code> تُعيد <code>True</code> عندما يكون <code>copies_left</code> أكبر من صفر و<code>False</code> فيما عدا ذلك.</p>
+
+<pre class="code"><code>class Book:
+    def __init__(self, title, copies_total, copies_left):
+        self.title = title
+        # add the two remaining attributes here
+
+    # add is_available() here
+
+
+kalila = Book("Kalila wa Dimna", 4, 3)
+prophet = Book("The Prophet", 2, 0)
+
+print(kalila.title, kalila.is_available())   # ... True
+print(prophet.title, prophet.is_available())  # ... False
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Book:
+    def __init__(self, title, copies_total, copies_left):
+        self.title = title
+        self.copies_total = copies_total
+        self.copies_left = copies_left
+
+    def is_available(self):
+        return self.copies_left &gt; 0
+
+
+kalila = Book("Kalila wa Dimna", 4, 3)
+prophet = Book("The Prophet", 2, 0)
+
+print(kalila.title, kalila.is_available())
+print(prophet.title, prophet.is_available())
+</code></pre>
+      <div class="output">Kalila wa Dimna True
+The Prophet False</div>
+      <p class="en">The comparison <code>self.copies_left &gt; 0</code> already evaluates to <code>True</code> or <code>False</code>, so you return it directly — no <code>if</code> is needed. And because the check reads <code>self.copies_left</code>, every book answers the question using its own stock.</p>
+      <p class="ar">المقارنة <code>self.copies_left &gt; 0</code> تنتج <code>True</code> أو <code>False</code> أصلًا، لذا تُعيدها مباشرة — ولا حاجة إلى <code>if</code>. ولأن الفحص يقرأ <code>self.copies_left</code>، فإن كل كتاب يجيب عن السؤال بمخزونه الخاص.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — Print only what is available</span><span class="ar">تمرين 1.2 — اطبع المتوفر فقط</span></h4>
+    <p class="en">Build a list of four <code>Book</code> objects and loop over it, printing only the available ones in the form <code>- Title (3 of 4)</code>. Use the <code>is_available()</code> method from the previous exercise, not a raw comparison in the loop.</p>
+    <p class="ar">أنشئ قائمة من أربعة كائنات <code>Book</code>، ومر عليها بحلقة لتطبع المتوفر منها فقط بالشكل <code>- Title (3 of 4)</code>. استخدم دالة <code>is_available()</code> من التمرين السابق، لا مقارنة مباشرة داخل الحلقة.</p>
+
+<pre class="code"><code>shelf = [
+    Book("Kalila wa Dimna", 4, 3),
+    Book("The Prophet", 2, 0),
+    Book("Men in the Sun", 3, 1),
+    Book("Gate of the Sun", 5, 0),
+]
+
+print("Available today:")
+# loop over shelf and print the available books
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>shelf = [
+    Book("Kalila wa Dimna", 4, 3),
+    Book("The Prophet", 2, 0),
+    Book("Men in the Sun", 3, 1),
+    Book("Gate of the Sun", 5, 0),
+]
+
+print("Available today:")
+for book in shelf:
+    if book.is_available():
+        print(f"- {book.title} ({book.copies_left} of"
+              f" {book.copies_total})")
+</code></pre>
+      <div class="output">Available today:
+- Kalila wa Dimna (3 of 4)
+- Men in the Sun (1 of 3)</div>
+      <p class="en">Compare this loop with the very first one in the lesson. There is no <code>i</code>, no <code>range(len(...))</code>, and no second list to keep in step — <code>book</code> is the whole book, so there is nothing left to accidentally forget.</p>
+      <p class="ar">قارن هذه الحلقة بالحلقة الأولى في الدرس. لا يوجد <code>i</code>، ولا <code>range(len(...))</code>، ولا قائمة ثانية يجب إبقاؤها متزامنة — فـ <code>book</code> هو الكتاب كله، ولم يبق شيء يمكن نسيانه سهوًا.</p>
+    </details>
+  </section>
+
+  <h2 id="l1-h2"><span class="en">Concept 2 — Behaviour belongs with the data</span><span class="ar">المفهوم 2 — السلوك ينتمي إلى البيانات</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Grouping the data was only half the job. The <em>actions</em> — borrowing a copy, returning one — are still loose functions sitting in the module, and each one demands that the caller hand it the right data: <code>borrow(titles, copies, i)</code>. Nothing checks that those two lists belong to each other.</p>
+    <p class="ar">تجميع البيانات كان نصف المهمة فقط. أما <em>الأفعال</em> — استعارة نسخة وإرجاعها — فما زالت دوالَّ سائبة في الملف، وكل منها تطالب المستدعي بتسليمها البيانات الصحيحة: <code>borrow(titles, copies, i)</code>. ولا شيء يتحقق من أن القائمتين تنتميان إلى بعضهما.</p>
+    <p class="en">So a caller in a hurry passes the titles of one shelf and the copy counts of another. The function happily subtracts a copy from a book it was never asked about.</p>
+    <p class="ar">فيمرر مستدعٍ مستعجل عناوين رفٍّ وأعداد نسخ رفٍّ آخر. فتطرح الدالة براحة تامة نسخة من كتاب لم يُسأل عنه أصلًا.</p>
+  </div>
+
+<pre class="code bad"><code>titles = ["Kalila wa Dimna", "The Prophet"]
+copies_left = [3, 1]
+
+
+def borrow(titles, copies, i):
+    if copies[i] &gt; 0:
+        copies[i] -= 1
+        return f"{titles[i]} borrowed"
+    return f"{titles[i]} is out of stock"
+
+
+other_titles = ["Gate of the Sun"]
+
+# the caller mixes two different shelves:
+print(borrow(other_titles, copies_left, 0))
+print(copies_left)
+</code></pre>
+
+  <div class="output">Gate of the Sun borrowed
+[2, 1]</div>
+
+  <h3 id="l1-s6"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The message says "Gate of the Sun borrowed", but the copy was taken from "Kalila wa Dimna", whose count fell from 3 to 2. The function had no way to know which data was really its own, because the data was passed in from outside. A function that must be <em>told</em> what to operate on can always be told the wrong thing.</p>
+  <p class="ar">الرسالة تقول إن «باب الشمس» استُعير، لكن النسخة خُصمت من «كليلة ودمنة»، الذي هبط عدده من 3 إلى 2. ولم يكن أمام الدالة أي وسيلة لمعرفة أي البيانات بياناتها حقًا، لأن البيانات مُرَّرت إليها من الخارج. والدالة التي يجب أن <em>يُقال</em> لها على ماذا تعمل، يمكن دائمًا أن يُقال لها الشيء الخطأ.</p>
+
+  <h3 id="l1-s7"><span class="en">Conversion — give the object its own verbs</span><span class="ar">التحويل — امنح الكائن أفعاله الخاصة</span></h3>
+
+  <p class="en">Move the functions inside the class. A function defined inside a class is called a <strong>method</strong>, and it reaches its data through <code>self</code> instead of through parameters. There is no longer any list to pass, and therefore no wrong list to pass.</p>
+  <p class="ar">انقل الدوال إلى داخل الصنف. والدالة المعرَّفة داخل صنف تُسمى <strong>method</strong> (دالة الكائن)، وهي تصل إلى بياناتها عبر <code>self</code> لا عبر المعاملات. فلم تبق أي قائمة تُمرَّر، وبالتالي لا توجد قائمة خطأ يمكن تمريرها.</p>
+
+<pre class="code good"><code>class Book:
+    def __init__(self, title, copies_left, borrower):
+        self.title = title
+        self.copies_left = copies_left
+        self.borrower = borrower
+
+    def describe(self):
+        return (f"{self.title} | {self.copies_left} left"
+                f" | with {self.borrower}")
+
+    def borrow(self):
+        if self.copies_left == 0:
+            return f"{self.title} is out of stock"
+        self.copies_left -= 1
+        return f"{self.title} borrowed, {self.copies_left} left"
+
+    def return_copy(self):
+        self.copies_left += 1
+        return f"{self.title} returned, {self.copies_left} left"
+
+
+prophet = Book("The Prophet", 1, "Yousef")
+
+print(prophet.borrow())
+print(prophet.borrow())
+print(prophet.return_copy())
+</code></pre>
+
+  <div class="output">The Prophet borrowed, 0 left
+The Prophet is out of stock
+The Prophet returned, 1 left</div>
+
+  <p class="en">Read the call site: <code>prophet.borrow()</code>. There is no index, no list, and no opportunity to mismatch anything. The only book that <code>borrow()</code> can possibly affect is the one written before the dot.</p>
+  <p class="ar">اقرأ موضع الاستدعاء: <code>prophet.borrow()</code>. لا فهرس ولا قائمة ولا أي فرصة لعدم التطابق. والكتاب الوحيد الذي يمكن أن تؤثر فيه <code>borrow()</code> هو المكتوب قبل النقطة.</p>
+
+  <div class="note">
+    <h4><span class="en">Why the method name can be short</span><span class="ar">لماذا يمكن أن يكون اسم الدالة قصيرًا</span></h4>
+    <p class="en">As a loose function it had to be called <code>borrow_book</code> or <code>borrow_library_item</code>, because the module-level name had to be unique across the whole program. Inside the class, <code>borrow</code> is enough — it is already spelled out as <code>book.borrow()</code> wherever it is used.</p>
+    <p class="ar">عندما كانت دالة سائبة كان لا بد من تسميتها <code>borrow_book</code> أو <code>borrow_library_item</code>، لأن الاسم على مستوى الملف يجب أن يكون فريدًا في البرنامج كله. أما داخل الصنف فيكفي <code>borrow</code> — فهو مكتوب أصلًا بصيغة <code>book.borrow()</code> في كل موضع يُستخدم فيه.</p>
+  </div>
+
+  <div class="tip">
+    <h4><span class="en">A teaser for Lesson 2</span><span class="ar">تمهيد للدرس 2</span></h4>
+    <p class="en">Printing an object directly gives you something like <code>&lt;__main__.Book object at 0x7f...&gt;</code>; a special method named <code>__str__</code> fixes that, and Lesson 2 teaches it.</p>
+    <p class="ar">طباعة الكائن مباشرة تعطيك شيئًا مثل <code>&lt;__main__.Book object at 0x7f...&gt;</code>؛ وهناك دالة خاصة باسم <code>__str__</code> تعالج ذلك، وسيعلّمك الدرس 2 كيف.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why can <code>book.borrow()</code> not be given the wrong book's stock?</span><span class="ar">لماذا لا يمكن إعطاء <code>book.borrow()</code> مخزون كتاب آخر؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because Python checks the types of all method arguments before running the method.</span><span class="ar">لأن بايثون تتحقق من أنواع كل وسائط الدالة قبل تنفيذها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because methods are not allowed to change the object's attributes.</span><span class="ar">لأن دوال الكائن غير مسموح لها بتغيير خصائص الكائن.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the method takes no data at all — it reaches its stock through <code>self</code>, which is the object written before the dot.</span><span class="ar">لأن الدالة لا تستقبل أي بيانات إطلاقًا — فهي تصل إلى مخزونها عبر <code>self</code>، وهو الكائن المكتوب قبل النقطة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because each object keeps a private copy of every function in the class.</span><span class="ar">لأن كل كائن يحتفظ بنسخة خاصة من كل دالة في الصنف.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The data is not passed in, so there is nothing to pass incorrectly: <code>self.copies_left</code> can only mean the stock of the object you called the method on. The tempting wrong answer is the first — Python does not check argument types at all, and that is exactly why the earlier <code>borrow(other_titles, copies_left, 0)</code> ran happily and corrupted the wrong book. The protection here comes from removing the arguments, not from checking them.</div>
+      <div class="ar">البيانات لا تُمرَّر، فلا يوجد شيء يمكن تمريره بشكل خاطئ: فـ <code>self.copies_left</code> لا يمكن أن تعني إلا مخزون الكائن الذي استدعيت الدالة عليه. والإجابة المغرية الخاطئة هي الأولى — فبايثون لا تتحقق من أنواع الوسائط إطلاقًا، ولهذا بالتحديد عمل الاستدعاء السابق <code>borrow(other_titles, copies_left, 0)</code> بسلاسة وأفسد الكتاب الخطأ. الحماية هنا جاءت من إزالة الوسائط، لا من فحصها.</div>
+    </div>
+  </div>
+
+  <h3 id="l1-s8"><span class="en">Second example — a phone-credit top-up card</span><span class="ar">مثال ثانٍ — بطاقة شحن رصيد الهاتف</span></h3>
+
+  <p class="en">Different domain, same principle. A top-up card has a serial number and a balance, and the one thing you do with it is spend from it. The balance and the spending rule live together.</p>
+  <p class="ar">مجال مختلف والمبدأ نفسه. بطاقة الشحن لها رقم تسلسلي ورصيد، والشيء الوحيد الذي تفعله بها هو الخصم منها. فيعيش الرصيد وقاعدة الخصم معًا.</p>
+
+<pre class="code good"><code>class TopUpCard:
+    def __init__(self, serial, balance):
+        self.serial = serial
+        self.balance = balance
+
+    def use(self, amount):
+        if amount &gt; self.balance:
+            return f"{self.serial}: only {self.balance} left"
+        self.balance -= amount
+        return f"{self.serial}: used {amount}, {self.balance} left"
+
+
+card_a = TopUpCard("A-1001", 20)
+card_b = TopUpCard("B-2002", 5)
+
+print(card_a.use(12))
+print(card_b.use(12))
+print(card_a.use(12))
+</code></pre>
+
+  <div class="output">A-1001: used 12, 8 left
+B-2002: only 5 left
+A-1001: only 8 left</div>
+
+  <p class="en">Two cards, two balances, one class. The second call fails because card B is poor, and the third fails because card A has already been spent down to 8 — each object tracked its own history without any outside bookkeeping. Note that <code>use</code> takes a real argument, <code>amount</code>, alongside <code>self</code>: methods may take data, they just never need to be handed the object's own state.</p>
+  <p class="ar">بطاقتان ورصيدان وصنف واحد. فشل الاستدعاء الثاني لأن رصيد البطاقة B قليل، وفشل الثالث لأن البطاقة A أُنفقت حتى 8 — وقد تابع كل كائن تاريخه الخاص بلا أي محاسبة خارجية. ولاحظ أن <code>use</code> تستقبل وسيطًا حقيقيًا هو <code>amount</code> إلى جانب <code>self</code>: فدوال الكائن قد تستقبل بيانات، لكنها فقط لا تحتاج أبدًا أن تُسلَّم حالة الكائن نفسه.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — A class for the library card</span><span class="ar">تمرين 2.1 — صنف لبطاقة المكتبة</span></h4>
+    <p class="en">Write a <code>Student</code> class with <code>name</code>, <code>card_number</code> and <code>books_out</code>. Add <code>can_borrow()</code>, true while the student holds fewer than 3 books, and <code>take_book()</code>, which refuses with a message when the limit is reached and otherwise increases the count and reports it.</p>
+    <p class="ar">اكتب صنفًا <code>Student</code> يحمل <code>name</code> و<code>card_number</code> و<code>books_out</code>. أضف <code>can_borrow()</code> التي تكون صحيحة ما دام الطالب يحمل أقل من 3 كتب، و<code>take_book()</code> التي ترفض برسالة عند بلوغ الحد، وإلا تزيد العدد وتُعلن عنه.</p>
+
+<pre class="code"><code>class Student:
+    def __init__(self, name, card_number, books_out):
+        # store the three attributes
+        pass
+
+    # can_borrow() and take_book() go here
+
+
+huda = Student("Huda", "C-014", 2)
+print(huda.take_book())   # Huda now has 3 book(s)
+print(huda.take_book())   # Huda already has 3 books
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Student:
+    def __init__(self, name, card_number, books_out):
+        self.name = name
+        self.card_number = card_number
+        self.books_out = books_out
+
+    def can_borrow(self):
+        return self.books_out &lt; 3
+
+    def take_book(self):
+        if not self.can_borrow():
+            return f"{self.name} already has 3 books"
+        self.books_out += 1
+        return f"{self.name} now has {self.books_out} book(s)"
+
+
+huda = Student("Huda", "C-014", 2)
+print(huda.take_book())
+print(huda.take_book())
+</code></pre>
+      <div class="output">Huda now has 3 book(s)
+Huda already has 3 books</div>
+      <p class="en">Notice that <code>take_book</code> calls <code>self.can_borrow()</code> rather than repeating <code>self.books_out &lt; 3</code>. The limit is written in exactly one place, so raising it to 4 later is a one-line change — a method can call its object's other methods through <code>self</code> freely.</p>
+      <p class="ar">لاحظ أن <code>take_book</code> تستدعي <code>self.can_borrow()</code> بدلًا من تكرار <code>self.books_out &lt; 3</code>. فالحد مكتوب في مكان واحد بالضبط، ورفعه لاحقًا إلى 4 تعديل في سطر واحد — فدالة الكائن تستطيع استدعاء بقية دوال كائنها عبر <code>self</code> بحرية.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — Convert this snippet to objects</span><span class="ar">تمرين 2.2 — حوّل هذا المقتطف إلى كائنات</span></h4>
+    <p class="en">The code below tracks physical shelves with parallel lists and a function that takes them as arguments. Rewrite it as a <code>Shelf</code> class with <code>code</code>, <code>capacity</code> and <code>used</code>, a method <code>free_slots()</code>, and a method <code>add_book()</code> that refuses when the shelf is full.</p>
+    <p class="ar">الكود التالي يتابع الرفوف الفعلية بقوائم متوازية ودالة تستقبلها كوسائط. أعد كتابته كصنف <code>Shelf</code> يحمل <code>code</code> و<code>capacity</code> و<code>used</code>، ودالة <code>free_slots()</code>، ودالة <code>add_book()</code> ترفض عندما يكون الرف ممتلئًا.</p>
+
+<pre class="code bad"><code># rewrite all of this as a class
+codes = ["A", "B"]
+capacity = [10, 6]
+used = [9, 6]
+
+
+def add_book(codes, capacity, used, i):
+    if used[i] &gt;= capacity[i]:
+        return f"Shelf {codes[i]} is full"
+    used[i] += 1
+    free = capacity[i] - used[i]
+    return f"Shelf {codes[i]}: {free} slots free"
+
+
+print(add_book(codes, capacity, used, 0))
+print(add_book(codes, capacity, used, 1))
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Shelf:
+    def __init__(self, code, capacity, used):
+        self.code = code
+        self.capacity = capacity
+        self.used = used
+
+    def free_slots(self):
+        return self.capacity - self.used
+
+    def add_book(self):
+        if self.free_slots() == 0:
+            return f"Shelf {self.code} is full"
+        self.used += 1
+        return f"Shelf {self.code}: {self.free_slots()} slots free"
+
+
+a = Shelf("A", 10, 9)
+b = Shelf("B", 6, 6)
+
+print(a.add_book())
+print(a.add_book())
+print(b.add_book())
+</code></pre>
+      <div class="output">Shelf A: 0 slots free
+Shelf A is full
+Shelf B is full</div>
+      <p class="en">Four parameters became zero. The arithmetic <code>capacity[i] - used[i]</code>, which the old function recomputed inline, is now the named method <code>free_slots()</code> that both the caller and <code>add_book()</code> reuse — the data moved, and the behaviour followed it.</p>
+      <p class="ar">أربعة معاملات أصبحت صفرًا. والعملية الحسابية <code>capacity[i] - used[i]</code>، التي كانت الدالة القديمة تعيد حسابها في مكانها، أصبحت الآن دالة باسم <code>free_slots()</code> يعيد استخدامها كل من المستدعي و<code>add_book()</code> — فانتقلت البيانات، وتبعها السلوك.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">In <code>def borrow(self):</code>, what is <code>self</code> when you write <code>prophet.borrow()</code>?</span><span class="ar">في <code>def borrow(self):</code>، ما هو <code>self</code> عندما تكتب <code>prophet.borrow()</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">A reserved Python keyword that always refers to the class <code>Book</code>.</span><span class="ar">كلمة محجوزة في بايثون تشير دائمًا إلى الصنف <code>Book</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">The object <code>prophet</code> itself, passed in automatically as the first argument.</span><span class="ar">الكائن <code>prophet</code> نفسه، يُمرَّر تلقائيًا كأول وسيط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">An empty placeholder you must fill in when you call the method.</span><span class="ar">موضع فارغ يجب أن تعبئه عند استدعاء الدالة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en"><code>self</code> is the individual object the method was called on, and Python supplies it from whatever sits before the dot — that is why <code>prophet.borrow()</code> needs no arguments. The tempting wrong answer is the first: <code>self</code> is not a keyword at all (it is an ordinary parameter name, by convention), and it refers to one object, not to the class. If it meant the class, all books would share one stock count.</div>
+      <div class="ar">إن <code>self</code> هو الكائن الفردي الذي استُدعيت الدالة عليه، وبايثون توفّره من الموجود قبل النقطة — ولهذا لا يحتاج <code>prophet.borrow()</code> أي وسائط. والإجابة المغرية الخاطئة هي الأولى: فـ <code>self</code> ليس كلمة محجوزة إطلاقًا (بل اسم معامل عادي متَّفق عليه عُرفًا)، وهو يشير إلى كائن واحد لا إلى الصنف. ولو كان يعني الصنف لتشارك كل الكتب عدّاد مخزون واحدًا.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l1-s9"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">Parallel lists tied together by an index are held together by memory and discipline, not by Python. One forgotten <code>del</code> shifts every later record onto the wrong owner, silently.</span><span class="ar">القوائم المتوازية المرتبطة بفهرس مشترك يجمعها التذكُّر والانتباه، لا بايثون. فنسيان <code>del</code> واحد يُزحزح كل سجل لاحق إلى المالك الخطأ، بصمت.</span></li>
+      <li><span class="en">A dictionary per record is a real improvement — the record moves as one unit — but nothing enforces which keys exist, so a typo surfaces later as a <code>KeyError</code> far from where it was made.</span><span class="ar">قاموس لكل سجل تحسين حقيقي — فالسجل ينتقل كوحدة واحدة — لكن لا شيء يفرض ما المفاتيح الموجودة، فيظهر الخطأ المطبعي لاحقًا كـ <code>KeyError</code> بعيدًا عن موضع وقوعه.</span></li>
+      <li><span class="en">A <code>class</code> is the written description of a kind of thing; an object (or instance) is one actual thing built from that description, with its own values.</span><span class="ar">الـ <code>class</code> هو الوصف المكتوب لنوع من الأشياء؛ والكائن (أو instance) شيء فعلي واحد مبني من ذلك الوصف، بقيمه الخاصة.</span></li>
+      <li><span class="en"><code>__init__</code> runs automatically on <code>Book(...)</code> and fills in the new object's attributes, so every object is born with the same shape.</span><span class="ar">تُنفَّذ <code>__init__</code> تلقائيًا عند <code>Book(...)</code> وتعبئ خصائص الكائن الجديد، فيولد كل كائن بالشكل نفسه.</span></li>
+      <li><span class="en"><code>self</code> is the object itself, handed to the method automatically by the dot before its name. You never pass it yourself.</span><span class="ar">إن <code>self</code> هو الكائن نفسه، تسلّمه النقطة التي قبل اسم الدالة إليها تلقائيًا. وأنت لا تمرره بنفسك أبدًا.</span></li>
+      <li><span class="en">Each call to <code>Book(...)</code> creates a new independent object; changing one object's attributes leaves every other object untouched.</span><span class="ar">كل استدعاء لـ <code>Book(...)</code> ينشئ كائنًا جديدًا مستقلًا؛ وتغيير خصائص كائن لا يمس أي كائن آخر.</span></li>
+      <li><span class="en">Moving a function into the class turns it into a method, and its data parameters disappear into <code>self</code>. A method that is never handed its data can never be handed the wrong data.</span><span class="ar">نقل الدالة إلى داخل الصنف يحولها إلى method، وتتلاشى معاملات بياناتها داخل <code>self</code>. والدالة التي لا تُسلَّم بياناتها أبدًا لا يمكن أن تُسلَّم بيانات خاطئة أبدًا.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

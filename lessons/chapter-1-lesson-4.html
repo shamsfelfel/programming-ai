@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Abstraction &amp; Clean Interfaces · Python OOP by Example" data-ar="التجريد والواجهات · البرمجة الكائنية بلغة بايثون">Abstraction &amp; Clean Interfaces · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-04" data-path="lessons/chapter-1-lesson-4.html">
+<main>
+<section class="page" id="lesson-04">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 4</span>
+  <h1><span class="en">Abstraction &amp; Clean Interfaces</span><span class="ar">التجريد والواجهات</span></h1>
+
+  <p class="lede en">By the end of this lesson you will be able to replace the inside of a class completely — a tuple becomes fields, a new field appears — without a single caller noticing, and you will know how to make Python refuse to create an object that has not kept the promise its base class made.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستكون قادرًا على استبدال داخل الصنف استبدالًا كاملًا — فيصبح الـ tuple حقولًا، ويظهر حقل جديد — دون أن يلاحظ مستدعٍ واحد، وستعرف كيف تجعل بايثون ترفض إنشاء كائن لم يفِ بالوعد الذي قطعه صنفه الأساس.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A small shop in the neighbourhood runs a solar charging point. People leave a power bank or a car battery on the shelf, it charges from the panels on the roof, and they pay by the minute. One Python file prints receipts, totals the day, lists what is still charging, and sends each customer a message when their battery is ready.</p>
+    <p class="ar">دكان صغير في الحي يشغّل نقطة شحن تعمل بالطاقة الشمسية. يترك الناس بطارية متنقلة أو بطارية سيارة على الرف، فتُشحن من الألواح على السطح، ويدفعون بالدقيقة. وملف بايثون واحد يطبع الإيصالات، ويجمع حصيلة اليوم، ويسرد ما لا يزال يُشحن، ويرسل إلى كل عميل رسالة عندما تجهز بطاريته.</p>
+    <p class="en">Lesson 3 was about who is allowed to <em>change</em> an attribute. This lesson is about something narrower and, in a growing program, more expensive: how much a caller is allowed to <em>know</em>. Properties are behind us — we will use them without explaining them again.</p>
+    <p class="ar">كان الدرس 3 عن من يُسمح له بـ<em>تغيير</em> خاصية. وهذا الدرس عن أمر أضيق، وأغلى ثمنًا في برنامج آخذ في النمو: كم يُسمح للمستدعي أن <em>يعرف</em>. والـ properties صارت خلفنا — سنستخدمها دون أن نشرحها من جديد.</p>
+  </div>
+
+  <h2 id="l4-h1"><span class="en">Concept 1 — A small public promise, a free hand inside</span><span class="ar">المفهوم 1 — وعد عام صغير، ويد حرة في الداخل</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">A charge session is stored as a tuple: <code>(customer, start_min, end_min)</code>, where the times are minutes since the shop opened and <code>end_min</code> is <code>None</code> while the battery is still on the shelf. Four different functions take one of these tuples apart. Each one writes <code>s[1]</code> and <code>s[2]</code> by hand, each one re-derives the minutes with its own copy of the same subtraction, and one of them unpacks with <code>name, start, end = s</code>.</p>
+    <p class="ar">تُخزَّن جلسة الشحن كـ tuple: <code>(customer, start_min, end_min)</code>، حيث الأوقات دقائق منذ افتتاح الدكان، و<code>end_min</code> تساوي <code>None</code> ما دامت البطارية على الرف. وأربع دوال مختلفة تفكّك واحدًا من هذه الـ tuples. كل واحدة تكتب <code>s[1]</code> و<code>s[2]</code> بيدها، وكل واحدة تعيد استخراج الدقائق بنسختها الخاصة من الطرح نفسه، وإحداها تفكّك بـ <code>name, start, end = s</code>.</p>
+    <p class="en">Then the shop buys a bigger inverter. When the sun drops, charging pauses automatically, and the owner refuses to bill customers for paused time. So the row needs a fourth value, <code>paused_minutes</code>, and it belongs with the other timing numbers: <code>(customer, start_min, paused_minutes, end_min)</code>.</p>
+    <p class="ar">ثم يشتري الدكان عاكسًا أكبر. فعندما تنخفض الشمس يتوقف الشحن تلقائيًا، ويرفض صاحب الدكان أن يحاسب العملاء على وقت التوقف. فيحتاج السطر إلى قيمة رابعة هي <code>paused_minutes</code>، ومكانها بين أرقام التوقيت الأخرى: <code>(customer, start_min, paused_minutes, end_min)</code>.</p>
+    <p class="en">Three of the four functions keep running after the change, and every number they print is wrong. The fourth crashes. The owner reads the receipts first.</p>
+    <p class="ar">ثلاث من الدوال الأربع تواصل العمل بعد التغيير، وكل رقم تطبعه خاطئ. والرابعة تنهار. وصاحب الدكان يقرأ الإيصالات أولًا.</p>
+  </div>
+
+  <h3 id="l4-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is <code>station.py</code> as the shop runs it today. Before you read the output, count how many times the number <code>2</code> appears as an index.</p>
+  <p class="ar">هذا ملف <code>station.py</code> كما يشغّله الدكان اليوم. وقبل أن تقرأ الناتج، أحصِ كم مرة يظهر الرقم <code>2</code> كفهرس.</p>
+
+<pre class="code bad"><code># (customer, start_min, end_min), minutes since opening
+sessions = [("Mahmoud", 5, 65),
+            ("Nidal", 8, 98),
+            ("Umm Rami", 12, 132),
+            ("Khaled", 20, None)]
+
+RATE = 0.50      # shekel per minute
+NOW = 140        # minutes since the shop opened
+
+
+def receipt_line(s):
+    end = s[2] if s[2] is not None else NOW
+    minutes = end - s[1]
+    return f"{s[0]:10} {minutes:4} min {minutes * RATE:7.2f}"
+
+
+def day_total(sessions):
+    total = 0.0
+    for s in sessions:
+        end = s[2] if s[2] is not None else NOW
+        total += (end - s[1]) * RATE
+    return total
+
+
+def running_now(sessions):
+    return [s[0] for s in sessions if s[2] is None]
+
+
+def sms_text(s):
+    name, start, end = s
+    minutes = (end if end is not None else NOW) - start
+    return f"{name}: your battery is ready, {minutes} min"
+
+
+for s in sessions:
+    print(receipt_line(s))
+print("still charging:", running_now(sessions))
+print(f"day total: {day_total(sessions):.2f}")
+print(sms_text(sessions[0]))
+</code></pre>
+
+  <div class="output">Mahmoud      60 min   30.00
+Nidal        90 min   45.00
+Umm Rami    120 min   60.00
+Khaled      120 min   60.00
+still charging: ['Khaled']
+day total: 195.00
+Mahmoud: your battery is ready, 60 min</div>
+
+  <p class="en">Correct output, and a perfectly reasonable script. Nothing here is bad Python. The trouble only arrives with the request.</p>
+  <p class="ar">ناتج صحيح، وبرنامج معقول تمامًا. ولا شيء هنا بايثون سيئة. والمشكلة لا تأتي إلا مع الطلب.</p>
+
+  <h3 id="l4-s2"><span class="en">Now add <code>paused_minutes</code> — and edit nothing else</span><span class="ar">الآن أضف <code>paused_minutes</code> — ولا تعدّل شيئًا آخر</span></h3>
+
+  <p class="en">The data rows gain one value. The four functions below the comment are copied over untouched, exactly as a real developer would do it when the change "is only in the data".</p>
+  <p class="ar">تكسب أسطر البيانات قيمة واحدة. والدوال الأربع تحت التعليق منسوخة بلا مساس، تمامًا كما يفعل مطوّر حقيقي عندما يكون التغيير «في البيانات فقط».</p>
+
+<pre class="code bad"><code># paused_minutes slots in after start_min
+# (customer, start_min, paused_minutes, end_min)
+sessions = [("Mahmoud", 5, 0, 65),
+            ("Nidal", 8, 12, 98),
+            ("Umm Rami", 12, 0, 132),
+            ("Khaled", 20, 7, None)]
+
+RATE = 0.50
+NOW = 140
+
+
+# NOT ONE line of these four functions was edited
+def receipt_line(s):
+    end = s[2] if s[2] is not None else NOW
+    minutes = end - s[1]
+    return f"{s[0]:10} {minutes:4} min {minutes * RATE:7.2f}"
+
+
+def day_total(sessions):
+    total = 0.0
+    for s in sessions:
+        end = s[2] if s[2] is not None else NOW
+        total += (end - s[1]) * RATE
+    return total
+
+
+def running_now(sessions):
+    return [s[0] for s in sessions if s[2] is None]
+
+
+def sms_text(s):
+    name, start, end = s
+    minutes = (end if end is not None else NOW) - start
+    return f"{name}: your battery is ready, {minutes} min"
+
+
+for s in sessions:
+    print(receipt_line(s))
+print("still charging:", running_now(sessions))
+print(f"day total: {day_total(sessions):.2f}")
+print(sms_text(sessions[0]))
+</code></pre>
+
+  <div class="output">Mahmoud      -5 min   -2.50
+Nidal         4 min    2.00
+Umm Rami    -12 min   -6.00
+Khaled      -13 min   -6.50
+still charging: []
+day total: -13.00
+Traceback (most recent call last):
+  File "station.py", line 41, in &lt;module&gt;
+    print(sms_text(sessions[0]))
+          ~~~~~~~~^^^^^^^^^^^^^
+  File "station.py", line 32, in sms_text
+    name, start, end = s
+    ^^^^^^^^^^^^^^^^
+ValueError: too many values to unpack (expected 3)</div>
+
+  <div class="warn">
+    <h4><span class="en">The crash is the good news</span><span class="ar">الانهيار هو الخبر الجيد</span></h4>
+    <p class="en">Look at the order of the damage. <code>sms_text</code> failed loudly, and it was the only honest function in the file — unpacking three names from a four-value tuple is something Python can see, so it stopped. The other three said nothing at all.</p>
+    <p class="ar">انظر إلى ترتيب الضرر. فـ <code>sms_text</code> فشلت بصوت عالٍ، وكانت الدالة الصريحة الوحيدة في الملف — فتفكيك ثلاثة أسماء من tuple بأربع قيم أمر تستطيع بايثون رؤيته، فتوقفت. أما الثلاث الأخريات فلم تقل شيئًا إطلاقًا.</p>
+    <p class="en">Mahmoud's receipt says he owes <strong>−2.50 shekels</strong>, because <code>s[2]</code> now reads <code>paused_minutes</code> — zero for him — so the arithmetic became <code>0 - 5</code>. Nidal paused for 12 minutes, so his receipt says 4 minutes and 2 shekels instead of 78 minutes and 39. The day total is a negative number. And <code>running_now</code> returned an empty list: Khaled's battery is on the shelf right now, drawing current, but <code>s[2] is None</code> is tested against <code>paused_minutes</code>, which is 7, so the shop believes nothing is charging.</p>
+    <p class="ar">إيصال محمود يقول إنه مدين بـ <strong>−2.50 شيكل</strong>، لأن <code>s[2]</code> تقرأ الآن <code>paused_minutes</code> — وهي صفر له — فأصبح الحساب <code>0 - 5</code>. ونضال توقف 12 دقيقة، فيقول إيصاله 4 دقائق وشيكلان بدلًا من 78 دقيقة و39 شيكلًا. وحصيلة اليوم رقم سالب. وأعادت <code>running_now</code> قائمة فارغة: فبطارية خالد على الرف الآن تسحب تيارًا، لكن الشرط <code>s[2] is None</code> يُفحص مقابل <code>paused_minutes</code> التي تساوي 7، فيعتقد الدكان أن لا شيء يُشحن.</p>
+    <p class="en">A wrong index is not an error in Python. It is a different, equally valid number.</p>
+    <p class="ar">الفهرس الخاطئ ليس خطأً في بايثون. بل رقم آخر صحيح بالقدر نفسه.</p>
+  </div>
+
+  <h3 id="l4-s3"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">Ask what each caller actually wanted to know. <code>receipt_line</code> wanted the minutes used and the cost. <code>day_total</code> wanted the cost. <code>running_now</code> wanted a yes-or-no: is this session still running? <code>sms_text</code> wanted the minutes used. Not one of them wanted a tuple, an index, or a subtraction.</p>
+  <p class="ar">اسأل ما الذي أراد كل مستدعٍ أن يعرفه فعلًا. فـ <code>receipt_line</code> أرادت الدقائق المستهلكة والتكلفة. و<code>day_total</code> أرادت التكلفة. و<code>running_now</code> أرادت نعم أو لا: هل هذه الجلسة لا تزال تعمل؟ و<code>sms_text</code> أرادت الدقائق المستهلكة. ولم تُرد أي واحدة منها tuple ولا فهرسًا ولا طرحًا.</p>
+
+  <p class="en">But a tuple has no way to answer a question; it can only be taken apart. So the <em>internal shape of the data leaked into the public surface</em>, and from there into every caller. By the time the shape changed, the shape was not a private decision any more — it was a contract signed in four places by people who never read it.</p>
+  <p class="ar">لكن الـ tuple لا سبيل له إلى الإجابة عن سؤال؛ فلا يمكن إلا تفكيكه. ومن ثم <em>تسرّبت البنية الداخلية للبيانات إلى السطح العام</em>، ومنه إلى كل مستدعٍ. وحين تغيّرت البنية لم تكن البنية قرارًا خاصًا بعد — بل عقدًا موقّعًا في أربعة مواضع من أناس لم يقرأوه قط.</p>
+
+  <h3 id="l4-s4"><span class="en">The conversion — publish the answers, hide the shape</span><span class="ar">التحويل — انشر الإجابات واخفِ البنية</span></h3>
+
+  <p class="en">Write a class whose public surface is exactly the four things the callers asked for, and nothing else: <code>customer</code>, <code>minutes_used()</code>, <code>cost()</code>, <code>is_running</code>. To prove the point, the first version keeps the tuple inside, untouched — the same data, the same arithmetic, just moved behind a door.</p>
+  <p class="ar">اكتب صنفًا سطحه العام هو بالضبط الأمور الأربعة التي طلبها المستدعون، ولا شيء غيرها: <code>customer</code> و<code>minutes_used()</code> و<code>cost()</code> و<code>is_running</code>. ولإثبات الفكرة، تحتفظ النسخة الأولى بالـ tuple في الداخل بلا مساس — البيانات نفسها والحساب نفسه، لكن منقولًا خلف باب.</p>
+
+<pre class="code good"><code>RATE = 0.50
+NOW = 140
+
+
+class ChargeSession:
+    def __init__(self, customer, start_min, end_min=None):
+        # internals, version 1: one tuple, like the old rows
+        self._row = (customer, start_min, end_min)
+
+    @property
+    def customer(self):
+        return self._row[0]
+
+    @property
+    def is_running(self):
+        return self._row[2] is None
+
+    def minutes_used(self):
+        end = self._row[2]
+        if end is None:
+            end = NOW
+        return end - self._row[1]
+
+    def cost(self):
+        return self.minutes_used() * RATE
+
+
+# ---- THE CALLER (never changes below this line) ----
+def receipt_line(s):
+    return (f"{s.customer:10} {s.minutes_used():4} min"
+            f" {s.cost():7.2f}")
+
+
+def day_total(book):
+    return sum(s.cost() for s in book)
+
+
+def running_now(book):
+    return [s.customer for s in book if s.is_running]
+
+
+def sms_text(s):
+    return (f"{s.customer}: your battery is ready,"
+            f" {s.minutes_used()} min")
+
+
+book = [ChargeSession("Mahmoud", 5, 65),
+        ChargeSession("Nidal", 8, 98),
+        ChargeSession("Umm Rami", 12, 132),
+        ChargeSession("Khaled", 20)]
+
+for s in book:
+    print(receipt_line(s))
+print("still charging:", running_now(book))
+print(f"day total: {day_total(book):.2f}")
+print(sms_text(book[0]))
+</code></pre>
+
+  <div class="output">Mahmoud      60 min   30.00
+Nidal        90 min   45.00
+Umm Rami    120 min   60.00
+Khaled      120 min   60.00
+still charging: ['Khaled']
+day total: 195.00
+Mahmoud: your battery is ready, 60 min</div>
+
+  <p class="en">Identical output to the original script, and the four callers have lost every index. <code>day_total</code> is one line. <code>running_now</code> no longer knows what "still running" <em>means</em> — it only knows how to ask. Notice also that <code>ChargeSession("Khaled", 20)</code> takes no third argument at all: "still charging" is now expressed by leaving the end time out, not by a caller typing <code>None</code> in the right slot.</p>
+  <p class="ar">ناتج مطابق للبرنامج الأصلي، والمستدعون الأربعة فقدوا كل فهرس. فـ <code>day_total</code> سطر واحد. و<code>running_now</code> لم تعد تعرف ما <em>تعنيه</em> «لا تزال تعمل» — بل تعرف فقط كيف تسأل. ولاحظ أيضًا أن <code>ChargeSession("Khaled", 20)</code> لا تأخذ معامِلًا ثالثًا إطلاقًا: فـ «لا يزال يُشحن» يُعبَّر عنها الآن بترك وقت الانتهاء، لا بأن يكتب مستدعٍ <code>None</code> في الخانة الصحيحة.</p>
+
+  <h3 id="l4-s5"><span class="en">The same request, the second time</span><span class="ar">الطلب نفسه، في المرة الثانية</span></h3>
+
+  <p class="en">Now the inverter arrives again. This time the internals change twice over: the tuple is thrown away for named fields, and <code>paused_minutes</code> is added. Every line below the caller comment is pasted from the previous listing without one keystroke of editing.</p>
+  <p class="ar">الآن يصل العاكس من جديد. وهذه المرة يتغيّر الداخل تغيّرين: فيُطرح الـ tuple جانبًا لصالح حقول مسمّاة، وتُضاف <code>paused_minutes</code>. وكل سطر تحت تعليق المستدعي ملصوق من القائمة السابقة بلا ضغطة مفتاح واحدة من التعديل.</p>
+
+<pre class="code good"><code>RATE = 0.50
+NOW = 140
+
+
+class ChargeSession:
+    def __init__(self, customer, start_min, end_min=None,
+                 paused_minutes=0):
+        # internals, version 2: named fields, plus the new
+        # paused_minutes the team asked for
+        self.customer = customer
+        self._start = start_min
+        self._end = end_min
+        self._paused = paused_minutes
+
+    @property
+    def is_running(self):
+        return self._end is None
+
+    def minutes_used(self):
+        end = self._end if self._end is not None else NOW
+        return end - self._start - self._paused
+
+    def cost(self):
+        return self.minutes_used() * RATE
+
+
+# ---- THE CALLER: byte-for-byte the same as before ----
+def receipt_line(s):
+    return (f"{s.customer:10} {s.minutes_used():4} min"
+            f" {s.cost():7.2f}")
+
+
+def day_total(book):
+    return sum(s.cost() for s in book)
+
+
+def running_now(book):
+    return [s.customer for s in book if s.is_running]
+
+
+def sms_text(s):
+    return (f"{s.customer}: your battery is ready,"
+            f" {s.minutes_used()} min")
+
+
+book = [ChargeSession("Mahmoud", 5, 65),
+        ChargeSession("Nidal", 8, 98, paused_minutes=12),
+        ChargeSession("Umm Rami", 12, 132),
+        ChargeSession("Khaled", 20, paused_minutes=7)]
+
+for s in book:
+    print(receipt_line(s))
+print("still charging:", running_now(book))
+print(f"day total: {day_total(book):.2f}")
+print(sms_text(book[0]))
+</code></pre>
+
+  <div class="output">Mahmoud      60 min   30.00
+Nidal        78 min   39.00
+Umm Rami    120 min   60.00
+Khaled      113 min   56.50
+still charging: ['Khaled']
+day total: 185.50
+Mahmoud: your battery is ready, 60 min</div>
+
+  <p class="en">Every number is right. Nidal is billed for 78 minutes, not 90 and not 4 — his 12 paused minutes came off. Khaled, still charging, is at 113. The day total dropped from 195.00 to 185.50, which is exactly the 19 paused minutes the shop decided not to charge for. Khaled is still on the "still charging" list, where he belongs.</p>
+  <p class="ar">كل رقم صحيح. فنضال يُحاسب على 78 دقيقة، لا 90 ولا 4 — فقد خُصمت دقائق توقفه الاثنتا عشرة. وخالد، الذي لا يزال يُشحن، على 113. وانخفضت حصيلة اليوم من 195.00 إلى 185.50، وهو بالضبط ثمن الدقائق التسع عشرة المتوقفة التي قرر الدكان ألا يحاسب عليها. وخالد لا يزال في قائمة «لا يزال يُشحن»، وهو موضعه الصحيح.</p>
+
+  <p class="en">Also notice what one of the internal edits was: <code>customer</code> stopped being a property and became a plain attribute, because once the tuple was gone there was nothing left to translate. That is a change to the class's own code, and the callers still write <code>s.customer</code>. They could not tell the difference if they tried.</p>
+  <p class="ar">ولاحظ أيضًا ما كان أحد التعديلات الداخلية: فقد كفّت <code>customer</code> عن كونها property وصارت خاصية عادية، لأنه بعد زوال الـ tuple لم يبقَ ما يُترجَم. وهذا تغيير في كود الصنف نفسه، والمستدعون لا يزالون يكتبون <code>s.customer</code>. ولن يستطيعوا تمييز الفرق لو حاولوا.</p>
+
+  <div class="tip">
+    <h4><span class="en">Interface and implementation — say it once, clearly</span><span class="ar">الواجهة والتنفيذ — قُلها مرة واحدة بوضوح</span></h4>
+    <p class="en">The <strong>interface</strong> is what the object promises: the names a caller may use and what they mean. The <strong>implementation</strong> is how the object keeps that promise: the attributes, the data structures, the arithmetic. <code>minutes_used()</code> is interface. <code>self._start</code>, <code>self._paused</code>, and the subtraction between them are implementation.</p>
+    <p class="ar">الـ <strong>واجهة</strong> هي ما يَعِد به الكائن: الأسماء التي يجوز للمستدعي استخدامها ومعانيها. والـ <strong>تنفيذ</strong> هو كيف يفي الكائن بذلك الوعد: الخصائص وبنى البيانات والحساب. فـ <code>minutes_used()</code> واجهة. و<code>self._start</code> و<code>self._paused</code> والطرح بينهما تنفيذ.</p>
+    <p class="en">Everything you may change freely tomorrow is implementation. Everything you may not change without breaking somebody is interface. <strong>Abstraction</strong> is the work of deciding which is which — and the smaller you keep the second group, the more freedom you keep for yourself.</p>
+    <p class="ar">كل ما يجوز لك تغييره بحرية غدًا تنفيذ. وكل ما لا يجوز لك تغييره دون أن تكسر أحدًا واجهة. و<strong>التجريد</strong> هو عمل تحديد أيّهما أيّ — وكلما أصغرت المجموعة الثانية، أبقيت لنفسك حرية أكبر.</p>
+  </div>
+
+  <h3 id="l4-s6"><span class="en">The two columns, for this one class</span><span class="ar">العمودان، لهذا الصنف وحده</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Public surface — the promise</span><span class="ar">السطح العام — الوعد</span></th>
+        <th><span class="en">Internal detail — free to change</span><span class="ar">تفصيل داخلي — حر في التغيير</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>s.customer</code> — <span class="en">whose battery this is</span><span class="ar">بطاريةُ مَن هذه</span></td>
+        <td><span class="en">whether it is a stored attribute or read out of a tuple</span><span class="ar">هل هي خاصية مخزَّنة أم مقروءة من tuple</span></td>
+      </tr>
+      <tr>
+        <td><code>s.minutes_used()</code> — <span class="en">billable minutes, paused time already deducted</span><span class="ar">الدقائق المحاسَب عليها، وقد خُصم وقت التوقف</span></td>
+        <td><code>_start</code>, <code>_end</code>, <code>_paused</code> — <span class="en">the fields and the subtraction between them</span><span class="ar">الحقول والطرح الذي بينها</span></td>
+      </tr>
+      <tr>
+        <td><code>s.cost()</code> — <span class="en">what the customer pays, in shekels</span><span class="ar">ما يدفعه العميل بالشواكل</span></td>
+        <td><code>RATE</code> — <span class="en">one flat rate today; could become day/night pricing tomorrow</span><span class="ar">سعر موحّد واحد اليوم؛ وقد يصبح تسعيرًا نهاريًا وليليًا غدًا</span></td>
+      </tr>
+      <tr>
+        <td><code>s.is_running</code> — <span class="en">is the battery on the shelf right now</span><span class="ar">هل البطارية على الرف الآن</span></td>
+        <td><span class="en">the fact that "running" is encoded as <code>_end is None</code></span><span class="ar">كون «يعمل» مرمَّزة بـ <code>_end is None</code></span></td>
+      </tr>
+      <tr>
+        <td><span class="en">the two required arguments to <code>ChargeSession(...)</code></span><span class="ar">المعامِلان المطلوبان في <code>ChargeSession(...)</code></span></td>
+        <td><code>NOW</code> — <span class="en">a module constant today; could become <code>datetime.now()</code></span><span class="ar">ثابت في الوحدة اليوم؛ وقد يصبح <code>datetime.now()</code></span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="en">Read the left column out loud and you have described the object to a colleague in four sentences, without mentioning a single data structure. That is the test of a good interface: it can be explained without being opened.</p>
+  <p class="ar">اقرأ العمود الأيسر بصوت عالٍ فتكون قد وصفت الكائن لزميل في أربع جملات، دون أن تذكر بنية بيانات واحدة. وهذا هو اختبار الواجهة الجيدة: أن تُشرح دون أن تُفتح.</p>
+
+  <div class="note">
+    <h4><span class="en">Why <code>minutes_used()</code> has brackets and <code>is_running</code> does not</span><span class="ar">لماذا لـ <code>minutes_used()</code> أقواس ولـ <code>is_running</code> لا</span></h4>
+    <p class="en">Nothing forces the choice; it is a signal to the reader. <code>is_running</code> reads like a state the object is simply in, so it is a property. <code>minutes_used()</code> and <code>cost()</code> read like a figure being worked out, so they keep their brackets. Pick a convention and hold it across a class — but remember the Lesson 3 lesson underneath it: whichever you choose, the caller cannot see how the answer is produced, and that is the part that matters.</p>
+    <p class="ar">لا شيء يفرض الاختيار؛ فهو إشارة إلى القارئ. فـ <code>is_running</code> تُقرأ كحالة يكون فيها الكائن ببساطة، فهي property. و<code>minutes_used()</code> و<code>cost()</code> تُقرآن كرقم يُستخرج، فتبقى لهما أقواسهما. فاختر اتفاقًا والتزم به في الصنف كله — لكن تذكّر درس الدرس 3 الكامن تحته: فأيًّا اخترت، لا يستطيع المستدعي أن يرى كيف تُنتَج الإجابة، وهذا هو الجزء المهم.</p>
+  </div>
+
+  <h3 id="l4-s7"><span class="en">Second example — a clinic water tank that changed its gauge</span><span class="ar">مثال ثانٍ — خزان ماء في عيادة غيّر مقياسه</span></h3>
+
+  <p class="en">A clinic shows its water level on a screen in the waiting room. The old tank reported litres; the new roof tank has a float gauge that reports depth in centimetres instead. Two completely different internals, one promise — <code>litres_left()</code> and <code>is_low()</code> — and one display function that works for both without knowing which it is holding.</p>
+  <p class="ar">تعرض عيادة مستوى ماءها على شاشة في غرفة الانتظار. والخزان القديم كان يُبلّغ باللترات؛ أما خزان السطح الجديد فله مقياس عوّامة يُبلّغ بالعمق بالسنتيمترات. فداخلان مختلفان تمامًا، ووعد واحد — <code>litres_left()</code> و<code>is_low()</code> — ودالة عرض واحدة تعمل لكليهما دون أن تعرف أيّهما تحمل.</p>
+
+<pre class="code good"><code>class TankV1:                 # internals: litres
+    def __init__(self, litres):
+        self._litres = litres
+
+    def litres_left(self):
+        return round(self._litres)
+
+    def is_low(self):
+        return self.litres_left() &lt; 200
+
+class TankV2:                 # internals: depth in cm
+    def __init__(self, depth_cm):
+        self._depth = depth_cm    # 1 cm == 8 litres
+
+    def litres_left(self):
+        return round(self._depth * 8)
+
+    def is_low(self):
+        return self.litres_left() &lt; 200
+
+# THE WAITING-ROOM DISPLAY — one version, both tanks
+def tank_line(name, t):
+    flag = " LOW" if t.is_low() else ""
+    return f"{name:7} {t.litres_left():5} L{flag}"
+
+print(tank_line("ground", TankV1(640)))
+print(tank_line("roof", TankV2(20)))
+</code></pre>
+
+  <div class="output">ground    640 L
+roof      160 L LOW</div>
+
+  <p class="en">One tank stores a volume, the other stores a height, and the unit conversion lives inside the class that needs it — not in the display, which never mentions a centimetre. Had <code>tank_line</code> been written against <code>t._litres</code>, replacing the tank would have meant rewriting the screen.</p>
+  <p class="ar">خزان يخزّن حجمًا والآخر يخزّن ارتفاعًا، وتحويل الوحدات يقيم داخل الصنف الذي يحتاجه — لا في العرض الذي لا يذكر سنتيمترًا قط. ولو كانت <code>tank_line</code> مكتوبة وفق <code>t._litres</code> لكان استبدال الخزان يعني إعادة كتابة الشاشة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">In the broken version, three functions printed wrong numbers in silence while <code>sms_text</code> raised <code>ValueError</code>. Why did only that one fail loudly?</span><span class="ar">في النسخة المعطوبة، طبعت ثلاث دوال أرقامًا خاطئة في صمت بينما رفعت <code>sms_text</code> خطأ <code>ValueError</code>. فلماذا فشلت تلك وحدها بصوت عالٍ؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because it was the only function that read <code>s[2]</code>, and index 2 no longer exists in the new tuple.</span><span class="ar">لأنها كانت الدالة الوحيدة التي تقرأ <code>s[2]</code>، والفهرس 2 لم يعد موجودًا في الـ tuple الجديد.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because unpacking into three names states how many values there are, so Python could check it. Reading <code>s[2]</code> states nothing, so a four-value tuple answers happily with the wrong field.</span><span class="ar">لأن التفكيك إلى ثلاثة أسماء يقرّر عدد القيم، فأمكن لبايثون فحصه. أما قراءة <code>s[2]</code> فلا تقرّر شيئًا، فيجيب tuple بأربع قيم بارتياح بالحقل الخاطئ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>sms_text</code> ran last, and by then the earlier functions had already corrupted the session data.</span><span class="ar">لأن <code>sms_text</code> نُفِّذت أخيرًا، وكانت الدوال السابقة قد أفسدت بيانات الجلسات بحلول ذلك الوقت.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because it used an f-string, and f-strings validate the types of the values they interpolate.</span><span class="ar">لأنها استخدمت f-string، والـ f-strings تفحص أنواع القيم التي تُدخلها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Unpacking is a statement about the shape of the data — "there are exactly three of these" — and Python enforces it, which is why the message is <code>too many values to unpack (expected 3)</code>. Indexing makes no such statement: <code>s[2]</code> only asks for the third slot, and a four-value tuple has one, so Mahmoud's cost came out as −2.50 with no complaint. The tempting wrong answer is the first, and it is backwards: <code>s[2]</code> is exactly what <em>did</em> still exist, and that is the whole problem — it existed and meant something different. Only the three silent functions used it.</div>
+      <div class="ar">التفكيك تقرير عن بنية البيانات — «هذه ثلاث بالضبط» — وبايثون تفرضه، ولهذا كانت الرسالة <code>too many values to unpack (expected 3)</code>. أما الفهرسة فلا تقرّر شيئًا كهذا: فـ <code>s[2]</code> لا تطلب إلا الخانة الثالثة، وtuple بأربع قيم فيه واحدة، فخرجت تكلفة محمود −2.50 بلا أي اعتراض. والإجابة المغرية الخاطئة هي الأولى، وهي معكوسة: فـ <code>s[2]</code> هي بالضبط ما <em>بقي</em> موجودًا، وهذه هي المشكلة كلها — فقد وُجد وصار يعني شيئًا آخر. والدوال الصامتة الثلاث وحدها هي التي استخدمته.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — A shelf slot that answers questions</span><span class="ar">تمرين 1.1 — خانة رف تجيب عن الأسئلة</span></h4>
+    <p class="en">Each shelf slot holds a battery and knows its charge in watt-hours and its capacity in watt-hours. Give <code>BatterySlot</code> two public methods — <code>percent()</code>, a whole number rounded, and <code>state_text()</code>, which is <code>"full"</code> at 100 or above, <code>"low"</code> at 20 or below, and <code>"charging"</code> otherwise. The caller must not change. Then, as a second step, change the internals to store a single fraction instead of the two watt-hour numbers, and confirm the caller still prints the same three lines.</p>
+    <p class="ar">كل خانة رف تحمل بطارية وتعرف شحنتها بالواط-ساعة وسعتها بالواط-ساعة. امنح <code>BatterySlot</code> دالتين عامتين — <code>percent()</code> عددًا صحيحًا مقرَّبًا، و<code>state_text()</code> التي تكون <code>"full"</code> عند 100 أو أكثر، و<code>"low"</code> عند 20 أو أقل، و<code>"charging"</code> فيما عدا ذلك. والمستدعي يجب ألا يتغير. ثم، كخطوة ثانية، غيّر الداخل ليخزّن كسرًا واحدًا بدلًا من رقمي الواط-ساعة، وتأكّد أن المستدعي لا يزال يطبع الأسطر الثلاثة نفسها.</p>
+
+<pre class="code"><code>class BatterySlot:
+    def __init__(self, label, charge_wh, capacity_wh):
+        self.label = label
+        self._charge = charge_wh
+        self._capacity = capacity_wh
+
+    # 1. percent(): whole-number percent, rounded
+    # 2. state_text(): "full" at 100 or more, "low" at
+    #    20 or below, otherwise "charging"
+
+
+# THE CALLER — do not change these three lines
+def shelf_report(slots):
+    for s in slots:
+        print(f"{s.label:4} {s.percent():4}% {s.state_text()}")
+
+
+shelf_report([BatterySlot("A1", 480, 600),
+              BatterySlot("A2", 60, 600),
+              BatterySlot("A3", 600, 600)])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class BatterySlot:
+    def __init__(self, label, charge_wh, capacity_wh):
+        self.label = label
+        self._charge = charge_wh
+        self._capacity = capacity_wh
+
+    def percent(self):
+        return round(self._charge * 100 / self._capacity)
+
+    def state_text(self):
+        p = self.percent()
+        if p &gt;= 100:
+            return "full"
+        if p &lt;= 20:
+            return "low"
+        return "charging"
+
+
+# THE CALLER — unchanged
+def shelf_report(slots):
+    for s in slots:
+        print(f"{s.label:4} {s.percent():4}% {s.state_text()}")
+
+
+shelf_report([BatterySlot("A1", 480, 600),
+              BatterySlot("A2", 60, 600),
+              BatterySlot("A3", 600, 600)])
+</code></pre>
+      <div class="output">A1     80% charging
+A2     10% low
+A3    100% full</div>
+
+      <p class="en">And now the second step — the watt-hour fields disappear entirely:</p>
+      <p class="ar">والآن الخطوة الثانية — يختفي حقلا الواط-ساعة تمامًا:</p>
+
+<pre class="code good"><code>class BatterySlot:
+    def __init__(self, label, charge_wh, capacity_wh):
+        self.label = label
+        # internals changed: store the fraction, not the Wh
+        self._fraction = charge_wh / capacity_wh
+
+    def percent(self):
+        return round(self._fraction * 100)
+
+    def state_text(self):
+        p = self.percent()
+        if p &gt;= 100:
+            return "full"
+        if p &lt;= 20:
+            return "low"
+        return "charging"
+
+
+# THE CALLER — still not one character changed
+def shelf_report(slots):
+    for s in slots:
+        print(f"{s.label:4} {s.percent():4}% {s.state_text()}")
+
+
+shelf_report([BatterySlot("A1", 480, 600),
+              BatterySlot("A2", 60, 600),
+              BatterySlot("A3", 600, 600)])
+</code></pre>
+      <div class="output">A1     80% charging
+A2     10% low
+A3    100% full</div>
+      <p class="en">Two attributes became one, of a different type, holding a different kind of number — and the report is identical. Note that <code>state_text()</code> calls <code>self.percent()</code> rather than touching the storage itself: the class uses its own interface internally, so the rounding rule exists in one place and the second rewrite had only one line to fix instead of two. Had <code>shelf_report</code> been written as <code>s._charge * 100 / s._capacity</code>, the second version would not have run at all.</p>
+      <p class="ar">صارت خاصيتان خاصية واحدة من نوع مختلف تحمل نوعًا مختلفًا من الأرقام — والتقرير مطابق. ولاحظ أن <code>state_text()</code> تستدعي <code>self.percent()</code> بدلًا من ملامسة التخزين نفسه: فالصنف يستخدم واجهته الخاصة داخليًا، فتوجد قاعدة التقريب في موضع واحد ولم يكن في النسخة الثانية إلا سطر واحد لإصلاحه بدلًا من سطرين. ولو كانت <code>shelf_report</code> مكتوبة <code>s._charge * 100 / s._capacity</code> لما عملت النسخة الثانية إطلاقًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — Prepaid cards that stop doing arithmetic in public</span><span class="ar">تمرين 1.2 — بطاقات مدفوعة مسبقًا تكفّ عن الحساب في العلن</span></h4>
+    <p class="en">Regulars keep a prepaid card at the shop. The starter code holds each card as a dict and every caller computes <code>paid - used</code> itself — including the line that spends 10 shekels by adding to <code>used</code> with no check at all. Write a <code>PrepaidCard</code> class publishing <code>name</code>, <code>balance()</code>, <code>is_low()</code> (under 5 shekels) and <code>charge(amount)</code>, where <code>charge</code> raises <code>ValueError</code> if the amount exceeds the balance and returns the new balance otherwise. Round the balance to 2 decimals.</p>
+    <p class="ar">يحتفظ العملاء الدائمون ببطاقة مدفوعة مسبقًا في الدكان. والكود الابتدائي يحمل كل بطاقة كقاموس وكل مستدعٍ يحسب <code>paid - used</code> بنفسه — ومن ذلك السطر الذي يصرف 10 شواكل بالإضافة إلى <code>used</code> بلا أي فحص. اكتب صنف <code>PrepaidCard</code> ينشر <code>name</code> و<code>balance()</code> و<code>is_low()</code> (أقل من 5 شواكل) و<code>charge(amount)</code>، حيث ترفع <code>charge</code> خطأ <code>ValueError</code> إن تجاوز المبلغ الرصيد وتعيد الرصيد الجديد فيما عدا ذلك. وقرّب الرصيد إلى منزلتين عشريتين.</p>
+
+<pre class="code bad"><code># every caller unpacks the dict and does the sums itself
+cards = [{"name": "Mahmoud", "paid": 50.0, "used": 31.5},
+         {"name": "Nidal", "paid": 20.0, "used": 19.0},
+         {"name": "Umm Rami", "paid": 40.0, "used": 5.0}]
+
+for c in cards:
+    left = c["paid"] - c["used"]
+    flag = " LOW" if left &lt; 5 else ""
+    print(f"{c['name']:10} {left:6.2f}{flag}")
+
+total = sum(c["paid"] - c["used"] for c in cards)
+print(f"shop owes: {total:.2f}")
+
+# spend 10 on Umm Rami's card, with no check at all
+cards[2]["used"] += 10
+print("Umm Rami now:",
+      cards[2]["paid"] - cards[2]["used"])
+</code></pre>
+
+    <div class="output">Mahmoud     18.50
+Nidal        1.00 LOW
+Umm Rami    35.00
+shop owes: 54.50
+Umm Rami now: 25.0</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class PrepaidCard:
+    def __init__(self, name, paid, used=0.0):
+        self.name = name
+        self._paid = paid
+        self._used = used
+
+    def balance(self):
+        return round(self._paid - self._used, 2)
+
+    def is_low(self):
+        return self.balance() &lt; 5
+
+    def charge(self, amount):
+        if amount &gt; self.balance():
+            raise ValueError(f"only {self.balance()} left")
+        self._used += amount
+        return self.balance()
+
+
+cards = [PrepaidCard("Mahmoud", 50.0, 31.5),
+         PrepaidCard("Nidal", 20.0, 19.0),
+         PrepaidCard("Umm Rami", 40.0, 5.0)]
+
+for c in cards:
+    flag = " LOW" if c.is_low() else ""
+    print(f"{c.name:10} {c.balance():6.2f}{flag}")
+
+total = sum(c.balance() for c in cards)
+print(f"shop owes: {total:.2f}")
+print("Umm Rami now:", cards[2].charge(10))
+
+try:
+    cards[1].charge(10)
+except ValueError as e:
+    print("refused:", e)
+</code></pre>
+      <div class="output">Mahmoud     18.50
+Nidal        1.00 LOW
+Umm Rami    35.00
+shop owes: 54.50
+Umm Rami now: 25.0
+refused: only 1.0 left</div>
+      <p class="en">The first five lines are unchanged, which is the point: this was a pure interface change, not a behaviour change. What is new is the last line. Nidal has 1 shekel and a 10-shekel charge is now impossible, because there is no longer any way to spend money except through <code>charge()</code> — the dict version had no door, only an open field called <code>used</code>. And <code>_paid</code> and <code>_used</code> are now free: the shop could keep a list of individual top-ups instead, for a printable history, and nothing above would move.</p>
+      <p class="ar">الأسطر الخمسة الأولى بلا تغيير، وهذا هو المقصود: فقد كان هذا تغيير واجهة محضًا لا تغيير سلوك. والجديد هو السطر الأخير. فلدى نضال شيكل واحد، وصرف عشرة شواكل مستحيل الآن، لأنه لم يبقَ سبيل إلى صرف المال إلا عبر <code>charge()</code> — فنسخة القاموس لم يكن لها باب، بل حقل مفتوح اسمه <code>used</code>. و<code>_paid</code> و<code>_used</code> حرّتان الآن: فيستطيع الدكان أن يحفظ قائمة بكل تعبئة على حدة بدلًا منهما، ليكون له سجل قابل للطباعة، ولا يتحرك شيء مما سبق.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">In Concept 1 you replaced a tuple with named fields and added <code>paused_minutes</code>, and not one caller changed. Which single decision made that possible?</span><span class="ar">في المفهوم 1 استبدلت الـ tuple بحقول مسمّاة وأضفت <code>paused_minutes</code>، ولم يتغير مستدعٍ واحد. فأي قرار واحد جعل ذلك ممكنًا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Storing the timing values with a leading underscore, which prevented outside code from reading them.</span><span class="ar">تخزين قيم التوقيت بشرطة سفلية في البداية، وهو ما منع الكود الخارجي من قراءتها.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Publishing answers to the callers' questions — <code>minutes_used()</code>, <code>cost()</code>, <code>is_running</code> — instead of publishing the data they would have to interpret themselves.</span><span class="ar">نشر إجابات لأسئلة المستدعين — <code>minutes_used()</code> و<code>cost()</code> و<code>is_running</code> — بدلًا من نشر البيانات التي كان عليهم تفسيرها بأنفسهم.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Making <code>paused_minutes</code> a keyword argument with a default, so existing construction calls kept working.</span><span class="ar">جعل <code>paused_minutes</code> معامِلًا مفتاحيًا بقيمة افتراضية، فواصلت استدعاءات الإنشاء القائمة عملها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Using a class at all, since any class keeps its attributes separate from the code that uses it.</span><span class="ar">استخدام صنف أصلًا، لأن أي صنف يفصل خصائصه عن الكود الذي يستخدمه.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The callers asked four questions and the class answered exactly those four, so the fields behind them were nobody else's business and could be redesigned freely. The tempting wrong answer is the third: the default on <code>paused_minutes</code> is genuinely useful and really did keep <code>ChargeSession("Mahmoud", 5, 65)</code> valid — but it only protects the <em>construction</em> lines. It would have done nothing for <code>receipt_line</code> or <code>running_now</code>, which broke in the tuple version without constructing anything. Answer one is wrong too: as Lesson 3 showed, an underscore prevents nothing; the callers simply had no reason to look.</div>
+      <div class="ar">سأل المستدعون أربعة أسئلة وأجاب الصنف عن تلك الأربعة بالضبط، فصارت الحقول خلفها لا تخصّ أحدًا غيره وأمكن إعادة تصميمها بحرية. والإجابة المغرية الخاطئة هي الثالثة: فالقيمة الافتراضية في <code>paused_minutes</code> نافعة فعلًا وأبقت <code>ChargeSession("Mahmoud", 5, 65)</code> صحيحة حقًا — لكنها لا تحمي إلا أسطر <em>الإنشاء</em>. ولم تكن ستفعل شيئًا لـ <code>receipt_line</code> أو <code>running_now</code>، وقد انكسرتا في نسخة الـ tuple دون أن تُنشئا شيئًا. والإجابة الأولى خاطئة أيضًا: فكما أظهر الدرس 3، الشرطة السفلية لا تمنع شيئًا؛ بل لم يكن للمستدعين سبب للنظر.</div>
+    </div>
+  </div>
+
+  <h2 id="l4-h2"><span class="en">Concept 2 — Naming the promise itself</span><span class="ar">المفهوم 2 — تسمية الوعد نفسه</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The shop tells customers when their battery is ready. There are three ways to do it, written by three different people at three different times. <code>send_sms(number, message)</code>. <code>send_whatsapp(text, phone)</code> — message first, number second, because that is how it felt natural to whoever wrote it. <code>print_slip(customer_name, body, copies=1)</code> for the people who wait at the counter.</p>
+    <p class="ar">يبلّغ الدكان العملاء عندما تجهز بطارياتهم. وهناك ثلاث طرق لذلك، كتبها ثلاثة أشخاص مختلفون في ثلاثة أوقات مختلفة. فـ <code>send_sms(number, message)</code>. و<code>send_whatsapp(text, phone)</code> — الرسالة أولًا والرقم ثانيًا، لأن هذا ما بدا طبيعيًا لمن كتبها. و<code>print_slip(customer_name, body, copies=1)</code> لمن ينتظرون عند الطاولة.</p>
+    <p class="en">Three names, three parameter orders, one of them with an extra argument. The calling code holds all of that in its head, in an <code>if/elif</code> chain, and gets it right by memory alone.</p>
+    <p class="ar">ثلاثة أسماء وثلاثة ترتيبات للمعامِلات، وأحدها بمعامِل زائد. والكود المستدعي يحمل كل ذلك في رأسه في سلسلة <code>if/elif</code>، ويصيب بالذاكرة وحدها.</p>
+    <p class="en">Then a new intern adds Telegram. He writes <code>send_telegram(message, chat_id, retries)</code> — a fourth order, and a third parameter with no default. He adds one <code>elif</code> branch, patterned on the lines above it, and it looks right. Telegram is the channel two customers use, so nothing fails in testing. It fails at the counter, on a Thursday, in front of the customer.</p>
+    <p class="ar">ثم يضيف متدرب جديد تِلِغرام. فيكتب <code>send_telegram(message, chat_id, retries)</code> — ترتيب رابع، ومعامِل ثالث بلا قيمة افتراضية. ويضيف فرع <code>elif</code> واحدًا على نمط الأسطر التي فوقه، فيبدو صحيحًا. وتِلِغرام هي القناة التي يستخدمها عميلان، فلا يفشل شيء في الاختبار. بل يفشل عند الطاولة، يوم خميس، أمام العميل.</p>
+  </div>
+
+<pre class="code bad"><code>def send_sms(number, message):
+    print(f"[SMS -&gt; {number}] {message}")
+
+
+def send_whatsapp(text, phone):
+    print(f"[WhatsApp -&gt; {phone}] {text}")
+
+
+def print_slip(customer_name, body, copies=1):
+    for _ in range(copies):
+        print(f"[SLIP for {customer_name}] {body}")
+
+
+# the intern's fourth sender, written on a Thursday
+def send_telegram(message, chat_id, retries):
+    print(f"[Telegram -&gt; {chat_id}] {message}")
+
+
+def charging_done(customer, channel, address):
+    msg = f"{customer}, your battery is fully charged."
+    if channel == "sms":
+        send_sms(address, msg)
+    elif channel == "whatsapp":
+        send_whatsapp(msg, address)
+    elif channel == "slip":
+        print_slip(customer, msg)
+    elif channel == "telegram":
+        send_telegram(address, msg)     # looks like the rest
+    else:
+        print("unknown channel:", channel)
+
+
+charging_done("Mahmoud", "sms", "0599-111222")
+charging_done("Nidal", "whatsapp", "0599-333444")
+charging_done("Umm Rami", "slip", "counter")
+charging_done("Khaled", "telegram", "@khaled_gz")
+</code></pre>
+
+  <div class="output">[SMS -&gt; 0599-111222] Mahmoud, your battery is fully charged.
+[WhatsApp -&gt; 0599-333444] Nidal, your battery is fully charged.
+[SLIP for Umm Rami] Umm Rami, your battery is fully charged.
+Traceback (most recent call last):
+  File "notify.py", line 36, in &lt;module&gt;
+    charging_done("Khaled", "telegram", "@khaled_gz")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "notify.py", line 28, in charging_done
+    send_telegram(address, msg)     # looks like the rest
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+TypeError: send_telegram() missing 1 required positional argument: 'retries'</div>
+
+  <h3 id="l4-s8"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">There <em>is</em> an interface here — "something that delivers a message to a customer" — but it was never written down anywhere. It exists only as a habit, so each new sender invents its own version of it, and the <code>if/elif</code> chain is where all four versions have to be remembered at once. Nothing in the program states what a sender must look like, so nothing can check it before the moment of the call.</p>
+  <p class="ar">هناك واجهة <em>فعلًا</em> هنا — «شيء يسلّم رسالة إلى عميل» — لكنها لم تُكتب في أي موضع قط. فهي لا توجد إلا كعادة، ومن ثم يخترع كل مُرسِل جديد نسخته الخاصة منها، وسلسلة <code>if/elif</code> هي الموضع الذي يجب أن تُتذكَّر فيه النسخ الأربع كلها في وقت واحد. ولا شيء في البرنامج يقرّر كيف يجب أن يبدو المُرسِل، فلا شيء يستطيع فحصه قبل لحظة الاستدعاء.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — agree on one method name</span><span class="ar">الخطوة 1 — اتفقوا على اسم دالة واحد</span></span>
+    <p class="en">Make each sender a class, and give all of them the same method: <code>send(to, text)</code>. Same name, same two parameters, same order. The <code>if/elif</code> chain disappears completely, because the caller no longer chooses a function — it is handed an object and calls the one method.</p>
+    <p class="ar">اجعل كل مُرسِل صنفًا، وامنحها كلها الدالة نفسها: <code>send(to, text)</code>. الاسم نفسه والمعامِلان نفسهما والترتيب نفسه. فتزول سلسلة <code>if/elif</code> تمامًا، لأن المستدعي لم يعد يختار دالة — بل يُسلَّم كائنًا فيستدعي الدالة الواحدة.</p>
+
+<pre class="code good"><code>class SmsNotifier:
+    def send(self, to, text):
+        print(f"[SMS -&gt; {to}] {text}")
+
+
+class WhatsAppNotifier:
+    def send(self, to, text):
+        print(f"[WhatsApp -&gt; {to}] {text}")
+
+
+class SlipNotifier:
+    def send(self, to, text):
+        print(f"[SLIP for {to}] {text}")
+
+
+# the intern's fourth class — forgets the agreement
+class TelegramNotifier:
+    def deliver(self, chat_id, message, retries=3):
+        print(f"[Telegram -&gt; {chat_id}] {message}")
+
+
+def charging_done(notifier, customer, address):
+    msg = f"{customer}, your battery is fully charged."
+    notifier.send(address, msg)
+
+
+charging_done(SmsNotifier(), "Mahmoud", "0599-111222")
+charging_done(WhatsAppNotifier(), "Nidal", "0599-333444")
+charging_done(SlipNotifier(), "Umm Rami", "Umm Rami")
+
+bad = TelegramNotifier()        # created with no complaint
+print("object created fine:", type(bad).__name__)
+charging_done(bad, "Khaled", "@khaled_gz")
+</code></pre>
+
+    <div class="output">[SMS -&gt; 0599-111222] Mahmoud, your battery is fully charged.
+[WhatsApp -&gt; 0599-333444] Nidal, your battery is fully charged.
+[SLIP for Umm Rami] Umm Rami, your battery is fully charged.
+object created fine: TelegramNotifier
+Traceback (most recent call last):
+  File "notify.py", line 33, in &lt;module&gt;
+    charging_done(bad, "Khaled", "@khaled_gz")
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "notify.py", line 24, in charging_done
+    notifier.send(address, msg)
+    ^^^^^^^^^^^^^
+AttributeError: 'TelegramNotifier' object has no attribute 'send'</div>
+
+    <p class="en">A real improvement: <code>charging_done</code> is three lines, it works for all three real senders, and adding a fifth channel means writing a class, not editing a chain. But look at the line in the middle of the output. <code>TelegramNotifier()</code> was created with no complaint at all, and the program carried on for one more line before anything went wrong.</p>
+    <p class="ar">تحسّن حقيقي: فـ <code>charging_done</code> ثلاثة أسطر، وتعمل للمُرسِلات الحقيقية الثلاثة كلها، وإضافة قناة خامسة تعني كتابة صنف لا تعديل سلسلة. لكن انظر إلى السطر في منتصف الناتج. فقد أُنشئت <code>TelegramNotifier()</code> بلا أي اعتراض، وواصل البرنامج سطرًا آخر قبل أن يعتل شيء.</p>
+
+    <p class="en">The agreement is still only an agreement. <code>deliver</code> instead of <code>send</code> is not a mistake as far as Python is concerned — it is a class with a method, and it is a perfectly valid object. The error arrives at <code>notifier.send(...)</code>, which is to say: at the moment the shop tries to tell a customer his battery is ready.</p>
+    <p class="ar">الاتفاق لا يزال اتفاقًا فقط. فـ <code>deliver</code> بدلًا من <code>send</code> ليس خطأً في نظر بايثون — بل صنف فيه دالة، وهو كائن صحيح تمامًا. والخطأ يأتي عند <code>notifier.send(...)</code>، أي: في اللحظة التي يحاول الدكان فيها أن يبلّغ عميلًا أن بطاريته جاهزة.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">Inheritance in one minute</span><span class="ar">الوراثة في دقيقة واحدة</span></h4>
+    <p class="en">The next blocks are written as <code>class SmsNotifier(Notifier):</code>, and you have not met that bracket yet. It means one thing: <code>SmsNotifier</code> starts out with everything <code>Notifier</code> has — its attributes and its methods — and then adds or replaces whatever it writes itself.</p>
+    <p class="ar">الكتل التالية مكتوبة على صورة <code>class SmsNotifier(Notifier):</code>، وأنت لم تلتقِ بهذا القوس بعد. وهو يعني أمرًا واحدًا: أن <code>SmsNotifier</code> يبدأ بكل ما لدى <code>Notifier</code> — خصائصه ودوالّه — ثم يضيف أو يستبدل ما يكتبه بنفسه.</p>
+
+<pre class="code"><code>class Base:
+    shop = "Nour Charging Point"
+
+    def footer(self):
+        return f"-- {self.shop}"
+
+class Child(Base):      # Child starts with all of Base
+    pass
+
+print(Child().footer())
+</code></pre>
+
+    <div class="output">-- Nour Charging Point</div>
+
+    <p class="en"><code>Child</code> is empty and still has a working <code>footer()</code>. In this lesson the parent is there for one narrow purpose — to state which method a child is required to write — so that one bracket is all you need to read what follows.</p>
+    <p class="ar">فـ <code>Child</code> فارغ ومع ذلك له <code>footer()</code> عاملة. وفي هذا الدرس الأب موجود لغرض ضيق واحد — أن يقرّر أي دالة يُلزَم الابن بكتابتها — فذلك القوس وحده كل ما تحتاجه لقراءة ما يأتي.</p>
+    <p class="en">Lesson 5 is about inheritance properly: when it earns its place, how a child replaces a parent's method, and <code>super()</code>. Nothing here depends on any of that.</p>
+    <p class="ar">والدرس 5 عن الوراثة كما ينبغي: متى تستحق مكانها، وكيف يستبدل الابن دالة الأب، و<code>super()</code>. ولا شيء هنا يتوقف على أي من ذلك.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — <code>ABC</code> and <code>@abstractmethod</code>: write the promise down</span><span class="ar">الخطوة 2 — <code>ABC</code> و<code>@abstractmethod</code>: اكتب الوعد</span></span>
+    <p class="en">An <strong>abstract base class</strong> is a class whose job is to state a requirement rather than to do work. Inherit from <code>ABC</code>, mark a method with <code>@abstractmethod</code>, and Python will refuse to create an object of any subclass that has not provided that method.</p>
+    <p class="ar">الـ <strong>صنف الأساس المجرَّد</strong> صنف مهمته أن يقرّر مطلبًا لا أن ينجز عملًا. فورّث من <code>ABC</code>، وعلّم دالة بـ <code>@abstractmethod</code>، وسترفض بايثون إنشاء كائن من أي صنف مشتق لم يوفّر تلك الدالة.</p>
+    <p class="en">The three working classes gain four characters each — <code>(Notifier)</code>. The intern's class gains the same four, and that is enough.</p>
+    <p class="ar">تكسب الأصناف الثلاثة العاملة أربعة محارف لكل منها — <code>(Notifier)</code>. وصنف المتدرب يكسب الأربعة نفسها، وهذا يكفي.</p>
+
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class Notifier(ABC):
+    """The promise: anything called a Notifier can send."""
+
+    @abstractmethod
+    def send(self, to, text):
+        ...
+
+
+class SmsNotifier(Notifier):
+    def send(self, to, text):
+        print(f"[SMS -&gt; {to}] {text}")
+
+
+class WhatsAppNotifier(Notifier):
+    def send(self, to, text):
+        print(f"[WhatsApp -&gt; {to}] {text}")
+
+
+class SlipNotifier(Notifier):
+    def send(self, to, text):
+        print(f"[SLIP for {to}] {text}")
+
+
+class TelegramNotifier(Notifier):
+    def deliver(self, chat_id, message, retries=3):
+        print(f"[Telegram -&gt; {chat_id}] {message}")
+
+
+def charging_done(notifier, customer, address):
+    msg = f"{customer}, your battery is fully charged."
+    notifier.send(address, msg)
+
+
+charging_done(SmsNotifier(), "Mahmoud", "0599-111222")
+charging_done(WhatsAppNotifier(), "Nidal", "0599-333444")
+charging_done(SlipNotifier(), "Umm Rami", "Umm Rami")
+
+bad = TelegramNotifier()        # fails right here
+</code></pre>
+
+    <div class="output">[SMS -&gt; 0599-111222] Mahmoud, your battery is fully charged.
+[WhatsApp -&gt; 0599-333444] Nidal, your battery is fully charged.
+[SLIP for Umm Rami] Umm Rami, your battery is fully charged.
+Traceback (most recent call last):
+  File "notify.py", line 41, in &lt;module&gt;
+    bad = TelegramNotifier()        # fails right here
+TypeError: Can't instantiate abstract class TelegramNotifier without an implementation for abstract method 'send'</div>
+
+    <p class="en">Read the error message and then read the intern's class. The message names the class, names the missing method, and tells him what to do. He does not have to understand <code>charging_done</code>, or the shop's notification flow, or who calls what — he has to write a method called <code>send</code> that takes <code>to</code> and <code>text</code>. That is a two-minute fix instead of an afternoon of reading.</p>
+    <p class="ar">اقرأ رسالة الخطأ ثم اقرأ صنف المتدرب. فالرسالة تسمّي الصنف وتسمّي الدالة الناقصة وتخبره بما يجب فعله. فلا يحتاج إلى فهم <code>charging_done</code> ولا مسار الإشعارات في الدكان ولا من يستدعي ماذا — بل يحتاج إلى كتابة دالة اسمها <code>send</code> تأخذ <code>to</code> و<code>text</code>. وهذا إصلاح في دقيقتين بدلًا من عصرٍ من القراءة.</p>
+
+    <div class="tip">
+      <h4><span class="en">The failure moved, and that is the whole win</span><span class="ar">تحرّك الفشل، وهذا هو المكسب كله</span></h4>
+      <p class="en">Compare the two tracebacks. In Step 1 the error was an <code>AttributeError</code> inside <code>charging_done</code>, raised while serving a customer — the broken class had already been created, stored, and passed around successfully. In Step 2 the error is a <code>TypeError</code> on the line that says <code>TelegramNotifier()</code>, which in a real program is the first line of the first test, or import time. The defect did not get smaller; it got <em>earlier</em>, and it moved from the customer's side of the counter to the programmer's.</p>
+      <p class="ar">قارن بين التتبعين. في الخطوة 1 كان الخطأ <code>AttributeError</code> داخل <code>charging_done</code>، مرفوعًا أثناء خدمة عميل — فالصنف المعطوب كان قد أُنشئ وخُزّن ومُرّر بنجاح. وفي الخطوة 2 الخطأ <code>TypeError</code> على السطر الذي يقول <code>TelegramNotifier()</code>، وهو في برنامج حقيقي أول سطر من أول اختبار أو وقت الاستيراد. فالعيب لم يصغر؛ بل صار <em>أبكر</em>، وانتقل من جهة العميل من الطاولة إلى جهة المبرمج.</p>
+    </div>
+
+    <p class="en">One detail worth knowing: <code>Notifier()</code> itself cannot be created either, and that is deliberate. A notifier that notifies through no channel is not a thing the shop has. The class exists to be inherited from, not to be used.</p>
+    <p class="ar">تفصيل يستحق المعرفة: لا يمكن إنشاء <code>Notifier()</code> نفسه أيضًا، وهذا مقصود. فمُرسِل يُشعِر دون أي قناة ليس شيئًا يملكه الدكان. فالصنف موجود ليُورَّث منه لا ليُستخدم.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What exactly did adding <code>ABC</code> and <code>@abstractmethod</code> change about the broken <code>TelegramNotifier</code>?</span><span class="ar">ما الذي غيّرته إضافة <code>ABC</code> و<code>@abstractmethod</code> بالضبط في <code>TelegramNotifier</code> المعطوب؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">It renamed <code>deliver</code> to <code>send</code> and mapped the arguments across, so the class now works.</span><span class="ar">أعادت تسمية <code>deliver</code> إلى <code>send</code> وطابقت المعامِلات، فصار الصنف يعمل الآن.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It made <code>charging_done</code> raise a clearer error message when it reaches <code>notifier.send(...)</code>.</span><span class="ar">جعلت <code>charging_done</code> ترفع رسالة خطأ أوضح عندما تصل إلى <code>notifier.send(...)</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">It moved the failure forward in time: the class can no longer be instantiated at all, so the error happens at object creation instead of during a call.</span><span class="ar">نقلت الفشل إلى وقت أسبق: فلم يعد يمكن إنشاء كائن من الصنف إطلاقًا، فيحدث الخطأ عند إنشاء الكائن لا أثناء الاستدعاء.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It checks that <code>send</code>'s parameters are named <code>to</code> and <code>text</code> in every subclass.</span><span class="ar">تفحص أن معامِلات <code>send</code> مسمّاة <code>to</code> و<code>text</code> في كل صنف مشتق.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Nothing was fixed and nothing was renamed — the ABC only refuses to build the object, so <code>TelegramNotifier()</code> now raises <code>TypeError</code> on the line that creates it, long before any customer is involved. The tempting wrong answer is the last one, because it sounds like what an "interface" ought to guarantee. It does not: Python checks only that a method of that <em>name</em> exists. A subclass could define <code>def send(self, chat_id, body, retries)</code> and be instantiated happily, then fail on the call. The ABC enforces the vocabulary of the promise, not its full shape.</div>
+      <div class="ar">لم يُصلَح شيء ولم تُعَد تسمية شيء — فالـ ABC لا يفعل إلا أنه يرفض بناء الكائن، فترفع <code>TelegramNotifier()</code> الآن خطأ <code>TypeError</code> على السطر الذي يُنشئها، قبل أن يُقحَم أي عميل بوقت طويل. والإجابة المغرية الخاطئة هي الأخيرة، لأنها تبدو كما ينبغي أن تضمنه «الواجهة». لكنها لا تضمنه: فبايثون لا تفحص إلا وجود دالة بذلك <em>الاسم</em>. فيستطيع صنف مشتق أن يعرّف <code>def send(self, chat_id, body, retries)</code> ويُنشَأ منه كائن بارتياح، ثم يفشل عند الاستدعاء. فالـ ABC يفرض مفردات الوعد لا بنيته الكاملة.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — a concrete method on top of the promise</span><span class="ar">الخطوة 3 — دالة ملموسة فوق الوعد</span></span>
+    <p class="en">A base class does not have to be only requirements. It can also hold finished code that <em>uses</em> the requirement. The shop's message wording, its sign-off, and its sent counter are the same whatever the channel — so write them once on <code>Notifier</code>, calling the abstract <code>send()</code> that each subclass supplies.</p>
+    <p class="ar">ليس على صنف الأساس أن يكون مطالب فقط. بل يستطيع أن يحمل أيضًا كودًا جاهزًا <em>يستخدم</em> المطلب. فصياغة رسالة الدكان وخاتمتها وعدّاد ما أُرسل هي نفسها أيًّا كانت القناة — فاكتبها مرة واحدة على <code>Notifier</code>، مستدعيةً <code>send()</code> المجرَّدة التي يوفّرها كل صنف مشتق.</p>
+
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class Notifier(ABC):
+    shop = "Nour Charging Point"
+
+    def __init__(self):
+        self.sent_count = 0
+
+    @abstractmethod
+    def send(self, to, text):
+        """Deliver one message. Every Notifier must do this."""
+
+    # concrete method, built on top of the promise
+    def notify_done(self, customer, minutes):
+        text = (f"{customer['name']}, your battery is ready"
+                f" after {minutes} min. {self.shop}")
+        self.send(customer["address"], text)
+        self.sent_count += 1
+
+    def notify_low_credit(self, customer, shekels):
+        text = (f"{customer['name']}, only {shekels:.2f} ILS"
+                f" left on your card. {self.shop}")
+        self.send(customer["address"], text)
+        self.sent_count += 1
+
+
+class SmsNotifier(Notifier):
+    def send(self, to, text):
+        print(f"[SMS -&gt; {to}] {text}")
+
+
+class SlipNotifier(Notifier):
+    def send(self, to, text):
+        print(f"[SLIP for {to}] {text}")
+
+
+queue = [{"name": "Mahmoud", "address": "0599-111222"},
+         {"name": "Nidal", "address": "0599-333444"},
+         {"name": "Umm Rami", "address": "Umm Rami"}]
+
+sms = SmsNotifier()
+sms.notify_done(queue[0], 60)
+sms.notify_low_credit(queue[1], 2.5)
+
+slip = SlipNotifier()
+slip.notify_done(queue[2], 120)
+
+print("sms sent:", sms.sent_count,
+      "| slips printed:", slip.sent_count)
+</code></pre>
+
+    <div class="output">[SMS -&gt; 0599-111222] Mahmoud, your battery is ready after 60 min. Nour Charging Point
+[SMS -&gt; 0599-333444] Nidal, only 2.50 ILS left on your card. Nour Charging Point
+[SLIP for Umm Rami] Umm Rami, your battery is ready after 120 min. Nour Charging Point
+sms sent: 2 | slips printed: 1</div>
+
+    <p class="en">The two subclasses are two lines each. Everything the shop actually cares about — the wording, the shop name, the counting — lives once on the base, and a new channel inherits all of it for free. The direction of the call is worth noticing: the base class calls down into code it does not have, which the subclass is required to provide. That shape has a name, the <strong>template method</strong>, and it is the main reason to put concrete methods on an abstract base at all.</p>
+    <p class="ar">الصنفان المشتقان سطران لكل منهما. وكل ما يهمّ الدكان فعلًا — الصياغة واسم الدكان والعدّ — يقيم مرة واحدة في الأساس، وترث قناة جديدة كل ذلك مجانًا. واتجاه الاستدعاء يستحق الملاحظة: فصنف الأساس يستدعي كودًا لا يملكه نزولًا، وهو ما يُلزَم الصنف المشتق بتوفيره. ولهذه البنية اسم هو <strong>الدالة القالب</strong> (template method)، وهي السبب الرئيس لوضع دوال ملموسة في أساس مجرَّد أصلًا.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">Duck typing — and when the ABC is worth the ceremony</span><span class="ar">البطّية في التنميط — ومتى يستحق الـ ABC تكلّفه</span></h4>
+    <p class="en">Python does not require the ABC. <code>charging_done</code> never asked what type it was given; it called <code>send()</code>. Anything with a <code>send(to, text)</code> works, related to <code>Notifier</code> or not — this is <strong>duck typing</strong>: if it has <code>send()</code>, it is near enough a notifier.</p>
+    <p class="ar">بايثون لا تشترط الـ ABC. فـ <code>charging_done</code> لم تسأل يومًا عن نوع ما أُعطيت؛ بل استدعت <code>send()</code>. فأي شيء فيه <code>send(to, text)</code> يعمل، سواء كان ذا صلة بـ <code>Notifier</code> أم لا — وهذا هو <strong>التنميط البطّي</strong>: فإن كان فيه <code>send()</code>، فهو قريب بما يكفي من مُرسِل.</p>
+
+<pre class="code"><code># not a Notifier subclass, not registered anywhere
+class FakeNotifier:
+    def __init__(self):
+        self.outbox = []
+
+    def send(self, to, text):
+        self.outbox.append((to, text))
+
+
+def charging_done(notifier, customer, address):
+    msg = f"{customer}, your battery is fully charged."
+    notifier.send(address, msg)
+
+
+spy = FakeNotifier()
+charging_done(spy, "Mahmoud", "0599-111222")
+charging_done(spy, "Nidal", "0599-333444")
+print("nothing was sent, but we captured:")
+for to, text in spy.outbox:
+    print(" ", to, "|", text)
+</code></pre>
+
+    <div class="output">nothing was sent, but we captured:
+  0599-111222 | Mahmoud, your battery is fully charged.
+  0599-333444 | Nidal, your battery is fully charged.</div>
+
+    <p class="en">That is how you test the shop's notifications without sending a single real SMS, and no base class was needed for it. So: duck typing for small, local, obvious cases — two implementations in one file, a stand-in in a test. The <code>ABC</code> when the promise is written by one person and kept by others: when subclasses arrive from a different file or a different week, when forgetting the method would only surface in front of a customer, or when there is shared behaviour like <code>notify_done()</code> to hand out. The ABC buys you an early, named error. If nobody would ever get the promise wrong, you are paying for nothing.</p>
+    <p class="ar">هكذا تختبر إشعارات الدكان دون إرسال رسالة قصيرة حقيقية واحدة، ولم يُحتَج إلى صنف أساس لذلك. إذن: التنميط البطّي للحالات الصغيرة المحلية البيّنة — تنفيذان في ملف واحد، أو بديل في اختبار. والـ <code>ABC</code> حين يكتب الوعدَ واحد ويفي به آخرون: حين تأتي الأصناف المشتقة من ملف آخر أو أسبوع آخر، وحين لا يظهر نسيان الدالة إلا أمام عميل، أو حين يكون هناك سلوك مشترك كـ <code>notify_done()</code> ليُوزَّع. فالـ ABC يشتري لك خطأً مبكرًا مسمّى. وإن لم يكن أحد ليخطئ في الوعد يومًا، فأنت تدفع مقابل لا شيء.</p>
+
+    <p class="en">Note also what this lesson is <em>not</em> about. Nothing above chose between channels at run time based on the object's type, and that question — handing different objects to the same code and watching each behave in its own way — is Lesson 6. Here the point is only that the promise has a written name.</p>
+    <p class="ar">ولاحظ أيضًا ما ليس هذا الدرس عنه. فلم يختر شيء مما سبق بين القنوات وقت التشغيل بناءً على نوع الكائن، وذلك السؤال — تسليم كائنات مختلفة إلى الكود نفسه ومراقبة كلٍّ منها يتصرف بطريقته — هو الدرس 6. وهنا المقصود فقط أن للوعد اسمًا مكتوبًا.</p>
+  </div>
+
+  <h2 id="l4-h3"><span class="en">Second example — an exporter that never says which format it is</span><span class="ar">مثال ثانٍ — مُصدِّر لا يقول أي صيغة هو</span></h2>
+
+  <p class="en">Different domain, same principle in two lines of code. A reporting tool has to write the day's rows somewhere. <code>ReportExporter</code> promises one thing — <code>export(rows)</code> returns a string — and the function that writes the report never learns whether it is holding CSV or plain text.</p>
+  <p class="ar">مجال مختلف، والمبدأ نفسه في سطرين من الكود. أداة تقارير عليها أن تكتب أسطر اليوم في مكان ما. فـ <code>ReportExporter</code> يَعِد بأمر واحد — أن <code>export(rows)</code> تعيد نصًا — والدالة التي تكتب التقرير لا تعرف قط هل تحمل CSV أم نصًا عاديًا.</p>
+
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class ReportExporter(ABC):
+    @abstractmethod
+    def export(self, rows):
+        """Turn rows into one string in some format."""
+
+
+class CsvExporter(ReportExporter):
+    def export(self, rows):
+        return "\n".join(",".join(str(c) for c in row)
+                         for row in rows)
+
+
+class TextExporter(ReportExporter):
+    def export(self, rows):
+        return "\n".join(f"{str(r[0]):10}{str(r[1]):&gt;5}"
+                         f"{str(r[2]):&gt;9}" for r in rows)
+
+
+# the caller never learns which format it is getting
+def daily_report(exporter, rows, path):
+    text = exporter.export(rows)
+    print(f"--- writing {path} ---")
+    print(text)
+
+
+rows = [("customer", "min", "cost"),
+        ("Mahmoud", 60, 30.0),
+        ("Nidal", 78, 39.0)]
+
+daily_report(CsvExporter(), rows, "day.csv")
+daily_report(TextExporter(), rows, "day.txt")
+</code></pre>
+
+  <div class="output">--- writing day.csv ---
+customer,min,cost
+Mahmoud,60,30.0
+Nidal,78,39.0
+--- writing day.txt ---
+customer    min     cost
+Mahmoud      60     30.0
+Nidal        78     39.0</div>
+
+  <p class="en">The two outputs could not look less alike, and <code>daily_report</code> is the same three lines for both. Adding an HTML or JSON exporter tomorrow means writing one class with one method — <code>daily_report</code> does not open. That is the whole promise of an interface, stated in the smallest possible example.</p>
+  <p class="ar">الناتجان لا يمكن أن يكونا أقل تشابهًا، و<code>daily_report</code> هي الأسطر الثلاثة نفسها لكليهما. وإضافة مُصدِّر HTML أو JSON غدًا تعني كتابة صنف واحد بدالة واحدة — و<code>daily_report</code> لا تُفتح. وهذا هو وعد الواجهة كله، مقولًا في أصغر مثال ممكن.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — Payment methods that all keep one promise</span><span class="ar">تمرين 2.1 — طرق دفع تفي كلها بوعد واحد</span></h4>
+    <p class="en">Customers pay in cash, by card, or on the shop's credit book. Finish <code>PaymentMethod</code>: declare an abstract <code>take(amount)</code>, and add a concrete <code>settle(cost)</code> that calls <code>take()</code> and then prints one confirmation line naming the class. Implement <code>take()</code> in the three real methods. <code>VoucherPayment</code> is deliberately wrong — its last line must fail at creation, not at a call.</p>
+    <p class="ar">يدفع العملاء نقدًا أو بالبطاقة أو على دفتر دين الدكان. أكمل <code>PaymentMethod</code>: أعلن دالة مجرَّدة <code>take(amount)</code>، وأضف دالة ملموسة <code>settle(cost)</code> تستدعي <code>take()</code> ثم تطبع سطر تأكيد واحدًا يسمّي الصنف. ونفّذ <code>take()</code> في الطرق الحقيقية الثلاث. و<code>VoucherPayment</code> خاطئ بتعمّد — ويجب أن يفشل سطره الأخير عند الإنشاء لا عند الاستدعاء.</p>
+
+<pre class="code"><code>from abc import ABC, abstractmethod
+
+
+class PaymentMethod(ABC):
+    # 1. declare the abstract method take(amount)
+    # 2. add a concrete settle(cost) that calls take()
+    #    and then prints one confirmation line
+    pass
+
+
+class CashPayment(PaymentMethod):
+    pass        # take(): print the drawer line
+
+
+class CardPayment(PaymentMethod):
+    def __init__(self, card_no):
+        self.card_no = card_no
+    # take(): print the card line
+
+
+class CreditBook(PaymentMethod):
+    def __init__(self):
+        self.owed = 0.0
+    # take(): add to self.owed, then print the total
+
+
+class VoucherPayment(PaymentMethod):
+    def redeem(self, amount):     # wrong name on purpose
+        print("voucher used")
+
+
+for method in [CashPayment(), CardPayment("4417"),
+               CreditBook()]:
+    method.settle(39.0)
+
+VoucherPayment()      # must fail HERE, not later
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class PaymentMethod(ABC):
+    @abstractmethod
+    def take(self, amount):
+        """Collect `amount` shekels somehow."""
+
+    def settle(self, session_cost):
+        self.take(session_cost)
+        print(f"  settled {session_cost:.2f} ILS via"
+              f" {type(self).__name__}")
+
+
+class CashPayment(PaymentMethod):
+    def take(self, amount):
+        print(f"[CASH] drawer +{amount:.2f}")
+
+
+class CardPayment(PaymentMethod):
+    def __init__(self, card_no):
+        self.card_no = card_no
+
+    def take(self, amount):
+        print(f"[CARD *{self.card_no}] charged"
+              f" {amount:.2f}")
+
+
+class CreditBook(PaymentMethod):
+    def __init__(self):
+        self.owed = 0.0
+
+    def take(self, amount):
+        self.owed += amount
+        print(f"[BOOK] now owes {self.owed:.2f}")
+
+
+class VoucherPayment(PaymentMethod):
+    def redeem(self, amount):       # wrong name
+        print("voucher used")
+
+
+for method in [CashPayment(), CardPayment("4417"),
+               CreditBook()]:
+    method.settle(39.0)
+
+VoucherPayment()
+</code></pre>
+      <div class="output">[CASH] drawer +39.00
+  settled 39.00 ILS via CashPayment
+[CARD *4417] charged 39.00
+  settled 39.00 ILS via CardPayment
+[BOOK] now owes 39.00
+  settled 39.00 ILS via CreditBook
+Traceback (most recent call last):
+  File "pay.py", line 47, in &lt;module&gt;
+    VoucherPayment()
+    ~~~~~~~~~~~~~~^^
+TypeError: Can't instantiate abstract class VoucherPayment without an implementation for abstract method 'take'</div>
+      <p class="en">Three very different things happen inside the three <code>take()</code> methods — a drawer, a card terminal, a debt that accumulates — and <code>settle()</code> is written once, knowing none of it. Two details to keep. <code>CardPayment</code> and <code>CreditBook</code> define their own <code>__init__</code> and that is fine; an abstract base does not dictate how a subclass is built, only what it must be able to do. And <code>type(self).__name__</code> is how the shared method names the specific class at run time without a chain of <code>isinstance</code> checks.</p>
+      <p class="ar">ثلاثة أمور مختلفة جدًا تحدث داخل دوال <code>take()</code> الثلاث — جرّار نقد، وطرفية بطاقة، ودين يتراكم — و<code>settle()</code> مكتوبة مرة واحدة لا تعرف شيئًا من ذلك. وتفصيلان يُحفظان. فـ <code>CardPayment</code> و<code>CreditBook</code> يعرّفان <code>__init__</code> خاصًا بكل منهما ولا بأس بذلك؛ فالأساس المجرَّد لا يفرض كيف يُبنى الصنف المشتق، بل ما يجب أن يكون قادرًا على فعله. و<code>type(self).__name__</code> هي طريقة الدالة المشتركة في تسمية الصنف المحدد وقت التشغيل دون سلسلة فحوص <code>isinstance</code>.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — One name for two stores, and a third for free</span><span class="ar">تمرين 2.2 — اسم واحد لمخزنين، وثالث مجانًا</span></h4>
+    <p class="en">The shop logs each finished session twice: into a shelf list and onto paper. The two classes do the same job under different method names and reversed arguments, so <code>save_day</code> tests the type to decide which to call. Introduce a <code>SessionLog</code> base promising <code>write(label, minutes)</code>, give it a concrete <code>write_many(pairs)</code> that loops and returns how many rows it wrote, and rewrite both stores against it. Then add a <code>NullLog</code> that writes nowhere — for days when the owner wants no paperwork — and prove the caller treats all three the same.</p>
+    <p class="ar">يسجّل الدكان كل جلسة منتهية مرتين: في قائمة الرف وعلى الورق. والصنفان يؤديان العمل نفسه باسمي دالتين مختلفين ومعامِلات معكوسة، فتفحص <code>save_day</code> النوع لتقرر أيّهما تستدعي. أدخِل صنف أساس <code>SessionLog</code> يَعِد بـ <code>write(label, minutes)</code>، وامنحه دالة ملموسة <code>write_many(pairs)</code> تدور وتعيد عدد الأسطر التي كتبتها، وأعد كتابة المخزنين وفقه. ثم أضف <code>NullLog</code> لا يكتب في أي مكان — للأيام التي لا يريد فيها صاحب الدكان ورقًا — وأثبت أن المستدعي يعامل الثلاثة معاملة واحدة.</p>
+
+<pre class="code bad"><code>from abc import ABC, abstractmethod
+
+
+class ShelfLog:
+    def __init__(self):
+        self.rows = []
+
+    def write(self, label, minutes):          # name 1
+        self.rows.append((label, minutes))
+
+
+class PaperLog:
+    def record_entry(self, minutes, label):   # name 2
+        print(f"paper: {label} ran {minutes} min")
+
+
+# the caller must remember which store it holds
+def save_day(store, day):
+    for label, minutes in day:
+        if isinstance(store, ShelfLog):
+            store.write(label, minutes)
+        else:
+            store.record_entry(minutes, label)
+
+
+day = [("A1", 60), ("A2", 78), ("A3", 120)]
+save_day(ShelfLog(), day)
+save_day(PaperLog(), day)
+</code></pre>
+
+    <div class="output">paper: A1 ran 60 min
+paper: A2 ran 78 min
+paper: A3 ran 120 min</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class SessionLog(ABC):
+    @abstractmethod
+    def write(self, label, minutes):
+        """Store one finished session."""
+
+    def write_many(self, pairs):
+        for label, minutes in pairs:
+            self.write(label, minutes)
+        return len(pairs)
+
+
+class ShelfLog(SessionLog):
+    def __init__(self):
+        self.rows = []
+
+    def write(self, label, minutes):
+        self.rows.append((label, minutes))
+
+
+class PaperLog(SessionLog):
+    def write(self, label, minutes):
+        print(f"paper: {label} ran {minutes} min")
+
+
+class NullLog(SessionLog):
+    def write(self, label, minutes):
+        pass
+
+
+day = [("A1", 60), ("A2", 78), ("A3", 120)]
+
+for log in [ShelfLog(), PaperLog(), NullLog()]:
+    n = log.write_many(day)
+    print(f"{type(log).__name__}: {n} rows")
+</code></pre>
+      <div class="output">ShelfLog: 3 rows
+paper: A1 ran 60 min
+paper: A2 ran 78 min
+paper: A3 ran 120 min
+PaperLog: 3 rows
+NullLog: 3 rows</div>
+      <p class="en">The <code>isinstance</code> check is gone, and with it the bug it was hiding: the starter's <code>save_day(ShelfLog(), day)</code> printed nothing because its rows went into a list nobody read — the broken version's output has only the paper lines. <code>NullLog</code> is the clearest proof that the promise is small enough: a do-nothing class, three lines, and it is a fully valid log. <code>write_many()</code> was written once against <code>write()</code> and all three inherit it, including the one that discards everything.</p>
+      <p class="ar">زال فحص <code>isinstance</code>، وزال معه العيب الذي كان يخفيه: فـ <code>save_day(ShelfLog(), day)</code> في الكود الابتدائي لم تطبع شيئًا لأن أسطرها ذهبت إلى قائمة لم يقرأها أحد — فناتج النسخة المعطوبة ليس فيه إلا أسطر الورق. و<code>NullLog</code> أوضح دليل على أن الوعد صغير بما يكفي: صنف لا يفعل شيئًا من ثلاثة أسطر، وهو سجل صحيح تمامًا. و<code>write_many()</code> كُتبت مرة واحدة مقابل <code>write()</code> وترثها الثلاثة كلها، ومنها الذي يرمي كل شيء.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">When is reaching for an <code>ABC</code> paying for nothing?</span><span class="ar">متى تكون إضافة <code>ABC</code> دفعًا مقابل لا شيء؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Whenever the base class would have no concrete methods, since an ABC that only declares requirements has no purpose.</span><span class="ar">كلما كان صنف الأساس بلا دوال ملموسة، لأن ABC لا يعلن إلا مطالب لا فائدة له.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">When the implementations are few, local and obvious — two classes in one file, or a stand-in object in a test — so nobody is going to get the method name wrong in the first place.</span><span class="ar">حين تكون التنفيذات قليلة محلية بيّنة — صنفان في ملف واحد، أو كائن بديل في اختبار — فلن يخطئ أحد في اسم الدالة من الأصل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">When the subclasses need different <code>__init__</code> signatures, because an ABC requires every subclass to be constructed the same way.</span><span class="ar">حين تحتاج الأصناف المشتقة إلى صِيَغ <code>__init__</code> مختلفة، لأن الـ ABC يشترط بناء كل صنف مشتق بالطريقة نفسها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">When the calling code already works through duck typing, because an ABC would stop objects that are not subclasses from being passed in.</span><span class="ar">حين يعمل الكود المستدعي أصلًا بالتنميط البطّي، لأن الـ ABC سيمنع تمرير كائنات ليست أصنافًا مشتقة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">What the ABC buys is an early, well-worded error for a promise somebody might forget — so when there is nobody to forget it, you have bought nothing but ceremony. The tempting wrong answer is the last, and it misreads what an ABC does: <code>charging_done</code> still just calls <code>send()</code>, so <code>FakeNotifier</code> was passed in and worked perfectly despite inheriting from nothing. Declaring a <code>Notifier</code> base does not narrow what the caller accepts; it only constrains the classes that choose to inherit from it. Answer three is wrong for a related reason — Exercise 2.1's <code>CardPayment</code> took a card number and <code>CashPayment</code> took nothing, and both were fine.</div>
+      <div class="ar">ما يشتريه الـ ABC خطأ مبكر محسن الصياغة لوعد قد ينساه أحدهم — فحين لا يكون هناك من ينساه، لم تشترِ إلا تكلّفًا. والإجابة المغرية الخاطئة هي الأخيرة، وهي تسيء قراءة ما يفعله الـ ABC: فـ <code>charging_done</code> لا تزال تستدعي <code>send()</code> فقط، فمُرِّرت <code>FakeNotifier</code> وعملت تمامًا مع أنها لا ترث من شيء. فإعلان أساس <code>Notifier</code> لا يضيّق ما يقبله المستدعي؛ بل يقيّد الأصناف التي تختار أن ترث منه. والإجابة الثالثة خاطئة لسبب قريب — فـ <code>CardPayment</code> في تمرين 2.1 أخذت رقم بطاقة و<code>CashPayment</code> لم تأخذ شيئًا، وكانتا سليمتين كلتاهما.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l4-s9"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">The <strong>interface</strong> is what the object promises; the <strong>implementation</strong> is how it keeps the promise. Abstraction is deciding which is which — and keeping the first list short, because everything on it is frozen and everything off it is yours to change.</span><span class="ar">الـ <strong>واجهة</strong> ما يَعِد به الكائن؛ والـ <strong>تنفيذ</strong> كيف يفي بالوعد. والتجريد هو تحديد أيّهما أيّ — وإبقاء القائمة الأولى قصيرة، لأن كل ما فيها مجمَّد وكل ما خارجها ملكك تغيّره.</span></li>
+      <li><span class="en">Publish answers, not data. The callers wanted minutes, a cost and a yes-or-no; they got a tuple, so each one wrote its own arithmetic and the internal shape became a contract signed in four places.</span><span class="ar">انشر الإجابات لا البيانات. فالمستدعون أرادوا دقائق وتكلفة ونعم أو لا؛ فحصلوا على tuple، فكتب كل واحد حسابه الخاص وصارت البنية الداخلية عقدًا موقّعًا في أربعة مواضع.</span></li>
+      <li><span class="en">A leaked internal shape fails <em>silently</em>. Shifting a tuple field turned a 60-minute receipt into −2.50 shekels and emptied the "still charging" list, with no error at all; only the one function that unpacked into named variables raised <code>ValueError</code>, because unpacking states how many values there are and indexing states nothing.</span><span class="ar">البنية الداخلية المتسرّبة تفشل <em>بصمت</em>. فإزاحة حقل في tuple حوّلت إيصال 60 دقيقة إلى −2.50 شيكل وأفرغت قائمة «لا يزال يُشحن» بلا أي خطأ؛ ولم ترفع <code>ValueError</code> إلا الدالة الواحدة التي فكّكت إلى متغيرات مسمّاة، لأن التفكيك يقرّر عدد القيم والفهرسة لا تقرّر شيئًا.</span></li>
+      <li><span class="en">The test of a good interface: you can describe the object to a colleague without naming a single data structure. If you cannot, the structure is part of your public surface whether you meant it to be or not.</span><span class="ar">اختبار الواجهة الجيدة: أن تستطيع وصف الكائن لزميل دون تسمية بنية بيانات واحدة. فإن لم تستطع، فالبنية جزء من سطحك العام، قصدت ذلك أو لم تقصد.</span></li>
+      <li><span class="en">Let the class use its own interface internally — <code>state_text()</code> calls <code>self.percent()</code>, <code>cost()</code> calls <code>self.minutes_used()</code>. Then a rewrite of the storage has one line to fix, not several.</span><span class="ar">دع الصنف يستخدم واجهته الخاصة داخليًا — فـ <code>state_text()</code> تستدعي <code>self.percent()</code>، و<code>cost()</code> تستدعي <code>self.minutes_used()</code>. فتكون لإعادة كتابة التخزين سطر واحد لإصلاحه لا عدة أسطر.</span></li>
+      <li><span class="en">Agreeing on one method name across classes — <code>send(to, text)</code> — deletes the <code>if/elif</code> chain, because the caller stops choosing a function and starts asking an object. But the agreement alone is unenforced: a class with <code>deliver</code> instead is created happily and raises <code>AttributeError</code> only when called.</span><span class="ar">الاتفاق على اسم دالة واحد في الأصناف — <code>send(to, text)</code> — يمحو سلسلة <code>if/elif</code>، لأن المستدعي يكفّ عن اختيار دالة ويبدأ بسؤال كائن. لكن الاتفاق وحده غير مفروض: فصنف فيه <code>deliver</code> بدلًا منها يُنشَأ بارتياح ولا يرفع <code>AttributeError</code> إلا عند الاستدعاء.</span></li>
+      <li><span class="en"><code>class Notifier(ABC)</code> with <code>@abstractmethod def send(...)</code> writes the promise down. An incomplete subclass then fails at <code>TelegramNotifier()</code> with <code>TypeError: Can't instantiate abstract class … without an implementation for abstract method 'send'</code> — the error moved from the customer's side of the counter to the programmer's.</span><span class="ar"><code>class Notifier(ABC)</code> مع <code>@abstractmethod def send(...)</code> تكتب الوعد. فيفشل الصنف المشتق الناقص حينئذ عند <code>TelegramNotifier()</code> بـ <code>TypeError: Can't instantiate abstract class … without an implementation for abstract method 'send'</code> — فانتقل الخطأ من جهة العميل من الطاولة إلى جهة المبرمج.</span></li>
+      <li><span class="en">The ABC enforces the method's <em>name</em>, not its full shape. A subclass with <code>def send(self, chat_id, body, retries)</code> is still instantiable and will still fail on the call, so the base class is a reminder, not a type checker.</span><span class="ar">الـ ABC يفرض <em>اسم</em> الدالة لا بنيتها الكاملة. فصنف مشتق فيه <code>def send(self, chat_id, body, retries)</code> لا يزال قابلًا للإنشاء وسيفشل عند الاستدعاء، فصنف الأساس تذكير لا فاحص أنواع.</span></li>
+      <li><span class="en">A concrete method on the base built on the abstract one — <code>notify_done()</code> calling <code>send()</code> — hands shared behaviour to every subclass for free. That shape is the <strong>template method</strong>: finished code calling down into code the subclass must supply.</span><span class="ar">دالة ملموسة في الأساس مبنية على المجرَّدة — <code>notify_done()</code> تستدعي <code>send()</code> — تمنح كل صنف مشتق سلوكًا مشتركًا مجانًا. وهذه البنية هي <strong>الدالة القالب</strong>: كود جاهز يستدعي نزولًا كودًا يجب أن يوفّره الصنف المشتق.</span></li>
+      <li><span class="en">Duck typing is the lighter alternative: anything with <code>send()</code> works, inheritance or not — which is how <code>FakeNotifier</code> captured messages in a test without sending one. Use it for few, local, obvious implementations; reach for the ABC when others will keep the promise, when forgetting it would only surface in production, or when there is shared behaviour to hand out.</span><span class="ar">التنميط البطّي هو البديل الأخف: فأي شيء فيه <code>send()</code> يعمل، بوراثة أو بغيرها — وهكذا التقطت <code>FakeNotifier</code> الرسائل في اختبار دون إرسال واحدة. استخدمه للتنفيذات القليلة المحلية البيّنة؛ والجأ إلى الـ ABC حين يفي بالوعد آخرون، أو حين لا يظهر نسيانه إلا في الإنتاج، أو حين يكون هناك سلوك مشترك ليُوزَّع.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

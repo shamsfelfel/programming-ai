@@ -1,4 +1,13 @@
-# nothing generated belongs here except index.html, which is the deployed page
+# Everything in the site itself is committed, including the generated pages —
+# the whole point is that GitHub Pages can serve the repository as it stands.
+# What is ignored here is only ever local: test output, tooling caches and
+# editor configuration.
 __pycache__/
 *.pyc
 .DS_Store
+.claude/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+.playwright/

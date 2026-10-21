@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Execution Lab · Python OOP by Example" data-ar="مختبر التنفيذ · البرمجة الكائنية بلغة بايثون">Execution Lab · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="1" data-page="lab" data-path="labs/chapter-1-lab.html">
+<main>
+<section class="page" id="lab">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Execution Lab</span>
+  <h1><span class="en">Execution Lab &mdash; Watch the Code Run</span><span class="ar">مختبر التنفيذ &mdash; شاهد الكود يُنفَّذ</span></h1>
+
+  <p class="lede en">Eight short programs from the chapter, run one line at a time. The highlighted line is the line about to take effect; the panels beside it show the variables as they stand and anything printed so far. Use <strong>Next</strong> to step, <strong>Run</strong> to play it through, the slider to scrub, or click any line to jump to it.</p>
+  <p class="lede ar">ثمانية برامج قصيرة من الفصل، تُنفَّذ سطرًا سطرًا. والسطر المظلّل هو السطر الذي سيُنفَّذ؛ واللوحات بجانبه تُظهر المتغيرات كما هي الآن وكل ما طُبع حتى الآن. استخدم <strong>التالي</strong> للتنقّل، و<strong>تشغيل</strong> لتمريره كله، والشريط للتصفّح، أو انقر أي سطر للانتقال إليه.</p>
+
+  <div class="note">
+    <h4><span class="en">How to read a trace</span><span class="ar">كيف تقرأ التتبّع</span></h4>
+    <p class="en">A value that just changed is highlighted in the variables panel, so you can see <em>which</em> assignment did what. When a method is running, the panel header says whose <code>self</code> you are inside &mdash; that is usually the thing that is hard to believe until you watch it.</p>
+    <p class="ar">القيمة التي تغيّرت للتو مظلّلة في لوحة المتغيرات، فترى <em>أي</em> إسناد فعل ماذا. وعندما تكون دالة قيد التنفيذ تقول ترويسة اللوحة داخل <code>self</code> من أنت &mdash; وهذا عادةً ما يصعب تصديقه حتى تشاهده.</p>
+  </div>
+
+  <div data-trace-id="t-two-objects"></div>
+
+  <div data-trace-id="t-init-order"></div>
+
+  <div data-trace-id="t-mutable-default"></div>
+
+  <div data-trace-id="t-class-attr"></div>
+
+  <div data-trace-id="t-property-setter"></div>
+
+  <div data-trace-id="t-super-chain"></div>
+
+  <div data-trace-id="t-dispatch"></div>
+
+  <div data-trace-id="t-composition"></div>
+
+
+
+  <div class="callout ahead">
+    <h4><span class="en">Where this helps most</span><span class="ar">حيث يفيد هذا أكثر</span></h4>
+    <p class="en">Come back here whenever a test question about attribute lookup, a shared default list, or <code>super()</code> does not go the way you expected. Then try <a href="../exams/chapter-1-exam-a.html#chapter-test-a">Chapter Test A</a>.</p>
+    <p class="ar">عُد إلى هنا كلما جاء سؤال اختبار عن البحث في الخصائص أو قائمة افتراضية مشتركة أو <code>super()</code> على غير ما توقعت. ثم جرّب <a href="../exams/chapter-1-exam-a.html#chapter-test-a">اختبار الفصل أ</a>.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

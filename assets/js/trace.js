@@ -242,5 +242,10 @@
     }
   }
 
+  /* A mounted trace draws its own labels, so it has to redraw when
+     the language flips. The chapter prose does not - it carries both
+     languages at once and lets CSS choose. */
+  document.addEventListener("oop:lang", relabel);
+
   window.OOPTrace = { mount: mount, mountAll: mountAll, relabel: relabel };
 })();

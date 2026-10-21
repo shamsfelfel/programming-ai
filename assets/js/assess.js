@@ -136,6 +136,21 @@
 
   /* ---------------------------------------------------------- topics */
 
+  /* A topic chip links to the heading that teaches the idea. That
+     heading now lives on another page, so the anchor id is resolved
+     through the map the build writes (assets/js/anchors.js) and
+     prefixed with the path back to the site root. An id the map does
+     not know is left as a plain in-page anchor rather than dropped,
+     so a half-built chapter still renders. */
+  function topicHref(anchor) {
+    var map = window.OOPAnchors || {};
+    var page = map[anchor];
+    if (!page) return "#" + anchor;
+    var here = (document.body && document.body.getAttribute("data-path")) || "";
+    if (page === here) return "#" + anchor;
+    return (window.OOP_BASE || "") + page + "#" + anchor;
+  }
+
   function topicChips(ids) {
     var reg = window.OOPTopics || {};
     if (!ids || !ids.length) return "";
@@ -143,7 +158,7 @@
     for (var i = 0; i < ids.length; i++) {
       var t = reg[ids[i]];
       if (!t) continue;
-      h += '<a href="#' + t.href + '">' + bi(t) + "</a>";
+      h += '<a href="' + esc(topicHref(t.href)) + '">' + bi(t) + "</a>";
     }
     return h + "</div>";
   }
@@ -1114,18 +1129,10 @@
     for (var i = 0; i < banks.length; i++) banks[i].relabel();
   }
 
-  function boot() {
-    renderAll(document);
-    if (window.OOPTrace) window.OOPTrace.mountAll(document);
-    document.addEventListener("oop:lang", function () {
-      relabel();
-      if (window.OOPTrace) window.OOPTrace.relabel();
-    });
-  }
+  /* app.js calls renderAll once the language is settled, so there is
+     no self-boot here: a bank rendered before I18N.init() would draw
+     its labels in the wrong language and then have to redraw them. */
+  document.addEventListener("oop:lang", relabel);
 
   window.OOPAssess = { renderAll: renderAll, relabel: relabel };
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else { boot(); }
 })();

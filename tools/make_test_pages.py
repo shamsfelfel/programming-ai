@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the test, lab and exam pages for chapter 1.
 
-The questions themselves live in src/data/*.js; this only writes the
+The questions themselves live in assets/data/*.js; this only writes the
 page wrappers, the prerequisite / what-next links that tie the chapter
 together in both directions, and the bank placeholders the engine fills.
 """

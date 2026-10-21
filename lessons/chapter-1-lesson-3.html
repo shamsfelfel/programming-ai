@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Encapsulation · Python OOP by Example" data-ar="التغليف · البرمجة الكائنية بلغة بايثون">Encapsulation · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-03" data-path="lessons/chapter-1-lesson-3.html">
+<main>
+<section class="page" id="lesson-03">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 3</span>
+  <h1><span class="en">Encapsulation</span><span class="ar">التغليف</span></h1>
+
+  <p class="lede en">By the end of this lesson your objects will refuse to hold an impossible value no matter who assigns it, and you will be able to rewrite how an object stores its data without touching a single line of the code that uses it.</p>
+  <p class="lede ar">بنهاية هذا الدرس سترفض كائناتك حمل قيمة مستحيلة أيًّا كان من أسندها، وستصبح قادرًا على إعادة كتابة طريقة تخزين الكائن لبياناته دون أن تلمس سطرًا واحدًا من الكود الذي يستخدمه.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A school grade book. Marks are out of 100, fifty is the pass mark, and at the end of each term the office prints a results report: a row per student, a pass list, and the class average. One Python file does all of it.</p>
+    <p class="ar">كشف درجات مدرسي. الدرجات من 100، وخمسون هي درجة النجاح، وفي نهاية كل فصل يطبع المكتب تقرير نتائج: سطر لكل طالب، وقائمة الناجحين، ومعدل الصف. وملف بايثون واحد يفعل كل ذلك.</p>
+    <p class="en">Lesson 2 made the object's birth safe: <code>__init__</code> guarantees that every attribute exists. This lesson is about everything that happens <em>after</em> birth — who is allowed to change those attributes, and to what.</p>
+    <p class="ar">الدرس 2 جعل نشأة الكائن آمنة: فـ <code>__init__</code> يضمن وجود كل خاصية. وهذا الدرس عن كل ما يحدث <em>بعد</em> النشأة — من يُسمح له بتغيير تلك الخصائص، وإلى أي قيمة.</p>
+  </div>
+
+  <h2 id="l3-h1"><span class="en">Concept 1 — An invariant checked everywhere is an invariant enforced nowhere</span><span class="ar">المفهوم 1 — الثابت المفحوص في كل مكان ثابت غير مفروض في أي مكان</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">There is one rule in this grade book: a mark is between 0 and 100. The file obeys it in three places. <code>add_mark()</code> checks the range. <code>import_csv_line()</code> checks the range. <code>correct_mark()</code> checks the range. The same three-line <code>if</code>, copied, with the same error message typed out again each time.</p>
+    <p class="ar">في كشف الدرجات هذا قاعدة واحدة: الدرجة بين 0 و100. والملف يطيعها في ثلاثة مواضع. فـ <code>add_mark()</code> تفحص المجال، و<code>import_csv_line()</code> تفحص المجال، و<code>correct_mark()</code> تفحص المجال. الشرط <code>if</code> نفسه من ثلاثة أسطر، منسوخًا، مع رسالة الخطأ نفسها تُكتب من جديد كل مرة.</p>
+    <p class="en">Then a teacher is in a hurry. She does not call any of the three functions — she writes a two-line loop that reaches into the dictionary and sets the mark directly. There was no fourth copy of the check for her to skip, because there was nothing to skip: the check was never a rule of the data, only a habit of three functions.</p>
+    <p class="ar">ثم تستعجل إحدى المعلمات. فلا تستدعي أيًّا من الدوال الثلاث — بل تكتب حلقة من سطرين تمتد إلى القاموس وتضبط الدرجة مباشرة. ولم تكن هناك نسخة رابعة من الفحص لتتجاوزها، لأنه لم يكن هناك ما يُتجاوز: فالفحص لم يكن يومًا قاعدة من قواعد البيانات، بل عادة لثلاث دوال فقط.</p>
+    <p class="en">The report prints a mark of 105 out of 100 and a class average that is simply wrong. Nothing crashed, nothing warned. The office sent those certificates home.</p>
+    <p class="ar">فيطبع التقرير درجة 105 من 100 ومعدل صف خاطئ تمامًا. ولا شيء انهار ولا شيء حذّر. وأرسل المكتب تلك الشهادات إلى البيوت.</p>
+  </div>
+
+  <h3 id="l3-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is the real <code>gradebook.py</code>. Count the copies of the range check before you read the output.</p>
+  <p class="ar">هذا هو ملف <code>gradebook.py</code> الحقيقي. أحصِ نسخ فحص المجال قبل أن تقرأ الناتج.</p>
+
+<pre class="code bad"><code>students = [{"name": "Huda", "mark": 0},
+            {"name": "Yousef", "mark": 0},
+            {"name": "Amal", "mark": 0}]
+
+def add_mark(student, mark):
+    if mark &lt; 0 or mark &gt; 100:          # check 1
+        print("rejected:", mark)
+        return
+    student["mark"] = mark
+
+def import_csv_line(line):
+    name, raw = line.split(",")
+    mark = int(raw)
+    if mark &lt; 0 or mark &gt; 100:          # check 2
+        print("rejected:", mark)
+        return None
+    return {"name": name, "mark": mark}
+
+def correct_mark(student, mark):
+    if mark &lt; 0 or mark &gt; 100:          # check 3
+        print("rejected:", mark)
+        return
+    student["mark"] = mark
+
+add_mark(students[0], 88)
+add_mark(students[1], 61)
+students.append(import_csv_line("Kareem,74"))
+correct_mark(students[2], 55)
+
+# the teacher's quick fix loop — the fourth place
+for s in students:
+    if s["name"] == "Yousef":
+        s["mark"] = 105
+
+print("--- results ---")
+for s in students:
+    state = "PASS" if s["mark"] &gt;= 50 else "FAIL"
+    print(f"{s['name']:8} {s['mark']:3}  {state}")
+
+total = sum(s["mark"] for s in students)
+print("class average:", round(total / len(students), 1))
+</code></pre>
+
+  <div class="output">--- results ---
+Huda      88  PASS
+Yousef   105  PASS
+Amal      55  PASS
+Kareem    74  PASS
+class average: 80.5</div>
+
+  <div class="warn">
+    <h4><span class="en">Two wrong numbers, zero error messages</span><span class="ar">رقمان خاطئان وصفر رسائل خطأ</span></h4>
+    <p class="en">Yousef's row says 105 out of 100 — a grade that cannot exist. And the class average says 80.5 when the four real marks average 69.5. The impossible mark poisoned a figure that nobody would think to check against a range, because an average of 80.5 looks completely ordinary.</p>
+    <p class="ar">سطر يوسف يقول 105 من 100 — درجة لا يمكن أن توجد. ومعدل الصف يقول 80.5 بينما معدل الدرجات الأربع الحقيقية 69.5. فالدرجة المستحيلة سمّمت رقمًا لا يفكر أحد في مقارنته بمجال، لأن معدلًا بـ 80.5 يبدو عاديًا تمامًا.</p>
+  </div>
+
+  <h3 id="l3-s2"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The rule "0 ≤ mark ≤ 100" is written in the file three times and enforced zero times. Three copies is not three times the safety — it is three places to keep in step, plus the quiet assumption that nobody will ever write <code>student["mark"] = ...</code> without asking permission first. The dictionary itself has no opinion about its contents: to Python, <code>105</code> is as acceptable a value as <code>88</code>.</p>
+  <p class="ar">القاعدة «0 ≤ الدرجة ≤ 100» مكتوبة في الملف ثلاث مرات ومفروضة صفر مرة. والنسخ الثلاث ليست ثلاثة أضعاف الأمان — بل ثلاثة مواضع يجب إبقاؤها متزامنة، إضافة إلى افتراض صامت بأن لا أحد سيكتب <code>student["mark"] = ...</code> يومًا دون أن يستأذن. فالقاموس نفسه لا رأي له في محتواه: فـ <code>105</code> في نظر بايثون قيمة مقبولة كـ <code>88</code> تمامًا.</p>
+
+  <p class="en">A rule that lives in the callers can always be bypassed by a new caller. To be real, the rule has to live inside the thing it protects. We will get there in three steps.</p>
+  <p class="ar">القاعدة التي تقيم في المستدعين يمكن تجاوزها دائمًا بمستدعٍ جديد. ولتكون القاعدة حقيقية عليها أن تقيم داخل الشيء الذي تحميه. وسنصل إلى ذلك في ثلاث خطوات.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — move the check into a method on the class</span><span class="ar">الخطوة 1 — انقل الفحص إلى دالة في الصنف</span></span>
+    <p class="en">Make <code>Student</code> a class and put the range check in one method, <code>set_mark()</code>. The three copies become one. Raise <code>ValueError</code> instead of printing, so a bad mark cannot be ignored by a caller who does not read the console.</p>
+    <p class="ar">اجعل <code>Student</code> صنفًا وضع فحص المجال في دالة واحدة هي <code>set_mark()</code>. فتصبح النسخ الثلاث نسخة واحدة. وارفع <code>ValueError</code> بدلًا من الطباعة، كي لا يستطيع مستدعٍ لا يقرأ الطرفية أن يتجاهل درجة فاسدة.</p>
+
+<pre class="code"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self.mark = 0
+
+    def set_mark(self, mark):
+        if mark &lt; 0 or mark &gt; 100:
+            raise ValueError(f"mark out of range: {mark}")
+        self.mark = mark
+
+
+roll = [Student("Huda"), Student("Yousef"),
+        Student("Amal")]
+
+roll[0].set_mark(88)
+roll[1].set_mark(61)
+roll[2].set_mark(55)
+
+try:
+    roll[1].set_mark(105)
+except ValueError as e:
+    print("blocked:", e)
+
+# but the quick fix loop does not call set_mark
+roll[1].mark = 105
+print("after the quick fix:", roll[1].mark)
+</code></pre>
+
+    <div class="output">blocked: mark out of range: 105
+after the quick fix: 105</div>
+
+    <p class="en">Better, and still broken. The duplication is gone and <code>set_mark(105)</code> is genuinely refused — but the last two lines show the hole. <code>roll[1].mark = 105</code> is shorter to type than the method, it looks perfectly normal, and it walks straight past the only guard in the program. The method is a locked door standing next to an open window.</p>
+    <p class="ar">أفضل، ولا يزال معطوبًا. فقد زال التكرار و<code>set_mark(105)</code> مرفوضة فعلًا — لكن السطرين الأخيرين يكشفان الثغرة. فـ <code>roll[1].mark = 105</code> أقصر كتابةً من الدالة، وتبدو طبيعية تمامًا، وتمرّ مباشرة من أمام الحارس الوحيد في البرنامج. فالدالة باب موصد يقف إلى جانب نافذة مفتوحة.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — <code>_mark</code>: a promise between programmers</span><span class="ar">الخطوة 2 — <code>_mark</code>: وعد بين المبرمجين</span></span>
+    <p class="en">The convention is a single leading underscore. <code>self._mark</code> means "this is internal — the class manages it, do not reach in from outside". Every Python programmer reading <code>student._mark = 105</code> knows immediately that the line is doing something it should not.</p>
+    <p class="ar">الاتفاق المعتمد هو شرطة سفلية واحدة في البداية. فـ <code>self._mark</code> تعني «هذه داخلية — الصنف يديرها، فلا تمتد إليها من الخارج». وكل مبرمج بايثون يقرأ <code>student._mark = 105</code> يعرف فورًا أن السطر يفعل ما لا ينبغي له.</p>
+
+<pre class="code"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self._mark = 0
+
+    def set_mark(self, mark):
+        if mark &lt; 0 or mark &gt; 100:
+            raise ValueError(f"mark out of range: {mark}")
+        self._mark = mark
+
+    def get_mark(self):
+        return self._mark
+
+
+huda = Student("Huda")
+huda.set_mark(88)
+print(huda.get_mark())
+
+# nothing stops this — Python does not block it
+huda._mark = 105
+print("after touching _mark:", huda.get_mark())
+</code></pre>
+
+    <div class="output">88
+after touching _mark: 105</div>
+
+    <div class="warn">
+      <h4><span class="en">Be honest about what the underscore does</span><span class="ar">كن صريحًا في ما تفعله الشرطة السفلية</span></h4>
+      <p class="en">Nothing, mechanically. Python did not raise, did not warn, did not even slow down — the underscore is documentation, not a lock. It is a strong and genuinely useful convention, because it tells a reader which attributes are the class's own business, but it will never stop a determined or careless line of code. If you need the rule <em>enforced</em>, you need Step 3.</p>
+      <p class="ar">لا شيء، من الناحية الآلية. فبايثون لم ترفع خطأً ولم تحذّر ولم تتباطأ حتى — فالشرطة السفلية توثيق لا قُفل. وهي اتفاق قوي ونافع فعلًا، لأنه يخبر القارئ أي الخصائص من شأن الصنف وحده، لكنه لن يوقف أبدًا سطرًا مصمِّمًا أو مستهترًا. فإن أردت القاعدة <em>مفروضة</em> فأنت بحاجة إلى الخطوة 3.</p>
+    </div>
+
+    <p class="en">You will also meet two leading underscores, <code>__mark</code>. That one does change something: Python rewrites the name inside the class to <code>_Student__mark</code>, which is called <strong>name mangling</strong>.</p>
+    <p class="ar">وستلتقي أيضًا بشرطتين سفليتين، <code>__mark</code>. وهذه تغيّر شيئًا فعلًا: فبايثون تعيد كتابة الاسم داخل الصنف إلى <code>_Student__mark</code>، وهذا ما يسمى <strong>تشويه الأسماء</strong> (name mangling).</p>
+
+<pre class="code bad"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self.__mark = 0
+
+
+huda = Student("Huda")
+print(huda.__dict__)
+huda.__mark = 105              # makes a NEW attribute
+print(huda.__dict__)
+print(huda._Student__mark)     # the real one, still 0
+print(huda.__mark)
+</code></pre>
+
+    <div class="output">{'name': 'Huda', '_Student__mark': 0}
+{'name': 'Huda', '_Student__mark': 0, '__mark': 105}
+0
+105</div>
+
+    <p class="en">Read that carefully, because it is worse than no protection at all. The outside assignment did not fail and did not change the real value — it silently created a <em>second</em>, unrelated attribute. Now the object carries two different marks, the class reads one and the careless code reads the other, and no error ever appears. Name mangling exists to stop a subclass from accidentally colliding with a base class's attribute name, which is a narrow and rare problem. It is almost never what you want for "make this private".</p>
+    <p class="ar">اقرأ ذلك بتمهّل، فهو أسوأ من غياب الحماية أصلًا. فالإسناد من الخارج لم يفشل ولم يغيّر القيمة الحقيقية — بل أنشأ بصمت خاصية <em>ثانية</em> لا علاقة لها بالأولى. فالكائن يحمل الآن درجتين مختلفتين، يقرأ الصنف إحداهما ويقرأ الكود المستهتر الأخرى، ولا يظهر أي خطأ إطلاقًا. وتشويه الأسماء موجود لمنع الصنف المشتق من التصادم سهوًا مع اسم خاصية في الصنف الأساس، وهي مشكلة ضيقة ونادرة. وهو ليس تقريبًا ما تريده من أجل «اجعل هذه خاصة».</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does the single leading underscore in <code>self._mark</code> actually do at runtime?</span><span class="ar">ما الذي تفعله الشرطة السفلية الواحدة في <code>self._mark</code> فعليًا وقت التشغيل؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">It makes the attribute private, so assigning <code>student._mark = 105</code> from outside raises an <code>AttributeError</code>.</span><span class="ar">تجعل الخاصية خاصة، فإسناد <code>student._mark = 105</code> من الخارج يرفع <code>AttributeError</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Nothing at runtime. It is a naming convention that tells other programmers the attribute is internal; Python still allows every read and write.</span><span class="ar">لا شيء وقت التشغيل. إنها اتفاق تسمية يخبر المبرمجين الآخرين أن الخاصية داخلية؛ وبايثون لا تزال تسمح بكل قراءة وكتابة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It renames the attribute to <code>_Student__mark</code>, so outside code cannot find it.</span><span class="ar">تعيد تسمية الخاصية إلى <code>_Student__mark</code>، فلا يستطيع الكود الخارجي إيجادها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It makes the attribute read-only after <code>__init__</code> finishes.</span><span class="ar">تجعل الخاصية للقراءة فقط بعد انتهاء <code>__init__</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">One underscore is a message to humans, not an instruction to the interpreter — the output above showed <code>huda._mark = 105</code> succeeding in silence. The tempting wrong answer is the third: renaming to <code>_Student__mark</code> is what <em>two</em> underscores do, and even that does not hide anything. As the mangling example showed, <code>huda.__mark = 105</code> from outside quietly created a brand-new second attribute while the real <code>_Student__mark</code> stayed at 0 — two sources of truth and no error.</div>
+      <div class="ar">الشرطة الواحدة رسالة إلى البشر لا تعليمة إلى المفسّر — فقد أظهر الناتج أعلاه نجاح <code>huda._mark = 105</code> في صمت. والإجابة المغرية الخاطئة هي الثالثة: فإعادة التسمية إلى <code>_Student__mark</code> هي ما تفعله الشرطتان، وحتى تلك لا تخفي شيئًا. وكما أظهر مثال التشويه، فإن <code>huda.__mark = 105</code> من الخارج أنشأت بهدوء خاصية ثانية جديدة تمامًا بينما بقيت <code>_Student__mark</code> الحقيقية على 0 — مصدرا حقيقة بلا أي خطأ.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — <code>@property</code> and <code>@mark.setter</code>: the assignment itself runs your code</span><span class="ar">الخطوة 3 — <code>@property</code> و<code>@mark.setter</code>: الإسناد نفسه ينفّذ كودك</span></span>
+    <p class="en">A <strong>property</strong> turns a plain-looking attribute into a pair of methods. <code>@property</code> marks the getter: the method that runs when someone <em>reads</em> <code>s.mark</code>. <code>@mark.setter</code> marks the setter: the method that runs when someone <em>writes</em> <code>s.mark = 105</code>. The teacher's quick fix no longer bypasses the check, because the quick fix <em>is</em> a call to the check.</p>
+    <p class="ar">الـ <strong>property</strong> تحوّل خاصية تبدو عادية إلى زوج من الدوال. فـ <code>@property</code> تعلّم الـ getter: الدالة التي تُنفَّذ عندما <em>يقرأ</em> أحدهم <code>s.mark</code>. و<code>@mark.setter</code> تعلّم الـ setter: الدالة التي تُنفَّذ عندما <em>يكتب</em> أحدهم <code>s.mark = 105</code>. فلم يعد الإصلاح السريع للمعلمة يتجاوز الفحص، لأن الإصلاح السريع <em>هو</em> استدعاء للفحص.</p>
+
+<pre class="code good"><code>class Student:
+    def __init__(self, name, mark=0):
+        self.name = name
+        self.mark = mark           # goes through the setter
+
+    @property
+    def mark(self):
+        return self._mark
+
+    @mark.setter
+    def mark(self, value):
+        if not isinstance(value, int):
+            raise TypeError(f"mark must be int, got {value!r}")
+        if value &lt; 0 or value &gt; 100:
+            raise ValueError(f"mark out of range: {value}")
+        self._mark = value
+
+
+roll = [Student("Huda", 88), Student("Yousef", 61),
+        Student("Amal", 55), Student("Kareem", 74)]
+
+# the report code did not change at all
+for s in roll:
+    state = "PASS" if s.mark &gt;= 50 else "FAIL"
+    print(f"{s.name:8} {s.mark:3}  {state}")
+
+avg = sum(s.mark for s in roll) / len(roll)
+print("class average:", round(avg, 1))
+
+# and now the quick fix loop
+for s in roll:
+    if s.name == "Yousef":
+        s.mark = 105
+</code></pre>
+
+    <div class="output">Huda      88  PASS
+Yousef    61  PASS
+Amal      55  PASS
+Kareem    74  PASS
+class average: 69.5
+Traceback (most recent call last):
+  File "gradebook.py", line 33, in &lt;module&gt;
+    s.mark = 105
+    ^^^^^^
+  File "gradebook.py", line 15, in mark
+    raise ValueError(f"mark out of range: {value}")
+ValueError: mark out of range: 105</div>
+
+    <p class="en">The average is 69.5, which is the true figure, and the impossible mark now stops the program at the exact line that created it. The traceback points at <code>s.mark = 105</code> in the quick fix loop — not at the report three screens later, where the wrong number first became visible.</p>
+    <p class="ar">المعدل 69.5، وهو الرقم الصحيح، والدرجة المستحيلة توقف البرنامج الآن عند السطر الذي أنشأها بالضبط. والتتبع يشير إلى <code>s.mark = 105</code> في حلقة الإصلاح السريع — لا إلى التقرير بعد ثلاث شاشات، حيث ظهر الرقم الخاطئ أول مرة.</p>
+
+    <div class="tip">
+      <h4><span class="en">The payoff is in what you did <em>not</em> have to change</span><span class="ar">المكسب في ما <em>لم</em> تحتج إلى تغييره</span></h4>
+      <p class="en">Look at the report loop and the average line. They read <code>s.mark</code> — exactly as they did before any of this started, when <code>mark</code> was an ordinary attribute on a plain object. No <code>get_mark()</code>, no brackets, no call syntax. A property is invisible at the point of use, which means you can add a rule to an existing attribute without touching the hundred places that already read it. That is why Python programmers do not write getters and setters by default: they wait, and then upgrade the attribute in place.</p>
+      <p class="ar">انظر إلى حلقة التقرير وسطر المعدل. إنهما يقرآن <code>s.mark</code> — تمامًا كما كانا قبل أن يبدأ كل هذا، حين كانت <code>mark</code> خاصية عادية على كائن عادي. بلا <code>get_mark()</code>، وبلا أقواس، وبلا صيغة استدعاء. فالـ property غير مرئية في موضع الاستخدام، ومعنى ذلك أنك تستطيع إضافة قاعدة إلى خاصية قائمة دون أن تلمس المئة موضع التي تقرأها أصلًا. ولهذا لا يكتب مبرمجو بايثون دوال getter وsetter افتراضيًا: بل ينتظرون، ثم يرقّون الخاصية في مكانها.</p>
+    </div>
+
+    <p class="en">Two details worth naming. The getter returns <code>self._mark</code> — the property is called <code>mark</code>, so the storage underneath must have a different name, or the getter would call itself forever. And <code>__init__</code> writes <code>self.mark = mark</code>, not <code>self._mark = mark</code>: that way the very first value a student ever receives is validated by the same setter as every value after it.</p>
+    <p class="ar">تفصيلان يستحقان التسمية. الـ getter تعيد <code>self._mark</code> — فالـ property اسمها <code>mark</code>، لذا يجب أن يكون للتخزين تحتها اسم مختلف، وإلا لاستدعت الـ getter نفسها إلى الأبد. و<code>__init__</code> يكتب <code>self.mark = mark</code> لا <code>self._mark = mark</code>: فبهذا تُفحص أول قيمة يستقبلها الطالب على الإطلاق بالـ setter نفسها التي تفحص كل قيمة بعدها.</p>
+  </div>
+
+  <h3 id="l3-s3"><span class="en">A property with no setter: a value nobody is allowed to assert</span><span class="ar">property بلا setter: قيمة لا يُسمح لأحد بتقريرها</span></h3>
+
+  <p class="en">A grade letter and a pass/fail verdict are not facts you store — they are consequences of the mark. Lesson 2 made them methods, so you had to write <code>s.grade()</code>. A property lets you compute on demand while still reading like a field. And if you simply do not write a setter, the value becomes read-only.</p>
+  <p class="ar">حرف التقدير وحكم النجاح أو الرسوب ليسا حقيقتين تُخزَّنان — بل نتيجتان للدرجة. وقد جعلهما الدرس 2 دالتين، فكان عليك أن تكتب <code>s.grade()</code>. والـ property تتيح لك الحساب عند الطلب مع بقاء القراءة كقراءة حقل. وإن لم تكتب setter أصلًا، صارت القيمة للقراءة فقط.</p>
+
+<pre class="code good"><code>class Student:
+    def __init__(self, name, mark=0):
+        self.name = name
+        self.mark = mark
+
+    @property
+    def mark(self):
+        return self._mark
+
+    @mark.setter
+    def mark(self, value):
+        if value &lt; 0 or value &gt; 100:
+            raise ValueError(f"mark out of range: {value}")
+        self._mark = value
+
+    @property
+    def passed(self):
+        return self._mark &gt;= 50
+
+    @property
+    def grade(self):
+        if self._mark &gt;= 85:
+            return "A"
+        if self._mark &gt;= 70:
+            return "B"
+        if self._mark &gt;= 50:
+            return "C"
+        return "F"
+
+
+roll = [Student("Huda", 88), Student("Yousef", 61),
+        Student("Amal", 44)]
+
+for s in roll:
+    print(f"{s.name:8} {s.mark:3}  {s.grade}  {s.passed}")
+
+# a kind teacher tries to award a pass directly
+roll[2].passed = True
+</code></pre>
+
+  <div class="output">Huda      88  A  True
+Yousef    61  C  True
+Amal      44  F  False
+Traceback (most recent call last):
+  File "gradebook.py", line 38, in &lt;module&gt;
+    roll[2].passed = True
+    ^^^^^^^^^^^^^^
+AttributeError: property 'passed' of 'Student' object has no setter</div>
+
+  <p class="en">The error message is the design, spelled out: <code>property 'passed' of 'Student' object has no setter</code>. Amal's 44 is a fail, and the only way to change that is to change the mark — which goes through the validating setter. There is no door marked "pass her anyway", so the grade book cannot contain a student who is passing with 44.</p>
+  <p class="ar">رسالة الخطأ هي التصميم نفسه منطوقًا: <code>property 'passed' of 'Student' object has no setter</code>. فالدرجة 44 لأمل رسوب، والسبيل الوحيد لتغيير ذلك هو تغيير الدرجة — وهو ما يمرّ عبر الـ setter الفاحصة. فلا باب مكتوب عليه «أنجحيها على أي حال»، وبذلك لا يستطيع كشف الدرجات أن يحتوي طالبة ناجحة بـ 44.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">After converting <code>mark</code> into a property with a validating setter, what has to change in the report code that reads <code>s.mark</code>?</span><span class="ar">بعد تحويل <code>mark</code> إلى property مع setter فاحصة، ما الذي يجب تغييره في كود التقرير الذي يقرأ <code>s.mark</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Every read becomes <code>s.mark()</code>, because <code>mark</code> is now a method.</span><span class="ar">تصبح كل قراءة <code>s.mark()</code>، لأن <code>mark</code> صارت دالة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Every read becomes <code>s._mark</code>, because that is where the value is really stored.</span><span class="ar">تصبح كل قراءة <code>s._mark</code>، لأن القيمة مخزَّنة هناك فعلًا.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Nothing. <code>s.mark</code> still reads as a plain attribute; the getter runs behind it.</span><span class="ar">لا شيء. فـ <code>s.mark</code> لا تزال تُقرأ كخاصية عادية؛ والـ getter تعمل خلفها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing for reads, but every read of <code>s.passed</code> must be wrapped in <code>try</code>, since properties can raise.</span><span class="ar">لا شيء للقراءات، لكن كل قراءة لـ <code>s.passed</code> يجب أن تُحاط بـ <code>try</code>، لأن الـ properties قد ترفع أخطاء.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Callers are untouched — the report loop and <code>sum(s.mark for s in roll)</code> are byte-for-byte what they were, which is the entire reason to prefer a property over a <code>get_mark()</code> method. The tempting wrong answer is the second: reaching for <code>s._mark</code> works, but it deliberately steps around the getter and re-breaks the encapsulation you just built. The underscore name exists for the class's own use; outside code should keep reading <code>s.mark</code>.</div>
+      <div class="ar">المستدعون لم يُمسّوا — فحلقة التقرير و<code>sum(s.mark for s in roll)</code> كما كانتا حرفًا بحرف، وهذا هو السبب الكامل لتفضيل property على دالة <code>get_mark()</code>. والإجابة المغرية الخاطئة هي الثانية: فاللجوء إلى <code>s._mark</code> يعمل، لكنه يتخطى الـ getter بتعمّد ويعيد كسر التغليف الذي بنيته للتو. فاسم الشرطة السفلية موجود لاستخدام الصنف نفسه؛ وعلى الكود الخارجي أن يواصل قراءة <code>s.mark</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l3-s4"><span class="en">Second example — a prepaid electricity meter</span><span class="ar">مثال ثانٍ — عدّاد كهرباء مدفوع مسبقًا</span></h3>
+
+  <p class="en">Different domain, same two ideas. A prepaid meter has a balance in shekels. Two rules hold it together: a top-up must be a positive amount, and consumption can never push the balance below zero. The setter enforces the floor once, and both <code>top_up()</code> and <code>consume()</code> go through it.</p>
+  <p class="ar">مجال مختلف والفكرتان هما نفسهما. العدّاد المدفوع مسبقًا له رصيد بالشواكل. وقاعدتان تحكمانه: التعبئة يجب أن تكون بمبلغ موجب، والاستهلاك لا يمكن أن يدفع الرصيد تحت الصفر أبدًا. فالـ setter تفرض الحد الأدنى مرة واحدة، وتمرّ عبرها <code>top_up()</code> و<code>consume()</code> كلتاهما.</p>
+
+<pre class="code good"><code>class PrepaidMeter:
+    def __init__(self, serial, balance=0.0):
+        self.serial = serial
+        self._balance = 0.0
+        self.balance = balance
+
+    @property
+    def balance(self):
+        return round(self._balance, 2)
+
+    @balance.setter
+    def balance(self, value):
+        if value &lt; 0:
+            raise ValueError("balance cannot be negative")
+        self._balance = value
+
+    @property
+    def is_on(self):
+        return self._balance &gt; 0
+
+    def top_up(self, amount):
+        if amount &lt;= 0:
+            raise ValueError(f"bad top-up: {amount}")
+        self.balance = self._balance + amount
+        return self.balance
+
+    def consume(self, kwh, rate=0.55):
+        cost = kwh * rate
+        if cost &gt; self._balance:
+            raise ValueError(
+                f"only {self.balance} left, {round(cost, 2)}"
+                " needed")
+        self.balance = self._balance - cost
+        return self.balance
+
+
+m = PrepaidMeter("GZ-4417", 20.0)
+print(m.serial, m.balance, m.is_on)
+print("after 10 kWh:", m.consume(10))
+print("after top-up :", m.top_up(5))
+
+try:
+    m.consume(100)
+except ValueError as e:
+    print("refused:", e)
+
+try:
+    m.top_up(-30)
+except ValueError as e:
+    print("refused:", e)
+
+print("still:", m.balance, m.is_on)
+</code></pre>
+
+  <div class="output">GZ-4417 20.0 True
+after 10 kWh: 14.5
+after top-up : 19.5
+refused: only 19.5 left, 55.0 needed
+refused: bad top-up: -30
+still: 19.5 True</div>
+
+  <p class="en">Three things to copy from this. The refused 100 kWh and the refused −30 top-up both left the balance at exactly 19.5 — a rejected operation changes nothing, because the check happens before the assignment, not after. <code>is_on</code> is a read-only property, so a meter cannot be "on" while empty; that state is simply not expressible. And the getter does real work: it rounds, so the outside world sees clean money while the arithmetic underneath keeps full precision.</p>
+  <p class="ar">ثلاثة أمور تُنقل من هذا. فالاستهلاك المرفوض بـ 100 كيلوواط والتعبئة المرفوضة بـ −30 تركا الرصيد على 19.5 بالضبط — فالعملية المرفوضة لا تغيّر شيئًا، لأن الفحص يحدث قبل الإسناد لا بعده. و<code>is_on</code> خاصية للقراءة فقط، فلا يمكن أن يكون العدّاد «مشتغلًا» وهو فارغ؛ فتلك الحالة غير قابلة للتعبير أصلًا. والـ getter تقوم بعمل حقيقي: فهي تقرّب، ليرى العالم الخارجي مالًا نظيفًا بينما يحافظ الحساب تحتها على الدقة الكاملة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>top_up()</code> write <code>self.balance = ...</code> instead of <code>self._balance = ...</code>?</span><span class="ar">لماذا تكتب <code>top_up()</code> السطر <code>self.balance = ...</code> بدلًا من <code>self._balance = ...</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because a method is not allowed to write to an underscore attribute; only the setter may.</span><span class="ar">لأن الدالة غير مسموح لها بالكتابة في خاصية تبدأ بشرطة سفلية؛ والـ setter وحدها تستطيع.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">So the "never negative" rule is applied by the setter on this write too, instead of being re-checked inside every method that changes the balance.</span><span class="ar">كي تُطبَّق قاعدة «لا سلبية أبدًا» بواسطة الـ setter على هذه الكتابة أيضًا، بدلًا من إعادة فحصها داخل كل دالة تغيّر الرصيد.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>self._balance</code> does not exist until the setter creates it.</span><span class="ar">لأن <code>self._balance</code> لا توجد حتى تُنشئها الـ setter.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because writing <code>self._balance</code> inside a method would recurse into the getter forever.</span><span class="ar">لأن كتابة <code>self._balance</code> داخل دالة ستتكرر داخل الـ getter إلى الأبد.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Going through the property means the floor is enforced in one place for every write in the class — exactly the Concept 1 lesson applied to the object's own methods. The tempting wrong answer is the last one, because recursion <em>is</em> a real property hazard, but it works the other way round: the getter would recurse if it returned <code>self.balance</code> instead of <code>self._balance</code>. Reading or writing the underscore name never triggers the property; that is the whole point of giving the storage a different name.</div>
+      <div class="ar">المرور عبر الـ property يعني فرض الحد الأدنى في موضع واحد لكل كتابة في الصنف — وهو درس المفهوم 1 نفسه مطبَّقًا على دوال الكائن ذاته. والإجابة المغرية الخاطئة هي الأخيرة، لأن التكرار اللانهائي خطر حقيقي <em>فعلًا</em> في الـ properties، لكنه يعمل في الاتجاه المعاكس: فالـ getter هي التي ستتكرر لو أعادت <code>self.balance</code> بدلًا من <code>self._balance</code>. أما قراءة اسم الشرطة السفلية أو الكتابة فيه فلا تُشغّل الـ property أبدًا؛ وهذا هو كل المقصود من منح التخزين اسمًا مختلفًا.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — Attendance that clamps instead of raising</span><span class="ar">تمرين 1.1 — حضور يُقصَر بدلًا من رفع خطأ</span></h4>
+    <p class="en">Give <code>Student</code> an <code>attendance</code> property holding a percentage. Unlike <code>mark</code>, this one must not raise: an out-of-range value is <strong>clamped</strong> into 0–100, because the attendance machine sometimes reports 104% and the office wants the report printed, not crashed. Assigning 140 must store 100; assigning −5 must store 0.</p>
+    <p class="ar">امنح <code>Student</code> خاصية <code>attendance</code> تحمل نسبة مئوية. وبخلاف <code>mark</code>، هذه يجب ألا ترفع خطأً: فالقيمة الخارجة عن المجال <strong>تُقصَر</strong> إلى 0–100، لأن جهاز الحضور يُبلّغ أحيانًا عن 104% والمكتب يريد التقرير مطبوعًا لا منهارًا. فإسناد 140 يجب أن يخزّن 100، وإسناد −5 يجب أن يخزّن 0.</p>
+
+<pre class="code"><code>class Student:
+    def __init__(self, name, attendance=100):
+        self.name = name
+        self.attendance = attendance
+
+    # write the property getter and the setter here.
+    # hint: min() and max() do the clamping in one line
+
+
+huda = Student("Huda")
+print(huda.name, huda.attendance)
+
+huda.attendance = 73
+print("set to 73  -&gt;", huda.attendance)
+
+huda.attendance = 140
+print("set to 140 -&gt;", huda.attendance)
+
+huda.attendance = -5
+print("set to -5  -&gt;", huda.attendance)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Student:
+    def __init__(self, name, attendance=100):
+        self.name = name
+        self.attendance = attendance
+
+    @property
+    def attendance(self):
+        return self._attendance
+
+    @attendance.setter
+    def attendance(self, value):
+        self._attendance = max(0, min(100, value))
+
+
+huda = Student("Huda")
+print(huda.name, huda.attendance)
+
+huda.attendance = 73
+print("set to 73  -&gt;", huda.attendance)
+
+huda.attendance = 140
+print("set to 140 -&gt;", huda.attendance)
+
+huda.attendance = -5
+print("set to -5  -&gt;", huda.attendance)
+</code></pre>
+      <div class="output">Huda 100
+set to 73  -&gt; 73
+set to 140 -&gt; 100
+set to -5  -&gt; 0</div>
+      <p class="en">A setter does not have to reject — it is ordinary code that runs on assignment, so it can clamp, round, strip whitespace from a name, or log the change. <code>max(0, min(100, value))</code> reads as "not above 100, and not below 0". Which behaviour is right depends on the domain: a mark of 105 is a data error worth stopping for, while an attendance reading of 104% is noise worth absorbing.</p>
+      <p class="ar">الـ setter ليست ملزمة بالرفض — فهي كود عادي يُنفَّذ عند الإسناد، فيستطيع أن يقصر القيمة أو يقرّبها أو يحذف الفراغات من اسم أو يسجّل التغيير. و<code>max(0, min(100, value))</code> تُقرأ «لا أعلى من 100 ولا أدنى من 0». وأي سلوك هو الصحيح يتوقف على المجال: فدرجة 105 خطأ في البيانات يستحق التوقف، أما قراءة حضور بـ 104% فضجيج يستحق الاستيعاب.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — A read-only <code>is_passing</code></span><span class="ar">تمرين 1.2 — <code>is_passing</code> للقراءة فقط</span></h4>
+    <p class="en">Write <code>Student</code> with a class attribute <code>pass_mark = 50</code>, a validating <code>mark</code> property that raises <code>ValueError</code> outside 0–100, and a read-only <code>is_passing</code> property computed from the mark. Re-marking a student from 49 to 52 must flip <code>is_passing</code> by itself, and assigning to <code>is_passing</code> must fail.</p>
+    <p class="ar">اكتب <code>Student</code> بخاصية صنف <code>pass_mark = 50</code>، وخاصية <code>mark</code> فاحصة ترفع <code>ValueError</code> خارج 0–100، وخاصية <code>is_passing</code> للقراءة فقط محسوبة من الدرجة. ويجب أن يقلب تعديل درجة طالب من 49 إلى 52 قيمة <code>is_passing</code> من تلقاء نفسها، وأن يفشل الإسناد إلى <code>is_passing</code>.</p>
+
+<pre class="code"><code>class Student:
+    pass_mark = 50
+
+    def __init__(self, name, mark=0):
+        self.name = name
+        self.mark = mark
+
+    # 1. the mark property + validating setter
+    # 2. is_passing: a getter and NO setter
+
+
+roll = [Student("Huda", 88), Student("Yousef", 49),
+        Student("Amal", 50)]
+
+for s in roll:
+    print(f"{s.name:8} {s.mark:3} {s.is_passing}")
+
+roll[1].mark = 52
+print("after re-marking:", roll[1].is_passing)
+
+roll[1].is_passing = True      # must fail
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Student:
+    pass_mark = 50
+
+    def __init__(self, name, mark=0):
+        self.name = name
+        self.mark = mark
+
+    @property
+    def mark(self):
+        return self._mark
+
+    @mark.setter
+    def mark(self, value):
+        if value &lt; 0 or value &gt; 100:
+            raise ValueError(f"mark out of range: {value}")
+        self._mark = value
+
+    @property
+    def is_passing(self):
+        return self._mark &gt;= Student.pass_mark
+
+
+roll = [Student("Huda", 88), Student("Yousef", 49),
+        Student("Amal", 50)]
+
+for s in roll:
+    print(f"{s.name:8} {s.mark:3} {s.is_passing}")
+
+roll[1].mark = 52
+print("after re-marking:", roll[1].is_passing)
+
+roll[1].is_passing = True
+</code></pre>
+      <div class="output">Huda      88 True
+Yousef    49 False
+Amal      50 True
+after re-marking: True
+Traceback (most recent call last):
+  File "gradebook.py", line 32, in &lt;module&gt;
+    roll[1].is_passing = True
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: property 'is_passing' of 'Student' object has no setter</div>
+      <p class="en">Yousef's verdict changed from <code>False</code> to <code>True</code> without anyone assigning it, because it was never stored — it is recomputed from <code>_mark</code> on every read. That is the Lesson 2 rule ("compute, do not store") plus a property, and it means a student can never be a passing student with a failing mark. Note the boundary: Amal's exactly-50 is <code>True</code>, because the rule is <code>&gt;= pass_mark</code>.</p>
+      <p class="ar">تغيّر حكم يوسف من <code>False</code> إلى <code>True</code> دون أن يسنده أحد، لأنه لم يُخزَّن أبدًا — بل يُعاد حسابه من <code>_mark</code> في كل قراءة. وهذه قاعدة الدرس 2 («احسب ولا تخزّن») مضافًا إليها property، ومعناها أن الطالب لا يمكن أن يكون ناجحًا بدرجة راسبة. ولاحظ الحد الفاصل: فدرجة أمل 50 بالضبط تعطي <code>True</code>، لأن القاعدة <code>&gt;= pass_mark</code>.</p>
+    </details>
+  </section>
+
+  <h2 id="l3-h2"><span class="en">Concept 2 — Hiding internals so they can change</span><span class="ar">المفهوم 2 — إخفاء الداخل كي يصبح قابلًا للتغيير</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Each student now carries a list of marks, and the report code reaches straight into it: <code>sum(s.marks_list) / len(s.marks_list)</code>. That expression is typed out in five different functions — the rows, the pass list, the class average, the top student, and the certificate text.</p>
+    <p class="ar">كل طالب يحمل الآن قائمة درجات، وكود التقرير يمتد إليها مباشرة: <code>sum(s.marks_list) / len(s.marks_list)</code>. وهذا التعبير مكتوب في خمس دوال مختلفة — الأسطر، وقائمة الناجحين، ومعدل الصف، والطالب الأول، ونص الشهادة.</p>
+    <p class="en">Then the ministry changes the rule: the quiz is worth 30% and the exam 70%. The averaging is no longer a plain mean. Five places must change — and when a tired programmer does it on a Thursday afternoon, two of them are missed.</p>
+    <p class="ar">ثم تغيّر الوزارة القاعدة: الاختبار القصير بوزن 30% والامتحان بوزن 70%. فلم يبقَ حساب المعدل متوسطًا بسيطًا. خمسة مواضع يجب أن تتغير — وعندما ينفّذها مبرمج مُتعب عصر الخميس، يُنسى موضعان.</p>
+  </div>
+
+<pre class="code bad"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self.marks_list = []        # wide open
+
+
+roll = [Student("Huda"), Student("Yousef"),
+        Student("Amal")]
+roll[0].marks_list = [90, 86]       # [quiz, exam]
+roll[1].marks_list = [40, 70]
+roll[2].marks_list = [60, 44]
+
+
+def print_rows(roll):
+    for s in roll:
+        m = sum(s.marks_list) / len(s.marks_list)     # 1
+        print(f"{s.name:8} {round(m, 1):5}")
+
+
+def pass_list(roll):
+    out = []
+    for s in roll:
+        m = sum(s.marks_list) / len(s.marks_list)     # 2
+        if m &gt;= 50:
+            out.append(s.name)
+    return out
+
+
+def class_average(roll):
+    each = [sum(s.marks_list) / len(s.marks_list)     # 3
+            for s in roll]
+    return round(sum(each) / len(each), 1)
+
+
+def top_student(roll):
+    return max(roll, key=lambda s:
+               sum(s.marks_list) / len(s.marks_list)) # 4
+
+
+def certificate(s):
+    m = sum(s.marks_list) / len(s.marks_list)         # 5
+    return f"{s.name} finished with {round(m, 1)}"
+
+
+print_rows(roll)
+print("passed:", pass_list(roll))
+print("class average:", class_average(roll))
+print("top:", top_student(roll).name)
+print(certificate(roll[1]))
+</code></pre>
+
+  <div class="output">Huda      88.0
+Yousef    55.0
+Amal      52.0
+passed: ['Huda', 'Yousef', 'Amal']
+class average: 65.0
+top: Huda
+Yousef finished with 55.0</div>
+
+  <h3 id="l3-s5"><span class="en">Now apply the weighting — and miss two places</span><span class="ar">والآن طبّق الأوزان — وانسَ موضعين</span></h3>
+
+  <p class="en">The programmer writes a <code>weighted()</code> helper and goes hunting for the five call sites. Three get updated. <code>class_average</code> and <code>certificate</code> do not.</p>
+  <p class="ar">يكتب المبرمج دالة مساعدة <code>weighted()</code> ويبدأ البحث عن مواضع الاستدعاء الخمسة. فيُحدَّث ثلاثة منها. أما <code>class_average</code> و<code>certificate</code> فلا.</p>
+
+<pre class="code bad"><code># class Student and roll are unchanged from above
+
+# the new rule: quiz 30%, exam 70%
+def weighted(marks):
+    return marks[0] * 0.3 + marks[1] * 0.7
+
+
+def print_rows(roll):
+    for s in roll:
+        m = weighted(s.marks_list)            # updated
+        print(f"{s.name:8} {round(m, 1):5}")
+
+
+def pass_list(roll):
+    out = []
+    for s in roll:
+        m = weighted(s.marks_list)            # updated
+        if m &gt;= 50:
+            out.append(s.name)
+    return out
+
+
+def class_average(roll):
+    each = [sum(s.marks_list) / len(s.marks_list)
+            for s in roll]                    # FORGOTTEN
+    return round(sum(each) / len(each), 1)
+
+
+def top_student(roll):
+    return max(roll, key=lambda s:
+               weighted(s.marks_list))        # updated
+
+
+def certificate(s):
+    m = sum(s.marks_list) / len(s.marks_list) # FORGOTTEN
+    return f"{s.name} finished with {round(m, 1)}"
+
+
+print_rows(roll)
+print("passed:", pass_list(roll))
+print("class average:", class_average(roll))
+print("top:", top_student(roll).name)
+print(certificate(roll[1]))
+</code></pre>
+
+  <div class="output">Huda      87.2
+Yousef    61.0
+Amal      48.8
+passed: ['Huda', 'Yousef']
+class average: 65.0
+top: Huda
+Yousef finished with 55.0</div>
+
+  <div class="warn">
+    <h4><span class="en">The report now contradicts itself in print</span><span class="ar">التقرير الآن يناقض نفسه مطبوعًا</span></h4>
+    <p class="en">Yousef's row says 61.0 and Yousef's certificate says 55.0 — the same student, the same page, two different averages. The class average still says 65.0, computed under the old rule, and it does not even equal the mean of the three new rows. A family holding that certificate and that report has documentary proof that the school cannot count.</p>
+    <p class="ar">سطر يوسف يقول 61.0 وشهادة يوسف تقول 55.0 — الطالب نفسه، والصفحة نفسها، ومعدلان مختلفان. ومعدل الصف لا يزال 65.0، محسوبًا بالقاعدة القديمة، ولا يساوي حتى متوسط الأسطر الثلاثة الجديدة. والأسرة التي تحمل تلك الشهادة وذلك التقرير تملك دليلًا موثّقًا على أن المدرسة لا تعرف الحساب.</p>
+  </div>
+
+  <h3 id="l3-s6"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The problem is not the <code>if</code> this time — it is that <code>marks_list</code> is public. Because every caller can see the list, every caller wrote its own idea of what the list <em>means</em>. "How do you compute a student's average?" became a question answered five times outside the student, so changing the answer means editing five files-worth of other people's code, and nothing tells you when you have found them all.</p>
+  <p class="ar">المشكلة هذه المرة ليست في الشرط <code>if</code> — بل في أن <code>marks_list</code> عامة. فلأن كل مستدعٍ يستطيع رؤية القائمة، كتب كل مستدعٍ فهمه الخاص لما <em>تعنيه</em> القائمة. فصار سؤال «كيف تحسب معدل الطالب؟» سؤالًا مُجابًا خمس مرات خارج الطالب، ومعنى تغيير الإجابة تعديل كود الآخرين في خمسة مواضع، ولا شيء يخبرك متى وجدتها كلها.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — close the list, open a door</span><span class="ar">الخطوة 1 — أغلق القائمة وافتح بابًا</span></span>
+    <p class="en">Rename the list to <code>_marks</code> and publish exactly two things: <code>add_mark()</code> to put a mark in, and an <code>average</code> property to read the result. The five call sites stop knowing that a list exists at all.</p>
+    <p class="ar">أعد تسمية القائمة إلى <code>_marks</code> وانشر شيئين بالضبط: <code>add_mark()</code> لإدخال درجة، وخاصية <code>average</code> لقراءة النتيجة. فتتوقف مواضع الاستدعاء الخمسة عن معرفة وجود قائمة أصلًا.</p>
+
+<pre class="code good"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self._marks = []
+
+    def add_mark(self, mark):
+        if mark &lt; 0 or mark &gt; 100:
+            raise ValueError(f"mark out of range: {mark}")
+        self._marks.append(mark)
+
+    @property
+    def average(self):
+        if not self._marks:
+            return 0.0
+        return round(sum(self._marks) / len(self._marks), 1)
+
+    @property
+    def passed(self):
+        return self.average &gt;= 50
+
+
+roll = [Student("Huda"), Student("Yousef"),
+        Student("Amal")]
+for s, marks in zip(roll, [(90, 86), (40, 70), (60, 44)]):
+    s.add_mark(marks[0])
+    s.add_mark(marks[1])
+
+
+def print_rows(roll):
+    for s in roll:
+        print(f"{s.name:8} {s.average:5}")
+
+
+def pass_list(roll):
+    return [s.name for s in roll if s.passed]
+
+
+def class_average(roll):
+    each = [s.average for s in roll]
+    return round(sum(each) / len(each), 1)
+
+
+def top_student(roll):
+    return max(roll, key=lambda s: s.average)
+
+
+def certificate(s):
+    return f"{s.name} finished with {s.average}"
+
+
+print_rows(roll)
+print("passed:", pass_list(roll))
+print("class average:", class_average(roll))
+print("top:", top_student(roll).name)
+print(certificate(roll[1]))
+</code></pre>
+
+    <div class="output">Huda      88.0
+Yousef    55.0
+Amal      52.0
+passed: ['Huda', 'Yousef', 'Amal']
+class average: 65.0
+top: Huda
+Yousef finished with 55.0</div>
+
+    <p class="en">Identical output to the original — this step changed no behaviour, only who owns the knowledge. Notice how much shorter the five functions became: <code>pass_list</code> is one line, and <code>certificate</code> no longer does arithmetic at all. Each one now asks the student a question instead of doing the student's job.</p>
+    <p class="ar">ناتج مطابق للأصل — فهذه الخطوة لم تغيّر أي سلوك، بل غيّرت من يملك المعرفة فقط. ولاحظ كم صارت الدوال الخمس أقصر: فـ <code>pass_list</code> سطر واحد، و<code>certificate</code> لم تعد تجري أي حساب. فكل واحدة تسأل الطالب سؤالًا الآن بدلًا من أن تقوم بعمل الطالب.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — now change the internals, and watch the callers not move</span><span class="ar">الخطوة 2 — غيّر الداخل الآن، وراقب المستدعين وهم لا يتحركون</span></span>
+    <p class="en">Here is the same ministry change as before: quiz 30%, exam 70%. This time <code>_marks</code> stops being a list of integers and becomes a list of <code>(mark, weight)</code> pairs, and <code>average</code> computes a weighted mean. Both edits are inside <code>Student</code>. Everything below the comment is copied from Step 1 unchanged.</p>
+    <p class="ar">هذا هو تغيير الوزارة نفسه: الاختبار القصير 30% والامتحان 70%. لكن هذه المرة تكفّ <code>_marks</code> عن كونها قائمة أعداد صحيحة وتصبح قائمة أزواج <code>(mark, weight)</code>، وتحسب <code>average</code> متوسطًا مرجّحًا. والتعديلان كلاهما داخل <code>Student</code>. وكل ما تحت التعليق منسوخ من الخطوة 1 بلا تغيير.</p>
+
+<pre class="code good"><code>class Student:
+    def __init__(self, name):
+        self.name = name
+        self._marks = []          # now (mark, weight) pairs
+
+    def add_mark(self, mark, weight=1.0):
+        if mark &lt; 0 or mark &gt; 100:
+            raise ValueError(f"mark out of range: {mark}")
+        self._marks.append((mark, weight))
+
+    @property
+    def average(self):
+        if not self._marks:
+            return 0.0
+        total = sum(m * w for m, w in self._marks)
+        weights = sum(w for m, w in self._marks)
+        return round(total / weights, 1)
+
+    @property
+    def passed(self):
+        return self.average &gt;= 50
+
+
+roll = [Student("Huda"), Student("Yousef"),
+        Student("Amal")]
+for s, (quiz, exam) in zip(roll, [(90, 86), (40, 70),
+                                  (60, 44)]):
+    s.add_mark(quiz, 0.3)
+    s.add_mark(exam, 0.7)
+
+
+# not one line below this comment changed
+def print_rows(roll):
+    for s in roll:
+        print(f"{s.name:8} {s.average:5}")
+
+
+def pass_list(roll):
+    return [s.name for s in roll if s.passed]
+
+
+def class_average(roll):
+    each = [s.average for s in roll]
+    return round(sum(each) / len(each), 1)
+
+
+def top_student(roll):
+    return max(roll, key=lambda s: s.average)
+
+
+def certificate(s):
+    return f"{s.name} finished with {s.average}"
+
+
+print_rows(roll)
+print("passed:", pass_list(roll))
+print("class average:", class_average(roll))
+print("top:", top_student(roll).name)
+print(certificate(roll[1]))
+</code></pre>
+
+    <div class="output">Huda      87.2
+Yousef    61.0
+Amal      48.8
+passed: ['Huda', 'Yousef']
+class average: 65.7
+top: Huda
+Yousef finished with 61.0</div>
+
+    <p class="en">Every number moved and nothing contradicts anything. Yousef's row and Yousef's certificate both say 61.0, because there is only one place that can answer the question. The class average is 65.7 — the real mean of the three new figures. Amal's 48.8 dropped her off the pass list, correctly, and no human had to notice that she needed dropping.</p>
+    <p class="ar">تحرّك كل رقم ولا شيء يناقض شيئًا. فسطر يوسف وشهادة يوسف كلاهما يقول 61.0، لأن هناك موضعًا واحدًا فقط قادرًا على الإجابة. ومعدل الصف 65.7 — وهو المتوسط الحقيقي للأرقام الثلاثة الجديدة. ودرجة أمل 48.8 أسقطتها من قائمة الناجحين، وهذا صحيح، ولم يحتج أي إنسان إلى ملاحظة أنها تحتاج إلى إسقاط.</p>
+
+    <p class="en">This is the real argument for encapsulation, and it is not about security. It is about <strong>freedom to change your mind later</strong>. When callers only know <code>add_mark()</code> and <code>average</code>, the storage underneath is yours: a list, a list of pairs, a dict per subject, a database row. When callers know <code>marks_list</code>, you can never change it, because you no longer know who is reading it.</p>
+    <p class="ar">هذه هي الحجة الحقيقية للتغليف، وهي ليست عن الأمان. بل عن <strong>حرية تغيير رأيك لاحقًا</strong>. فعندما لا يعرف المستدعون إلا <code>add_mark()</code> و<code>average</code>، يصبح التخزين تحتهما ملكك: قائمة، أو قائمة أزواج، أو قاموسًا لكل مادة، أو سجلًا في قاعدة بيانات. وعندما يعرف المستدعون <code>marks_list</code>، فلن تستطيع تغييرها أبدًا، لأنك لم تعد تعرف من يقرأها.</p>
+  </div>
+
+  <h3 id="l3-s7"><span class="en">Second example — a clinic waiting board</span><span class="ar">مثال ثانٍ — شاشة انتظار في عيادة</span></h3>
+
+  <p class="en">Different domain, same point, nothing new to learn. A clinic keeps a queue of waiting patients, and the reception screen asks it two questions: how many are waiting, and who is next. The queue is a private list of names; <code>board()</code> is the only caller.</p>
+  <p class="ar">مجال مختلف والفكرة نفسها، ولا شيء جديد يُتعلّم. عيادة تحتفظ بصف من المرضى المنتظرين، وشاشة الاستقبال تسألها سؤالين: كم عدد المنتظرين، ومن التالي. والصف قائمة أسماء خاصة؛ و<code>board()</code> هي المستدعي الوحيد.</p>
+
+<pre class="code good"><code>class Clinic:
+    def __init__(self):
+        self._waiting = []        # list of names
+
+    def add_patient(self, name, urgent=False):
+        self._waiting.append(name)
+
+    @property
+    def count(self):
+        return len(self._waiting)
+
+    @property
+    def next_up(self):
+        return self._waiting[0] if self._waiting else "-"
+
+
+def board(c):                     # the reception screen
+    return f"{c.count} waiting, next: {c.next_up}"
+
+
+q = Clinic()
+q.add_patient("Huda")
+q.add_patient("Yousef", urgent=True)
+q.add_patient("Amal")
+print(board(q))
+</code></pre>
+
+  <div class="output">3 waiting, next: Huda</div>
+
+  <p class="en">The <code>urgent=True</code> flag is accepted and then thrown away, so Yousef waits behind Huda. Now the clinic decides urgent cases go first. The storage becomes a list of <code>(name, urgent)</code> pairs and <code>next_up</code> scans for an urgent patient before falling back to the head of the queue — both changes inside <code>Clinic</code>.</p>
+  <p class="ar">الراية <code>urgent=True</code> تُقبل ثم تُرمى، فينتظر يوسف خلف هدى. والآن تقرر العيادة أن الحالات العاجلة تُقدَّم. فيصبح التخزين قائمة أزواج <code>(name, urgent)</code>، وتبحث <code>next_up</code> عن مريض عاجل قبل أن ترجع إلى رأس الصف — والتعديلان كلاهما داخل <code>Clinic</code>.</p>
+
+<pre class="code good"><code>class Clinic:                     # only this class changed
+    def __init__(self):
+        self._waiting = []        # now (name, urgent) pairs
+
+    def add_patient(self, name, urgent=False):
+        self._waiting.append((name, urgent))
+
+    @property
+    def count(self):
+        return len(self._waiting)
+
+    @property
+    def next_up(self):
+        for name, urgent in self._waiting:
+            if urgent:
+                return name
+        return self._waiting[0][0] if self._waiting else "-"
+
+
+# board() and every line below are copied unchanged
+def board(c):
+    return f"{c.count} waiting, next: {c.next_up}"
+
+
+q = Clinic()
+q.add_patient("Huda")
+q.add_patient("Yousef", urgent=True)
+q.add_patient("Amal")
+print(board(q))
+</code></pre>
+
+  <div class="output">3 waiting, next: Yousef</div>
+
+  <p class="en">The screen now calls Yousef, and <code>board()</code> was not edited. A list of strings became a list of tuples — the elements changed type — and the caller never found out, because it had only ever asked <code>count</code> and <code>next_up</code>. Had the screen been written as <code>len(q._waiting)</code> and <code>q._waiting[0]</code>, the first line would still work by luck and the second would print <code>('Huda', False)</code> on the wall.</p>
+  <p class="ar">الشاشة تنادي يوسف الآن، و<code>board()</code> لم تُعدَّل. فقائمة نصوص صارت قائمة صفوف (tuples) — تغيّر نوع العناصر — ولم يعلم المستدعي بذلك أبدًا، لأنه لم يسأل يومًا إلا <code>count</code> و<code>next_up</code>. ولو كانت الشاشة مكتوبة <code>len(q._waiting)</code> و<code>q._waiting[0]</code>، لعمل السطر الأول بالحظ ولطبع الثاني <code>('Huda', False)</code> على الحائط.</p>
+
+  <div class="tip">
+    <h4><span class="en">When NOT to bother — Python is not Java</span><span class="ar">متى لا تتكلّف ذلك — بايثون ليست جافا</span></h4>
+    <p class="en"><code>self.name = name</code> needs no property. There is no rule attached to a student's name: any string is acceptable, and a getter that does nothing but <code>return self._name</code> is four extra lines that protect nothing and hide nothing. Writing a property for every attribute out of habit is noise, and it makes the two attributes that <em>do</em> carry a rule harder to spot.</p>
+    <p class="ar"><code>self.name = name</code> لا تحتاج إلى property. فلا قاعدة مرتبطة باسم الطالب: أي نص مقبول، والـ getter التي لا تفعل شيئًا سوى <code>return self._name</code> أربعة أسطر زائدة لا تحمي شيئًا ولا تخفي شيئًا. وكتابة property لكل خاصية بدافع العادة ضجيج، ويجعل الخاصيتين التي تحمل كل منهما قاعدة <em>فعلًا</em> أصعب في التمييز.</p>
+    <p class="en">So: start with a plain public attribute. Add the property the day a rule appears — a range, a clamp, a derived value, an internal layout you want freedom to change. Because a property is invisible at the point of use, that upgrade costs the callers nothing, which is exactly why you are allowed to wait.</p>
+    <p class="ar">إذن: ابدأ بخاصية عامة عادية. وأضف الـ property يوم تظهر قاعدة — مجال، أو تقصير، أو قيمة مشتقة، أو بنية داخلية تريد حرية تغييرها. ولأن الـ property غير مرئية في موضع الاستخدام، فإن هذه الترقية لا تكلّف المستدعين شيئًا، وهذا بالضبط ما يسمح لك بالانتظار.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why was switching to weighted marks a two-line change in Step 2, but a five-place hunt in the broken version?</span><span class="ar">لماذا كان الانتقال إلى الدرجات المرجّحة تعديلًا في سطرين في الخطوة 2، ومطاردة في خمسة مواضع في النسخة المعطوبة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because properties are faster than functions, so fewer of them are needed.</span><span class="ar">لأن الـ properties أسرع من الدوال، فيُحتاج إلى عدد أقل منها.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the callers only knew <code>average</code>, so the question "how is an average computed?" had exactly one answer to change.</span><span class="ar">لأن المستدعين لم يعرفوا إلا <code>average</code>، فكان لسؤال «كيف يُحسب المعدل؟» إجابة واحدة بالضبط تحتاج إلى تغيير.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>_marks</code> cannot be read from outside the class, so no other code was able to depend on it.</span><span class="ar">لأن <code>_marks</code> لا يمكن قراءتها من خارج الصنف، فلم يستطع أي كود آخر الاعتماد عليها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because the weighting was stored on the class instead of on each student.</span><span class="ar">لأن الأوزان خُزّنت على الصنف بدلًا من كل طالب.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">One public answer to a question means one place to edit when the answer changes — that is why <code>class_average</code> and <code>certificate</code> could not fall behind the other three. The tempting wrong answer is the third, because it states the right idea for the wrong reason: <code>_marks</code> is perfectly readable from outside, as Concept 1 proved when <code>huda._mark = 105</code> succeeded. What protected the change was not enforcement but <em>convention</em> — the underscore told every caller not to depend on the list, and callers that honour it keep working when the list turns into pairs.</div>
+      <div class="ar">إجابة عامة واحدة لسؤال تعني موضعًا واحدًا للتعديل عند تغيّر الإجابة — ولهذا لم تستطع <code>class_average</code> و<code>certificate</code> أن تتأخرا عن الثلاث الأخريات. والإجابة المغرية الخاطئة هي الثالثة، لأنها تذكر الفكرة الصحيحة لسبب خاطئ: فـ <code>_marks</code> قابلة للقراءة من الخارج تمامًا، كما أثبت المفهوم 1 عندما نجحت <code>huda._mark = 105</code>. والذي حمى التغيير لم يكن الفرض بل <em>الاتفاق</em> — فالشرطة السفلية أخبرت كل مستدعٍ ألا يعتمد على القائمة، والمستدعون الذين يحترمون ذلك يواصلون العمل عندما تتحول القائمة إلى أزواج.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — Turn three reaching-in functions into properties</span><span class="ar">تمرين 2.1 — حوّل ثلاث دوال ممتدة إلى الداخل إلى properties</span></h4>
+    <p class="en">The starter code has a public <code>scores</code> list and three outside functions that reach into it, and nobody validates anything — so a score of −3 was recorded and <code>worst_score</code> happily reported it. Rewrite <code>Subject</code> with a private <code>_scores</code> list, a validating <code>add_score()</code> that raises <code>ValueError</code> outside 0–100, and read-only <code>best</code>, <code>worst</code> and <code>spread</code> properties. All three must return <code>0</code> when there are no scores yet.</p>
+    <p class="ar">الكود الابتدائي فيه قائمة <code>scores</code> عامة وثلاث دوال خارجية تمتد إليها، ولا أحد يفحص شيئًا — فسُجّلت درجة −3 وأبلغت عنها <code>worst_score</code> برضا تام. أعد كتابة <code>Subject</code> بقائمة <code>_scores</code> خاصة، ودالة <code>add_score()</code> فاحصة ترفع <code>ValueError</code> خارج 0–100، وخصائص <code>best</code> و<code>worst</code> و<code>spread</code> للقراءة فقط. ويجب أن تعيد الثلاث <code>0</code> عندما لا توجد درجات بعد.</p>
+
+<pre class="code bad"><code>class Subject:
+    def __init__(self, title):
+        self.title = title
+        self.scores = []
+
+
+def best_score(subject):
+    return max(subject.scores)
+
+
+def worst_score(subject):
+    return min(subject.scores)
+
+
+def spread(subject):
+    return max(subject.scores) - min(subject.scores)
+
+
+maths = Subject("Maths")
+maths.scores.append(72)
+maths.scores.append(95)
+maths.scores.append(-3)       # nobody checked
+print(best_score(maths), worst_score(maths),
+      spread(maths))
+</code></pre>
+
+    <div class="output">95 -3 98</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Subject:
+    def __init__(self, title):
+        self.title = title
+        self._scores = []
+
+    def add_score(self, score):
+        if score &lt; 0 or score &gt; 100:
+            raise ValueError(f"score out of range: {score}")
+        self._scores.append(score)
+
+    @property
+    def best(self):
+        return max(self._scores) if self._scores else 0
+
+    @property
+    def worst(self):
+        return min(self._scores) if self._scores else 0
+
+    @property
+    def spread(self):
+        return self.best - self.worst
+
+
+maths = Subject("Maths")
+maths.add_score(72)
+maths.add_score(95)
+print(maths.best, maths.worst, maths.spread)
+
+try:
+    maths.add_score(-3)
+except ValueError as e:
+    print("refused:", e)
+
+print("after the refusal:", maths.best, maths.worst)
+</code></pre>
+      <div class="output">95 72 23
+refused: score out of range: -3
+after the refusal: 95 72</div>
+      <p class="en">Two defects died in one rewrite. The bad score is refused at the door, so <code>worst</code> can no longer be negative — and since <code>spread</code> is built from <code>best</code> and <code>worst</code> rather than from the list, it cannot develop its own separate idea of the data. Three functions that each knew about <code>scores</code> became three properties that know about <code>_scores</code>, which is now the only thing that does.</p>
+      <p class="ar">مات عيبان في إعادة كتابة واحدة. فالدرجة الفاسدة مرفوضة على الباب، فلم تعد <code>worst</code> قادرة على أن تكون سالبة — ولأن <code>spread</code> مبنية من <code>best</code> و<code>worst</code> لا من القائمة، فلا يمكن أن يتكوّن لها فهم منفصل خاص بها للبيانات. فثلاث دوال كانت كل منها تعرف <code>scores</code> صارت ثلاث خصائص تعرف <code>_scores</code>، التي أصبحت الشيء الوحيد الذي يعرفها.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — Change the storage, keep the caller</span><span class="ar">تمرين 2.2 — غيّر التخزين وأبقِ المستدعي</span></h4>
+    <p class="en">The starter <code>Register</code> stores marks in a flat list. Change <code>_marks</code> into a dict mapping subject name to a list of marks, so the office can also ask for a single subject's average. Add validation to <code>add_mark()</code>, keep <code>average</code> and <code>count</code> working over all subjects, add a <code>subject_average(subject)</code> method, and do all of it <strong>without editing one character of <code>summary()</code></strong>.</p>
+    <p class="ar">الصنف الابتدائي <code>Register</code> يخزّن الدرجات في قائمة مسطّحة. غيّر <code>_marks</code> إلى قاموس يربط اسم المادة بقائمة درجات، كي يستطيع المكتب أن يسأل عن معدل مادة واحدة أيضًا. أضف الفحص إلى <code>add_mark()</code>، وأبقِ <code>average</code> و<code>count</code> تعملان على كل المواد، وأضف دالة <code>subject_average(subject)</code>، وافعل كل ذلك <strong>دون تعديل حرف واحد من <code>summary()</code></strong>.</p>
+
+<pre class="code"><code>class Register:
+    def __init__(self, grade):
+        self.grade = grade
+        self._marks = []            # plain list of ints
+
+    def add_mark(self, subject, mark):
+        self._marks.append(mark)    # subject is ignored!
+
+    @property
+    def average(self):
+        if not self._marks:
+            return 0.0
+        return round(sum(self._marks) / len(self._marks), 1)
+
+    @property
+    def count(self):
+        return len(self._marks)
+
+
+# THE CALLER — must not change
+def summary(reg):
+    return (f"grade {reg.grade}: {reg.count} mark(s),"
+            f" average {reg.average}")
+
+
+r = Register("7B")
+r.add_mark("Maths", 72)
+r.add_mark("Arabic", 95)
+r.add_mark("Maths", 60)
+print(summary(r))
+# goal: also print r.subject_average("Maths")
+</code></pre>
+
+    <div class="output">grade 7B: 3 mark(s), average 75.7</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Register:
+    def __init__(self, grade):
+        self.grade = grade
+        self._marks = {}            # subject -&gt; list
+
+    def add_mark(self, subject, mark):
+        if mark &lt; 0 or mark &gt; 100:
+            raise ValueError(f"mark out of range: {mark}")
+        self._marks.setdefault(subject, []).append(mark)
+
+    @property
+    def average(self):
+        flat = [m for marks in self._marks.values()
+                for m in marks]
+        if not flat:
+            return 0.0
+        return round(sum(flat) / len(flat), 1)
+
+    @property
+    def count(self):
+        return sum(len(m) for m in self._marks.values())
+
+    def subject_average(self, subject):
+        marks = self._marks.get(subject, [])
+        if not marks:
+            return 0.0
+        return round(sum(marks) / len(marks), 1)
+
+
+# THE CALLER — not one character changed
+def summary(reg):
+    return (f"grade {reg.grade}: {reg.count} mark(s),"
+            f" average {reg.average}")
+
+
+r = Register("7B")
+r.add_mark("Maths", 72)
+r.add_mark("Arabic", 95)
+r.add_mark("Maths", 60)
+print(summary(r))
+print("Maths only:", r.subject_average("Maths"))
+</code></pre>
+      <div class="output">grade 7B: 3 mark(s), average 75.7
+Maths only: 66.0</div>
+      <p class="en">The type of <code>_marks</code> changed from <code>list</code> to <code>dict</code> — about as deep a change as an object can survive — and <code>summary()</code> printed the same sentence with the same number. That was only possible because <code>count</code> was already a property: it used to be <code>len(self._marks)</code> and is now a sum over the dict's values, and the caller never knew either version. Had <code>summary()</code> been written as <code>len(reg._marks)</code>, it would now silently report 2 instead of 3.</p>
+      <p class="ar">تغيّر نوع <code>_marks</code> من <code>list</code> إلى <code>dict</code> — وهو من أعمق ما يمكن أن ينجو منه كائن — وطبعت <code>summary()</code> الجملة نفسها بالرقم نفسه. ولم يكن ذلك ممكنًا إلا لأن <code>count</code> كانت خاصية أصلًا: فقد كانت <code>len(self._marks)</code> وصارت مجموعًا على قيم القاموس، ولم يعرف المستدعي أي النسختين. ولو كانت <code>summary()</code> مكتوبة <code>len(reg._marks)</code> لأبلغت الآن بصمت عن 2 بدلًا من 3.</p>
+    </details>
+  </section>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l3-s8"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">A rule copied into three callers is enforced nowhere: the fourth caller just assigns the attribute directly, and no error ever appears. The rule has to live inside the object it protects.</span><span class="ar">القاعدة المنسوخة في ثلاثة مستدعين غير مفروضة في أي مكان: فالمستدعي الرابع يسند الخاصية مباشرة ولا يظهر أي خطأ إطلاقًا. والقاعدة يجب أن تقيم داخل الكائن الذي تحميه.</span></li>
+      <li><span class="en">A single leading underscore, <code>_mark</code>, is a promise between programmers, not a lock. Python allows every read and write; the convention is still worth following, because it marks which attributes are the class's own business.</span><span class="ar">الشرطة السفلية الواحدة، <code>_mark</code>، وعد بين المبرمجين لا قُفل. فبايثون تسمح بكل قراءة وكتابة؛ ومع ذلك يستحق الاتفاق الالتزام، لأنه يعلّم أي الخصائص من شأن الصنف وحده.</span></li>
+      <li><span class="en">Two underscores, <code>__mark</code>, only mangle the name to <code>_Student__mark</code>. An outside assignment then creates a silent second attribute instead of failing, which is worse than no protection. It is for avoiding subclass name collisions, not for privacy.</span><span class="ar">الشرطتان السفليتان، <code>__mark</code>، تُشوّهان الاسم إلى <code>_Student__mark</code> فقط. فيُنشئ الإسناد الخارجي حينئذ خاصية ثانية بصمت بدلًا من أن يفشل، وهذا أسوأ من غياب الحماية. وهي لتجنّب تصادم الأسماء في الأصناف المشتقة، لا للخصوصية.</span></li>
+      <li><span class="en"><code>@property</code> defines the getter that runs on <code>s.mark</code>; <code>@mark.setter</code> defines the setter that runs on <code>s.mark = 105</code>. The assignment itself becomes your validation, so there is no way around it.</span><span class="ar"><code>@property</code> تعرّف الـ getter التي تُنفَّذ عند <code>s.mark</code>؛ و<code>@mark.setter</code> تعرّف الـ setter التي تُنفَّذ عند <code>s.mark = 105</code>. فيصبح الإسناد نفسه فحصك، فلا سبيل للالتفاف حوله.</span></li>
+      <li><span class="en">A property is invisible at the point of use: callers keep writing <code>s.mark</code>, with no brackets and no <code>get_mark()</code>. That is why you can add a rule to an existing attribute without editing the code that already reads it.</span><span class="ar">الـ property غير مرئية في موضع الاستخدام: فيواصل المستدعون كتابة <code>s.mark</code> بلا أقواس وبلا <code>get_mark()</code>. ولهذا تستطيع إضافة قاعدة إلى خاصية قائمة دون تعديل الكود الذي يقرأها أصلًا.</span></li>
+      <li><span class="en">Store the value under a different name from the property — <code>_mark</code> behind <code>mark</code> — or the getter calls itself forever. And let <code>__init__</code> assign through the property, so the first value is validated like every later one.</span><span class="ar">خزّن القيمة باسم مختلف عن اسم الـ property — <code>_mark</code> خلف <code>mark</code> — وإلا استدعت الـ getter نفسها إلى الأبد. ودع <code>__init__</code> يُسند عبر الـ property، كي تُفحص أول قيمة كما تُفحص كل قيمة بعدها.</span></li>
+      <li><span class="en">A getter with no setter gives a read-only value: assigning to it raises <code>AttributeError: property 'passed' … has no setter</code>. Use it for anything derived — a grade letter, a pass verdict, an average — so the conclusion can never disagree with the data it came from.</span><span class="ar">الـ getter بلا setter تعطي قيمة للقراءة فقط: فالإسناد إليها يرفع <code>AttributeError: property 'passed' … has no setter</code>. استخدمها لكل ما هو مشتق — حرف تقدير، أو حكم نجاح، أو معدل — كي لا تستطيع النتيجة أن تخالف البيانات التي جاءت منها.</span></li>
+      <li><span class="en">A setter is ordinary code, so it can clamp, round or normalise rather than raise. Raise for a data error you want to stop for (a mark of 105); clamp for noise you want to absorb (an attendance reading of 104%).</span><span class="ar">الـ setter كود عادي، فتستطيع أن تقصر القيمة أو تقرّبها أو تطبّعها بدلًا من رفع خطأ. ارفع خطأً لخطأ بيانات تريد التوقف عنده (درجة 105)؛ واقصر القيمة لضجيج تريد استيعابه (قراءة حضور بـ 104%).</span></li>
+      <li><span class="en">The real argument for encapsulation is freedom to change your mind. When callers know only <code>add_mark()</code> and <code>average</code>, you can turn the storage from a list into weighted pairs or a dict and not one caller moves; when they know <code>marks_list</code>, you can never change it again.</span><span class="ar">الحجة الحقيقية للتغليف هي حرية تغيير رأيك. فعندما لا يعرف المستدعون إلا <code>add_mark()</code> و<code>average</code>، تستطيع تحويل التخزين من قائمة إلى أزواج مرجّحة أو قاموس ولا يتحرك مستدعٍ واحد؛ وعندما يعرفون <code>marks_list</code>، فلن تستطيع تغييرها مرة أخرى أبدًا.</span></li>
+      <li><span class="en">Do not wrap every attribute in a property. A plain attribute with no rule attached — a student's <code>name</code> — needs none. Python is not Java: start public, and add the property the day a rule appears.</span><span class="ar">لا تغلّف كل خاصية بـ property. فالخاصية العادية التي لا قاعدة مرتبطة بها — مثل <code>name</code> للطالب — لا تحتاج إليها. بايثون ليست جافا: ابدأ بالعام، وأضف الـ property يوم تظهر قاعدة.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

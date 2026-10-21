@@ -1,0 +1,1368 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="State, __init__ &amp; Methods · Python OOP by Example" data-ar="الحالة والمُنشئ والدوال · البرمجة الكائنية بلغة بايثون">State, __init__ &amp; Methods · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-02" data-path="lessons/chapter-1-lesson-2.html">
+<main>
+<section class="page" id="lesson-02">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 2</span>
+  <h1><span class="en">State, <code>__init__</code> &amp; Methods</span><span class="ar">الحالة والمُنشئ والدوال</span></h1>
+
+  <p class="lede en">By the end of this lesson you will stop building objects by hand in four different places, know exactly which values belong to one object and which belong to the whole class, and make your objects print a clean receipt of themselves.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستتوقف عن بناء الكائنات يدويًا في أربعة أماكن مختلفة، وستعرف بدقة أي القيم تنتمي إلى كائن واحد وأيها ينتمي إلى الصنف كله، وستجعل كائناتك تطبع فاتورة نظيفة عن نفسها.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A juice and falafel shop on a busy street. Two counters, a phone line for deliveries, a short menu, and one Python script that records every order and prints the daily total. Everything in this lesson happens in that shop.</p>
+    <p class="ar">محل عصائر وفلافل في شارع مزدحم. منضدتان، وخط هاتف للتوصيل، وقائمة طعام قصيرة، وبرنامج بايثون واحد يسجّل كل طلب ويطبع إجمالي اليوم. كل ما في هذا الدرس يحدث في هذا المحل.</p>
+    <p class="en">You already know how to write a <code>class</code>, an <code>__init__</code> and a simple method. This lesson is about what goes <em>inside</em> them, and why that choice decides whether the shop's script survives next month.</p>
+    <p class="ar">أنت تعرف مسبقًا كيف تكتب <code>class</code> و<code>__init__</code> ودالة بسيطة. هذا الدرس عن ما يوضع <em>داخلها</em>، ولماذا يحدد هذا الاختيار بقاء برنامج المحل الشهر القادم أو انهياره.</p>
+  </div>
+
+  <h2 id="l2-h1"><span class="en">Concept 1 — A correct birth: <code>__init__</code> is the one place that guarantees a valid object</span><span class="ar">المفهوم 1 — نشأة صحيحة: <code>__init__</code> هو المكان الوحيد الذي يضمن كائنًا سليمًا</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">An order in this shop is a dictionary. It is built by hand in four different places in the file: the first counter, the second counter, the phone line, and the staff meal. Nobody wrote down what an order must contain, so each place writes what it remembers.</p>
+    <p class="ar">الطلب في هذا المحل عبارة عن قاموس. ويُبنى يدويًا في أربعة أماكن مختلفة في الملف: المنضدة الأولى، والمنضدة الثانية، وخط الهاتف، ووجبة العاملين. لم يكتب أحد ما يجب أن يحتويه الطلب، فيكتب كل موضع ما يتذكره.</p>
+    <p class="en">One place spells the key <code>disount</code> instead of <code>discount</code>. One never creates <code>"items"</code> at all, so the first <code>.append</code> on it explodes. One leaves <code>"discount"</code> out entirely. The shop owner did not discover any of this from an error message — he discovered it when the daily total did not match the cash in the drawer.</p>
+    <p class="ar">موضع يكتب المفتاح <code>disount</code> بدلًا من <code>discount</code>. وموضع لا ينشئ <code>"items"</code> إطلاقًا، فينفجر أول <code>.append</code> عليه. وموضع يحذف <code>"discount"</code> تمامًا. ولم يكتشف صاحب المحل أي شيء من هذا عبر رسالة خطأ — بل اكتشفه عندما لم يطابق إجمالي اليوم النقد الموجود في الدرج.</p>
+  </div>
+
+  <h3 id="l2-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is the real <code>shop.py</code>, four construction sites and two helper functions. Plain Python: dictionaries, functions, a loop. Read it looking for the three defects.</p>
+  <p class="ar">هذا هو ملف <code>shop.py</code> الحقيقي: أربعة مواضع بناء ودالتان مساعدتان. بايثون عادي: قواميس ودوال وحلقة. اقرأه باحثًا عن العيوب الثلاثة.</p>
+
+<pre class="code bad"><code>orders = []
+
+# counter 1 — walk-in juice
+orders.append({"customer": "Huda", "paid": 10,
+               "items": ["mango juice"], "discount": 0})
+
+# counter 2 — falafel plate, key misspelled
+orders.append({"customer": "Yousef", "paid": 8,
+               "items": ["falafel plate"], "disount": 1})
+
+# phone order — "items" is never created here
+orders.append({"customer": "Amal", "paid": 7,
+               "discount": 0})
+
+# staff order — "discount" is simply missing
+orders.append({"customer": "Kareem", "paid": 6,
+               "items": ["hummus plate"]})
+
+
+def net_total(order):
+    # patched last month after a KeyError in the report
+    return order["paid"] - order.get("discount", 0)
+
+
+def add_item(order, name, price):
+    order["items"].append(name)
+    order["paid"] += price
+
+
+print("--- daily sheet ---")
+for order in orders:
+    print(order["customer"], net_total(order))
+
+print("total:", sum(net_total(o) for o in orders))
+add_item(orders[2], "orange juice", 7)
+</code></pre>
+
+  <div class="output">--- daily sheet ---
+Huda 10
+Yousef 8
+Amal 7
+Kareem 6
+total: 31
+Traceback (most recent call last):
+  File "shop.py", line 35, in &lt;module&gt;
+    add_item(orders[2], "orange juice", 7)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "shop.py", line 26, in add_item
+    order["items"].append(name)
+    ~~~~~^^^^^^^^^
+KeyError: 'items'</div>
+
+  <div class="warn">
+    <h4><span class="en">Look at Yousef's line before you look at the crash</span><span class="ar">انظر إلى سطر يوسف قبل أن تنظر إلى الانهيار</span></h4>
+    <p class="en">Yousef paid 8 and was promised 1 off, so his line should read 7. It reads 8, and the total reads 31 instead of 30. There is no error, no warning, nothing — because <code>net_total</code> was "fixed" last month with <code>.get("discount", 0)</code>, which quietly treats a misspelled key as "no discount at all". The patch that stopped the crashes is exactly what hides the money.</p>
+    <p class="ar">دفع يوسف 8 ووُعد بخصم 1، فيجب أن يقرأ سطره 7. لكنه يقرأ 8، والإجمالي يقرأ 31 بدلًا من 30. لا خطأ ولا تحذير ولا شيء — لأن <code>net_total</code> «أُصلحت» الشهر الماضي بـ <code>.get("discount", 0)</code>، التي تتعامل بهدوء مع المفتاح المكتوب خطأً على أنه «لا خصم إطلاقًا». فالترقيع الذي أوقف الانهيارات هو نفسه ما يخفي المال.</p>
+  </div>
+
+  <h3 id="l2-s2"><span class="en">Now the shop adds a delivery fee</span><span class="ar">والآن يضيف المحل أجرة توصيل</span></h3>
+
+  <p class="en">The owner decides deliveries cost 3 shekels extra. One new field, <code>delivery_fee</code>. Watch how many places that touches: every single construction site, plus <code>net_total</code>. Here is the file after the edit — and the phone order, line 7, is the one that got missed.</p>
+  <p class="ar">يقرر صاحب المحل أن التوصيل بـ 3 شواكل إضافية. حقل جديد واحد هو <code>delivery_fee</code>. راقب كم موضعًا يلمسه ذلك: كل موضع بناء بلا استثناء، إضافة إلى <code>net_total</code>. وهذا هو الملف بعد التعديل — وطلب الهاتف في السطر 7 هو الذي نُسي.</p>
+
+<pre class="code bad"><code>orders = [
+    {"customer": "Huda", "paid": 10, "discount": 0,
+     "items": ["mango juice"], "delivery_fee": 2},
+    {"customer": "Yousef", "paid": 8, "disount": 1,
+     "items": ["falafel plate"], "delivery_fee": 2},
+    {"customer": "Amal", "paid": 7, "discount": 0,
+     "items": ["orange juice"]},        # fee forgotten
+    {"customer": "Kareem", "paid": 6, "discount": 0,
+     "items": ["hummus plate"], "delivery_fee": 2},
+]
+
+
+def net_total(order):
+    return (order["paid"] - order.get("discount", 0)
+            + order["delivery_fee"])
+
+
+for order in orders:
+    print(order["customer"], net_total(order))
+</code></pre>
+
+  <div class="output">Huda 12
+Yousef 10
+Traceback (most recent call last):
+  File "shop.py", line 19, in &lt;module&gt;
+    print(order["customer"], net_total(order))
+                             ~~~~~~~~~^^^^^^^
+  File "shop.py", line 15, in net_total
+    + order["delivery_fee"])
+      ~~~~~^^^^^^^^^^^^^^^^
+KeyError: 'delivery_fee'</div>
+
+  <h3 id="l2-s3"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">There is no single answer to the question "what does an order contain?". The answer is scattered across four places, and every one of them is free to disagree with the others. Adding a field means finding all four by hand; forgetting one is not a mistake Python can detect, because to Python a dictionary with a missing key is simply a different, perfectly legal dictionary.</p>
+  <p class="ar">لا توجد إجابة واحدة لسؤال «ما الذي يحتويه الطلب؟». الإجابة موزَّعة على أربعة مواضع، ولكل منها حرية مخالفة البقية. فإضافة حقل تعني البحث عن الأربعة يدويًا؛ ونسيان أحدها ليس خطأً تستطيع بايثون كشفه، لأن القاموس الناقص المفتاح — في نظر بايثون — مجرد قاموس آخر مختلف وسليم تمامًا.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — move the four construction sites into one <code>__init__</code></span><span class="ar">الخطوة 1 — انقل مواضع البناء الأربعة إلى <code>__init__</code> واحد</span></span>
+    <p class="en">You met <code>__init__</code> in Lesson 1 as "the thing that fills in the fields". Now give it its real job: it is the <strong>only</strong> place an order can come into existence, so it is the only place that has to be right. Every attribute is set here — the ones the caller passes, the defaults, and the derived values nobody passes at all.</p>
+    <p class="ar">التقيتَ بـ <code>__init__</code> في الدرس 1 على أنه «ما يعبّئ الحقول». الآن امنحه مهمته الحقيقية: فهو المكان <strong>الوحيد</strong> الذي يمكن أن يُولد فيه الطلب، وبالتالي هو المكان الوحيد الذي يجب أن يكون صحيحًا. كل خاصية تُضبط هنا — ما يمرره المستدعي، والقيم الافتراضية، والقيم المشتقة التي لا يمررها أحد إطلاقًا.</p>
+
+<pre class="code good"><code>from datetime import date
+
+
+class Order:
+    def __init__(self, customer, discount=0):
+        self.customer = customer
+        self.discount = discount
+        self.items = []
+        self.paid = 0
+        self.served = False
+        self.created_at = date.today().isoformat()
+
+    def add_item(self, name, price):
+        self.items.append(name)
+        self.paid += price
+
+    def net_total(self):
+        return self.paid - self.discount
+
+
+sheet = [
+    Order("Huda"),
+    Order("Yousef", discount=1),
+    Order("Amal"),
+    Order("Kareem"),
+]
+
+sheet[0].add_item("mango juice", 10)
+sheet[1].add_item("falafel plate", 8)
+sheet[2].add_item("orange juice", 7)
+sheet[3].add_item("hummus plate", 6)
+
+print("--- daily sheet", sheet[0].created_at, "---")
+for o in sheet:
+    print(o.customer, o.items, o.net_total())
+
+print("total:", sum(o.net_total() for o in sheet))
+</code></pre>
+
+    <div class="output">--- daily sheet 2026-10-15 ---
+Huda ['mango juice'] 10
+Yousef ['falafel plate'] 7
+Amal ['orange juice'] 7
+Kareem ['hummus plate'] 6
+total: 30</div>
+
+    <p class="en">Yousef's 7 is finally correct, and the total is 30. Notice the three kinds of attribute that <code>__init__</code> set:</p>
+    <p class="ar">أصبح رقم يوسف 7 صحيحًا أخيرًا، والإجمالي 30. ولاحظ الأنواع الثلاثة من الخصائص التي ضبطها <code>__init__</code>:</p>
+    <ul>
+      <li><span class="en"><strong>Passed in</strong> — <code>customer</code>. The caller must supply it; forgetting it raises a <code>TypeError</code> immediately, at the construction site, not three reports later.</span><span class="ar"><strong>مُمرَّرة</strong> — <code>customer</code>. على المستدعي توفيرها؛ ونسيانها يرفع <code>TypeError</code> فورًا، في موضع البناء، لا بعد ثلاثة تقارير.</span></li>
+      <li><span class="en"><strong>Defaulted</strong> — <code>discount=0</code>. Most orders have no discount, so the common case stays short: <code>Order("Huda")</code>.</span><span class="ar"><strong>افتراضية</strong> — <code>discount=0</code>. معظم الطلبات بلا خصم، فتبقى الحالة الشائعة قصيرة: <code>Order("Huda")</code>.</span></li>
+      <li><span class="en"><strong>Derived or empty at birth</strong> — <code>items</code>, <code>paid</code>, <code>served</code>, <code>created_at</code>. The caller never passes these, and cannot forget them. The missing-<code>"items"</code> crash is now structurally impossible: no order can exist without its list.</span><span class="ar"><strong>مشتقة أو فارغة عند النشأة</strong> — <code>items</code> و<code>paid</code> و<code>served</code> و<code>created_at</code>. لا يمررها المستدعي أبدًا، ولا يمكنه نسيانها. فانهيار <code>"items"</code> المفقود أصبح مستحيلًا بنيويًا: لا يمكن أن يوجد طلب بلا قائمته.</span></li>
+    </ul>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — the delivery fee, one line, one place</span><span class="ar">الخطوة 2 — أجرة التوصيل: سطر واحد في مكان واحد</span></span>
+    <p class="en">Now make the same change that broke the dictionary version. Add a parameter with a default, assign it, and use it in <code>net_total</code>. Nothing at any call site has to change — the orders that pay no fee keep working untouched.</p>
+    <p class="ar">نفّذ الآن التعديل نفسه الذي عطّل نسخة القواميس. أضف معاملًا بقيمة افتراضية، وأسنده، واستخدمه في <code>net_total</code>. ولا شيء في أي موضع استدعاء يحتاج إلى تغيير — فالطلبات التي لا تدفع أجرة تواصل العمل دون أن تُمس.</p>
+
+<pre class="code good"><code>from datetime import date
+
+
+class Order:
+    def __init__(self, customer, discount=0,
+                 delivery_fee=0):
+        self.customer = customer
+        self.discount = discount
+        self.delivery_fee = delivery_fee     # the new line
+        self.items = []
+        self.paid = 0
+        self.served = False
+        self.created_at = date.today().isoformat()
+
+    def add_item(self, name, price):
+        self.items.append(name)
+        self.paid += price
+
+    def net_total(self):
+        return (self.paid - self.discount
+                + self.delivery_fee)
+
+
+sheet = [Order("Huda"), Order("Yousef", discount=1),
+         Order("Amal", delivery_fee=3), Order("Kareem")]
+
+prices = [("mango juice", 10), ("falafel plate", 8),
+          ("orange juice", 7), ("hummus plate", 6)]
+
+for o, (name, price) in zip(sheet, prices):
+    o.add_item(name, price)
+
+for o in sheet:
+    print(o.customer, o.net_total())
+
+print("total:", sum(o.net_total() for o in sheet))
+</code></pre>
+
+    <div class="output">Huda 10
+Yousef 7
+Amal 10
+Kareem 6
+total: 33</div>
+
+    <p class="en">One added line in <code>__init__</code>, one added term in <code>net_total</code>. There was no fourth site to hunt down, so there was no fourth site to miss.</p>
+    <p class="ar">سطر واحد مضاف في <code>__init__</code>، وحد واحد مضاف في <code>net_total</code>. لم يكن هناك موضع رابع يُبحث عنه، فلم يكن هناك موضع رابع يُنسى.</p>
+  </div>
+
+  <h3 id="l2-s4"><span class="en">The trap hiding inside default values</span><span class="ar">الفخ المتواري داخل القيم الافتراضية</span></h3>
+
+  <p class="en">Defaults just saved you. Now here is the one default that will betray you. It looks like the obvious way to let the caller pass a ready list of items:</p>
+  <p class="ar">القيم الافتراضية أنقذتك للتو. وهذه هي القيمة الافتراضية الوحيدة التي ستغدر بك. تبدو الطريقة البديهية للسماح للمستدعي بتمرير قائمة أصناف جاهزة:</p>
+
+<pre class="code bad"><code>class Order:
+    def __init__(self, customer, items=[]):
+        self.customer = customer
+        self.items = items
+
+
+huda = Order("Huda")
+amal = Order("Amal")
+
+huda.items.append("mango juice")
+
+print("Huda  :", huda.items)
+print("Amal  :", amal.items)
+print("same list?", huda.items is amal.items)
+</code></pre>
+
+  <div class="output">Huda  : ['mango juice']
+Amal  : ['mango juice']
+same list? True</div>
+
+  <div class="warn">
+    <h4><span class="en">Never use a list or a dict as a default value</span><span class="ar">لا تستخدم قائمة أو قاموسًا كقيمة افتراضية أبدًا</span></h4>
+    <p class="en">Huda's mango juice appeared on Amal's order. The reason: <code>items=[]</code> is evaluated <strong>once</strong>, when the <code>def</code> line runs — not once per call. So there is exactly one list, created when the class was defined, and every order that does not pass its own list is handed that same list. They are not similar lists; they are the identical object, which is what <code>is</code> proves.</p>
+    <p class="ar">ظهر عصير مانجو هدى في طلب أمل. والسبب: <code>items=[]</code> تُقيَّم <strong>مرة واحدة</strong> عند تنفيذ سطر <code>def</code> — لا مرة لكل استدعاء. فتوجد قائمة واحدة بالضبط، أُنشئت لحظة تعريف الصنف، وكل طلب لا يمرر قائمته الخاصة يُسلَّم تلك القائمة نفسها. وهي ليست قوائم متشابهة، بل الكائن ذاته، وهذا ما يثبته <code>is</code>.</p>
+    <p class="en">In a real shop this is not a curiosity — it is a juice billed to the wrong customer, and it gets worse all day as the one shared list keeps growing.</p>
+    <p class="ar">وفي محل حقيقي هذا ليس طُرفة — بل عصير يُحاسَب عليه العميل الخطأ، ويتفاقم الأمر طول اليوم مع تضخم القائمة المشتركة الواحدة.</p>
+  </div>
+
+  <p class="en">You can watch the shared default swell up on its own, outside any class:</p>
+  <p class="ar">ويمكنك مراقبة القيمة الافتراضية المشتركة وهي تتضخم بنفسها، خارج أي صنف:</p>
+
+<pre class="code bad"><code>def make(items=[]):
+    return items
+
+
+print(make.__defaults__)
+a = make()
+a.append("mango juice")
+print(make.__defaults__)
+</code></pre>
+
+  <div class="output">([],)
+(['mango juice'],)</div>
+
+  <p class="en">The fix is to default to <code>None</code> — an immutable value that cannot be shared and changed — and build a fresh list inside the body, which <em>does</em> run on every call.</p>
+  <p class="ar">والحل أن تكون القيمة الافتراضية <code>None</code> — قيمة غير قابلة للتغيير فلا يمكن تشاركها وتعديلها — ثم تبني قائمة جديدة داخل الجسم، الذي يُنفَّذ <em>فعلًا</em> في كل استدعاء.</p>
+
+<pre class="code good"><code>class Order:
+    def __init__(self, customer, items=None):
+        self.customer = customer
+        if items is None:
+            items = []
+        self.items = items
+
+
+huda = Order("Huda")
+amal = Order("Amal")
+
+huda.items.append("mango juice")
+
+print("Huda  :", huda.items)
+print("Amal  :", amal.items)
+print("same list?", huda.items is amal.items)
+
+# an existing list can still be handed in
+staff = Order("Staff", ["water", "water"])
+print("Staff :", staff.items)
+</code></pre>
+
+  <div class="output">Huda  : ['mango juice']
+Amal  : []
+same list? False
+Staff : ['water', 'water']</div>
+
+  <div class="tip">
+    <h4><span class="en">Why <code>is None</code> and not <code>if not items</code></span><span class="ar">لماذا <code>is None</code> لا <code>if not items</code></span></h4>
+    <p class="en">An empty list the caller deliberately passed is falsy, so <code>if not items</code> would throw it away and silently substitute a different one. <code>items is None</code> asks the exact question you mean: "did the caller pass anything at all?"</p>
+    <p class="ar">القائمة الفارغة التي مررها المستدعي بقصد تُعدّ falsy، فـ <code>if not items</code> سترميها وتستبدلها بأخرى بصمت. أما <code>items is None</code> فتسأل السؤال المقصود بدقة: «هل مرر المستدعي أي شيء إطلاقًا؟»</p>
+  </div>
+
+  <h3 id="l2-s5"><span class="en">Second example — a prescription at a clinic</span><span class="ar">مثال ثانٍ — وصفة طبية في عيادة</span></h3>
+
+  <p class="en">Different domain, same principle. A clinic writes prescriptions. The course length is usually a week, nobody passes the dose log or the collection flag, and both must exist from the first moment — so <code>__init__</code> sets all five attributes, and the list is built in the body, never as a parameter default.</p>
+  <p class="ar">مجال مختلف والمبدأ نفسه. تكتب العيادة وصفات طبية. ومدة العلاج أسبوع عادةً، ولا أحد يمرر سجل الجرعات أو علامة الاستلام، وكلاهما يجب أن يوجد من اللحظة الأولى — فيضبط <code>__init__</code> الخصائص الخمس كلها، وتُبنى القائمة في الجسم لا كقيمة افتراضية لمعامل.</p>
+
+<pre class="code good"><code>class Prescription:
+    def __init__(self, patient, drug, days=7):
+        self.patient = patient
+        self.drug = drug
+        self.days = days
+        self.doses = []
+        self.collected = False
+
+
+a = Prescription("Huda", "amoxicillin")
+b = Prescription("Kareem", "insulin", days=30)
+
+a.doses.append("500mg morning")
+
+print(a.patient, a.days, a.doses, a.collected)
+print(b.patient, b.days, b.doses, b.collected)
+</code></pre>
+
+  <div class="output">Huda 7 ['500mg morning'] False
+Kareem 30 [] False</div>
+
+  <p class="en">Huda took the default course of 7 days without writing it; Kareem's insulin overrode it with 30. And Kareem's dose log stayed empty when Huda's gained an entry — the two prescriptions never shared a list.</p>
+  <p class="ar">أخذت هدى المدة الافتراضية البالغة 7 أيام دون كتابتها؛ وتجاوز إنسولين كريم ذلك إلى 30. وبقي سجل جرعات كريم فارغًا عندما حصل سجل هدى على مدخل — فلم تتشارك الوصفتان أي قائمة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>def __init__(self, items=[])</code> leak items between objects?</span><span class="ar">لماذا تُسرِّب <code>def __init__(self, items=[])</code> الأصناف بين الكائنات؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because lists in Python are always shared by reference, so any two lists with the same contents are the same list.</span><span class="ar">لأن القوائم في بايثون تُتشارك دائمًا بالمرجع، فأي قائمتين بالمحتوى نفسه هما القائمة نفسها.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the <code>[]</code> is evaluated once when the <code>def</code> line runs, so one single list becomes the default handed to every object that does not pass its own.</span><span class="ar">لأن <code>[]</code> تُقيَّم مرة واحدة عند تنفيذ سطر <code>def</code>، فتصبح قائمة واحدة هي الافتراضية التي تُسلَّم لكل كائن لا يمرر قائمته الخاصة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>self.items = items</code> copies the list instead of referencing it.</span><span class="ar">لأن <code>self.items = items</code> تنسخ القائمة بدلًا من الإشارة إليها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>__init__</code> runs only for the first object created from the class.</span><span class="ar">لأن <code>__init__</code> تُنفَّذ للكائن الأول فقط المُنشأ من الصنف.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Default values are evaluated once, at definition time, and then stored on the function itself — which is why <code>make.__defaults__</code> above showed the default list growing. The tempting wrong answer is the first: two separate lists with equal contents are <em>not</em> the same object, and the fixed version proves it — <code>huda.items is amal.items</code> printed <code>False</code> while both were real lists. Nothing is wrong with lists; the bug is that only one list was ever created.</div>
+      <div class="ar">القيم الافتراضية تُقيَّم مرة واحدة عند التعريف، ثم تُخزَّن على الدالة نفسها — ولهذا أظهر <code>make.__defaults__</code> أعلاه القائمة الافتراضية وهي تنمو. والإجابة المغرية الخاطئة هي الأولى: فقائمتان منفصلتان بمحتوى متساوٍ <em>ليستا</em> الكائن نفسه، والنسخة المصحَّحة تثبت ذلك — إذ طبعت <code>huda.items is amal.items</code> القيمة <code>False</code> مع أن كلتيهما قائمة حقيقية. لا عيب في القوائم؛ العيب أن قائمة واحدة فقط أُنشئت أصلًا.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — A menu item that is born complete</span><span class="ar">تمرين 1.1 — صنف قائمة طعام يولد كاملًا</span></h4>
+    <p class="en">Write <code>MenuItem</code> whose <code>__init__</code> takes <code>name</code> and <code>price</code>, plus <code>category</code> defaulting to <code>"juice"</code>. It must also set two attributes nobody passes: <code>sold_today</code> starting at <code>0</code> and <code>extras</code> starting as an empty list. Add <code>sell(count=1)</code> which adds to <code>sold_today</code> and reports the running figure.</p>
+    <p class="ar">اكتب صنفًا <code>MenuItem</code> يستقبل <code>__init__</code> فيه <code>name</code> و<code>price</code>، إضافة إلى <code>category</code> بقيمة افتراضية <code>"juice"</code>. وعليه أيضًا ضبط خاصيتين لا يمررهما أحد: <code>sold_today</code> تبدأ بـ <code>0</code>، و<code>extras</code> تبدأ قائمة فارغة. أضف <code>sell(count=1)</code> التي تزيد <code>sold_today</code> وتُعلن الرقم الجاري.</p>
+
+<pre class="code"><code>class MenuItem:
+    def __init__(self, name, price):
+        # add the category default, and the two
+        # attributes the caller never passes
+        pass
+
+    # add sell(count=1) here
+
+
+mango = MenuItem("Mango juice", 10)
+falafel = MenuItem("Falafel plate", 8, "food")
+
+print(mango.name, mango.category, mango.sold_today,
+      mango.extras)
+print(falafel.name, falafel.category)
+print(mango.sell())
+print(mango.sell(3))
+print(falafel.sold_today)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class MenuItem:
+    def __init__(self, name, price, category="juice"):
+        self.name = name
+        self.price = price
+        self.category = category
+        self.sold_today = 0
+        self.extras = []
+
+    def sell(self, count=1):
+        self.sold_today += count
+        return f"{self.name}: {self.sold_today} sold"
+
+
+mango = MenuItem("Mango juice", 10)
+falafel = MenuItem("Falafel plate", 8, "food")
+
+print(mango.name, mango.category, mango.sold_today,
+      mango.extras)
+print(falafel.name, falafel.category)
+print(mango.sell())
+print(mango.sell(3))
+print(falafel.sold_today)
+</code></pre>
+      <div class="output">Mango juice juice 0 []
+Falafel plate food
+Mango juice: 1 sold
+Mango juice: 4 sold
+0</div>
+      <p class="en">Two things to notice. <code>self.extras = []</code> inside the body is safe — it runs on every construction, so each item gets its own list, unlike a <code>extras=[]</code> parameter default. And <code>falafel.sold_today</code> is still <code>0</code> after mango sold four: the counter was created per object, so the two items never share a total.</p>
+      <p class="ar">لاحظ أمرين. <code>self.extras = []</code> داخل الجسم آمنة — فهي تُنفَّذ في كل بناء، فيحصل كل صنف على قائمته الخاصة، بخلاف معامل افتراضي من نوع <code>extras=[]</code>. و<code>falafel.sold_today</code> لا تزال <code>0</code> بعد بيع أربع مانجو: فالعدّاد أُنشئ لكل كائن، فلا يتشارك الصنفان أي إجمالي.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — Fix the shared tab</span><span class="ar">تمرين 1.2 — أصلح الحساب المشترك</span></h4>
+    <p class="en">A regular customer's open tab holds a list of drinks and a dict of notes. Run the starter code first and read the output: Yousef, who ordered nothing, is holding Huda's mango juice and Huda's "no ice" note. Fix <code>__init__</code> so each tab gets its own list and its own dict, while still allowing a caller to hand in a ready list.</p>
+    <p class="ar">الحساب المفتوح لعميل دائم يحتفظ بقائمة مشروبات وقاموس ملاحظات. شغّل الكود الابتدائي أولًا واقرأ الناتج: يوسف الذي لم يطلب شيئًا يحمل عصير مانجو هدى وملاحظة «بدون ثلج» الخاصة بها. أصلح <code>__init__</code> ليحصل كل حساب على قائمته وقاموسه الخاصين، مع إبقاء إمكانية أن يمرر المستدعي قائمة جاهزة.</p>
+
+<pre class="code bad"><code>class Tab:
+    def __init__(self, customer, drinks=[], notes={}):
+        self.customer = customer
+        self.drinks = drinks
+        self.notes = notes
+
+
+a = Tab("Huda")
+b = Tab("Yousef")
+
+a.drinks.append("mango juice")
+a.notes["ice"] = "no ice"
+
+print(a.customer, a.drinks, a.notes)
+print(b.customer, b.drinks, b.notes)
+</code></pre>
+
+    <div class="output">Huda ['mango juice'] {'ice': 'no ice'}
+Yousef ['mango juice'] {'ice': 'no ice'}</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Tab:
+    def __init__(self, customer, drinks=None,
+                 notes=None):
+        self.customer = customer
+        if drinks is None:
+            drinks = []
+        if notes is None:
+            notes = {}
+        self.drinks = drinks
+        self.notes = notes
+
+
+a = Tab("Huda")
+b = Tab("Yousef")
+
+a.drinks.append("mango juice")
+a.notes["ice"] = "no ice"
+
+print(a.customer, a.drinks, a.notes)
+print(b.customer, b.drinks, b.notes)
+</code></pre>
+      <div class="output">Huda ['mango juice'] {'ice': 'no ice'}
+Yousef [] {}</div>
+      <p class="en">The trap applies to every mutable default, not just lists — the dict leaked exactly the same way, and a set would too. The rule is mechanical: if the default value is something you can modify in place, write <code>None</code> and build the real value in the body.</p>
+      <p class="ar">الفخ ينطبق على كل قيمة افتراضية قابلة للتغيير، لا على القوائم فقط — فالقاموس تسرَّب بالطريقة نفسها تمامًا، والمجموعة (set) كذلك. والقاعدة آلية: إذا كانت القيمة الافتراضية شيئًا يمكن تعديله في مكانه، فاكتب <code>None</code> وابنِ القيمة الحقيقية في الجسم.</p>
+    </details>
+  </section>
+
+  <h2 id="l2-h2"><span class="en">Concept 2 — Instance attributes vs class attributes</span><span class="ar">المفهوم 2 — خصائص الكائن مقابل خصائص الصنف</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Every menu item carries a VAT rate and the shop's name. Both are the same for all of them — the rate is set by law, and the shop has one name — but because they live in <code>__init__</code> as ordinary parameters, they are typed out again for every single item.</p>
+    <p class="ar">كل صنف في القائمة يحمل نسبة ضريبة واسم المحل. وكلاهما متطابق في جميع الأصناف — فالنسبة يحددها القانون، والمحل له اسم واحد — لكن لأنهما يقيمان في <code>__init__</code> كمعاملين عاديين، فإنهما يُكتبان من جديد مع كل صنف.</p>
+    <p class="en">Four items, four copies of <code>0.05</code>, four copies of the shop name. One of the four is typed as <code>0.5</code> — fifty per cent instead of five. The orange juice is overcharged every day and nobody notices, because nothing in the program ever compares the four copies to each other.</p>
+    <p class="ar">أربعة أصناف، وأربع نسخ من <code>0.05</code>، وأربع نسخ من اسم المحل. وأحد الأربعة مكتوب <code>0.5</code> — خمسون بالمئة بدلًا من خمسة. فيُحاسب عصير البرتقال زائدًا كل يوم ولا يلاحظ أحد، لأن لا شيء في البرنامج يقارن النسخ الأربع ببعضها.</p>
+  </div>
+
+<pre class="code bad"><code>class MenuItem:
+    def __init__(self, name, price, vat_rate, shop_name):
+        self.name = name
+        self.price = price
+        self.vat_rate = vat_rate
+        self.shop_name = shop_name
+
+    def price_with_vat(self):
+        return round(self.price * (1 + self.vat_rate), 2)
+
+
+menu = [
+    MenuItem("Mango juice", 10, 0.05, "Abu Khalil Juice"),
+    MenuItem("Falafel plate", 8, 0.05, "Abu Khalil Juice"),
+    MenuItem("Hummus plate", 6, 0.05, "Abu Khalil Juice"),
+    MenuItem("Orange juice", 7, 0.5, "Abu Khalil Juice"),
+]
+
+for item in menu:
+    print(f"{item.name}: {item.price_with_vat()}")
+</code></pre>
+
+  <div class="output">Mango juice: 10.5
+Falafel plate: 8.4
+Hummus plate: 6.3
+Orange juice: 10.5</div>
+
+  <h3 id="l2-s6"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">A 7-shekel juice billed at 10.5, the same as the 10-shekel mango. The VAT rate is not a property of one juice — it is a property of the whole menu, of the shop, of the tax law. Storing it per object means storing the same fact many times, and a fact stored many times is a fact that will eventually disagree with itself. When the rate changes, you must find and edit every single one.</p>
+  <p class="ar">عصير بسبعة شواكل يُحاسب بـ 10.5، كالمانجو الذي بعشرة. نسبة الضريبة ليست صفة عصير واحد — بل صفة القائمة كلها، وصفة المحل، وصفة قانون الضرائب. وتخزينها لكل كائن يعني تخزين الحقيقة نفسها مرات عديدة، والحقيقة المخزَّنة مرات عديدة ستختلف مع نفسها عاجلًا أو آجلًا. وعندما تتغير النسبة عليك أن تجد كل نسخة وتعدّلها.</p>
+
+  <h3 id="l2-s7"><span class="en">Conversion — state the shared fact once, on the class</span><span class="ar">التحويل — اذكر الحقيقة المشتركة مرة واحدة على الصنف</span></h3>
+
+  <p class="en">An assignment written directly in the class body, outside any method, creates a <strong>class attribute</strong>: one value stored on the class itself, which every object can read through <code>self</code> as if it were its own.</p>
+  <p class="ar">الإسناد المكتوب مباشرة في جسم الصنف، خارج أي دالة، يُنشئ <strong>خاصية صنف</strong> (class attribute): قيمة واحدة مخزَّنة على الصنف نفسه، يستطيع كل كائن قراءتها عبر <code>self</code> كأنها خاصته.</p>
+
+<pre class="code good"><code>class MenuItem:
+    vat_rate = 0.05
+    shop_name = "Abu Khalil Juice"
+
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
+
+    def price_with_vat(self):
+        return round(self.price * (1 + self.vat_rate), 2)
+
+
+menu = [
+    MenuItem("Mango juice", 10),
+    MenuItem("Falafel plate", 8),
+    MenuItem("Hummus plate", 6),
+    MenuItem("Orange juice", 7),
+]
+
+print(MenuItem.shop_name)
+for item in menu:
+    print(f"{item.name}: {item.price_with_vat()}")
+
+print("--- tax law changes overnight ---")
+MenuItem.vat_rate = 0.16
+for item in menu:
+    print(f"{item.name}: {item.price_with_vat()}")
+</code></pre>
+
+  <div class="output">Abu Khalil Juice
+Mango juice: 10.5
+Falafel plate: 8.4
+Hummus plate: 6.3
+Orange juice: 7.35
+--- tax law changes overnight ---
+Mango juice: 11.6
+Falafel plate: 9.28
+Hummus plate: 6.96
+Orange juice: 8.12</div>
+
+  <p class="en">Three things changed at once. The orange juice is now correct, because there is no longer any copy that <em>can</em> be mistyped. The constructor lost two parameters, so building an item is shorter and safer. And <code>MenuItem.vat_rate = 0.16</code> — one assignment, naming the class, not any object — moved all four prices, including items created long before that line ran. Note also that <code>shop_name</code> is readable on the class itself, without any object existing.</p>
+  <p class="ar">ثلاثة أمور تغيّرت في وقت واحد. عصير البرتقال صحيح الآن، لأنه لم تبق أي نسخة <em>يمكن</em> أن تُكتب خطأً. وفقد المُنشئ معاملين، فصار بناء الصنف أقصر وأكثر أمانًا. وأدّى <code>MenuItem.vat_rate = 0.16</code> — إسناد واحد يسمّي الصنف لا أي كائن — إلى تحريك الأسعار الأربعة كلها، بما فيها أصناف أُنشئت قبل تنفيذ ذلك السطر بزمن. ولاحظ كذلك أن <code>shop_name</code> قابلة للقراءة على الصنف نفسه، دون وجود أي كائن.</p>
+
+  <h3 id="l2-s8"><span class="en">The gotcha: assigning through an object does not change the class</span><span class="ar">المصيدة: الإسناد عبر الكائن لا يغيّر الصنف</span></h3>
+
+  <p class="en">Reading <code>self.vat_rate</code> finds the class attribute. <em>Writing</em> <code>juice.vat_rate = ...</code> does something completely different: it creates a brand-new instance attribute on that one object, which from then on <strong>shadows</strong> the class attribute — hides it for that object only.</p>
+  <p class="ar">قراءة <code>self.vat_rate</code> تجد خاصية الصنف. أما <em>الكتابة</em> <code>juice.vat_rate = ...</code> فتفعل شيئًا مختلفًا تمامًا: تنشئ خاصية كائن جديدة على ذلك الكائن وحده، وتصبح من تلك اللحظة <strong>تحجب</strong> خاصية الصنف — تخفيها عن ذلك الكائن فقط.</p>
+
+<pre class="code bad"><code>class MenuItem:
+    vat_rate = 0.05
+
+    def __init__(self, name, price):
+        self.name = name
+        self.price = price
+
+
+juice = MenuItem("Mango juice", 10)
+plate = MenuItem("Falafel plate", 8)
+
+juice.vat_rate = 0.16          # looks like a global change
+
+print("juice:", juice.vat_rate)
+print("plate:", plate.vat_rate)
+print("class:", MenuItem.vat_rate)
+print("in juice.__dict__:", "vat_rate" in juice.__dict__)
+print("in plate.__dict__:", "vat_rate" in plate.__dict__)
+
+MenuItem.vat_rate = 0.0        # tax abolished for everyone
+print("after class change:")
+print("juice:", juice.vat_rate)
+print("plate:", plate.vat_rate)
+</code></pre>
+
+  <div class="output">juice: 0.16
+plate: 0.05
+class: 0.05
+in juice.__dict__: True
+in plate.__dict__: False
+after class change:
+juice: 0.16
+plate: 0.0</div>
+
+  <p class="en">Read the last two lines slowly. Tax was abolished for the whole shop, the falafel plate obeyed, and the mango juice kept charging 16% forever. The <code>__dict__</code> lines show why: <code>vat_rate</code> now physically exists on <code>juice</code>, so Python finds it there and never looks at the class again. One line that <em>looked</em> like a shop-wide update created a permanent exception instead.</p>
+  <p class="ar">اقرأ السطرين الأخيرين بتمهّل. أُلغيت الضريبة على المحل كله، فامتثل طبق الفلافل، وبقي عصير المانجو يحاسب بـ 16% إلى الأبد. وسطرا <code>__dict__</code> يوضحان السبب: فـ <code>vat_rate</code> موجودة الآن فعليًا على <code>juice</code>، فتجدها بايثون هناك ولا تنظر إلى الصنف مرة أخرى. سطر واحد <em>بدا</em> تحديثًا على مستوى المحل أنشأ بدلًا من ذلك استثناءً دائمًا.</p>
+
+  <div class="tip">
+    <h4><span class="en">The lookup rule, in one sentence</span><span class="ar">قاعدة البحث في جملة واحدة</span></h4>
+    <p class="en">Reading <code>obj.x</code> looks at the object first, then at the class. Writing <code>obj.x = v</code> always writes on the object; writing <code>Class.x = v</code> always writes on the class. So to change a shared value for everyone, you must name the class.</p>
+    <p class="ar">قراءة <code>obj.x</code> تنظر في الكائن أولًا ثم في الصنف. والكتابة <code>obj.x = v</code> تكتب على الكائن دائمًا؛ والكتابة <code>Class.x = v</code> تكتب على الصنف دائمًا. فلتغيير قيمة مشتركة للجميع عليك أن تسمّي الصنف.</p>
+  </div>
+
+  <h3 id="l2-s9"><span class="en">Second example — a repair bench</span><span class="ar">مثال ثانٍ — طاولة تصليح</span></h3>
+
+  <p class="en">Different domain, same principle. An electronics workshop charges by the hour. The hourly rate and the workshop's name belong to the business, not to one broken fridge, so they sit on the class — and when the rate rises, one assignment re-prices every open job.</p>
+  <p class="ar">مجال مختلف والمبدأ نفسه. ورشة إلكترونيات تحاسب بالساعة. وأجر الساعة واسم الورشة ينتميان إلى المنشأة لا إلى ثلاجة معطلة واحدة، فيقيمان على الصنف — وعندما يرتفع الأجر، يعيد إسناد واحد تسعير كل عمل مفتوح.</p>
+
+<pre class="code good"><code>class RepairJob:
+    labour_rate = 15
+    workshop = "Al-Nasser Electronics"
+
+    def __init__(self, device, hours, parts_cost):
+        self.device = device
+        self.hours = hours
+        self.parts_cost = parts_cost
+
+    def bill(self):
+        return (self.hours * self.labour_rate
+                + self.parts_cost)
+
+
+fridge = RepairJob("fridge", 2, 40)
+laptop = RepairJob("laptop", 3, 10)
+
+print(RepairJob.workshop)
+print(fridge.device, fridge.bill())
+print(laptop.device, laptop.bill())
+
+RepairJob.labour_rate = 20      # rates rise for everyone
+print("--- new rate ---")
+print(fridge.device, fridge.bill())
+print(laptop.device, laptop.bill())
+</code></pre>
+
+  <div class="output">Al-Nasser Electronics
+fridge 70
+laptop 55
+--- new rate ---
+fridge 80
+laptop 70</div>
+
+  <p class="en">The workshop name was read off the class with no job existing. Both bills moved on the new rate, and they moved by different amounts — 10 and 15 — because each job still multiplies the shared rate by its own hours.</p>
+  <p class="ar">قُرئ اسم الورشة من الصنف دون وجود أي عمل. وتحركت الفاتورتان على الأجر الجديد، وتحركتا بمقدارين مختلفين — 10 و15 — لأن كل عمل ما زال يضرب الأجر المشترك بساعاته الخاصة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">After <code>juice.vat_rate = 0.16</code>, what does <code>MenuItem.vat_rate = 0.0</code> do to <code>juice</code>?</span><span class="ar">بعد <code>juice.vat_rate = 0.16</code>، ماذا يفعل <code>MenuItem.vat_rate = 0.0</code> بـ <code>juice</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">It sets <code>juice.vat_rate</code> to <code>0.0</code> like every other item, since the class attribute always wins.</span><span class="ar">يضبط <code>juice.vat_rate</code> على <code>0.0</code> كبقية الأصناف، لأن خاصية الصنف تفوز دائمًا.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Nothing — <code>juice</code> now has its own <code>vat_rate</code> attribute, which is found first, so it keeps <code>0.16</code>.</span><span class="ar">لا شيء — فـ <code>juice</code> يملك الآن خاصية <code>vat_rate</code> خاصة به، تُوجد أولًا، فيبقى على <code>0.16</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises an <code>AttributeError</code>, because the name is now defined in two places.</span><span class="ar">يرفع <code>AttributeError</code>، لأن الاسم معرَّف الآن في موضعين.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It sets it to <code>0.0</code>, but only for items created after that line runs.</span><span class="ar">يضبطها على <code>0.0</code>، لكن للأصناف المُنشأة بعد تنفيذ ذلك السطر فقط.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">An instance attribute shadows the class attribute permanently, for that object only — the output above showed <code>juice: 0.16</code> and <code>plate: 0.0</code> side by side. The tempting wrong answer is the last one: a class attribute is <em>not</em> copied into objects at birth, so changing it does reach objects created earlier — the falafel plate was built before the change and still obeyed it. What blocks the change is not the object's age; it is the object having its own value of that name.</div>
+      <div class="ar">خاصية الكائن تحجب خاصية الصنف حجبًا دائمًا، لذلك الكائن وحده — وقد أظهر الناتج أعلاه <code>juice: 0.16</code> و<code>plate: 0.0</code> جنبًا إلى جنب. والإجابة المغرية الخاطئة هي الأخيرة: فخاصية الصنف <em>لا</em> تُنسخ إلى الكائنات عند نشأتها، لذا يصل تغييرها إلى كائنات أُنشئت سابقًا — فطبق الفلافل بُني قبل التغيير وامتثل له مع ذلك. والذي يمنع التغيير ليس عمر الكائن، بل امتلاكه قيمة خاصة بهذا الاسم.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — Move the cup cost to the class</span><span class="ar">تمرين 2.1 — انقل تكلفة الكوب إلى الصنف</span></h4>
+    <p class="en">Every drink is served in the same cup, which costs the shop <code>0.5</code>, and every price is quoted in <code>"ILS"</code>. Write <code>Drink</code> with those two as class attributes, an <code>__init__</code> taking only <code>name</code> and <code>fruit_cost</code>, a <code>cost()</code> method, and a <code>label()</code> method. Then switch cup supplier with a single assignment that moves every drink at once.</p>
+    <p class="ar">كل مشروب يُقدَّم في الكوب نفسه، الذي يكلّف المحل <code>0.5</code>، وكل سعر يُعلن بعملة <code>"ILS"</code>. اكتب صنفًا <code>Drink</code> يضع هذين كخاصيتي صنف، و<code>__init__</code> يستقبل <code>name</code> و<code>fruit_cost</code> فقط، ودالة <code>cost()</code>، ودالة <code>label()</code>. ثم غيّر مورّد الأكواب بإسناد واحد يحرّك كل المشروبات في آن واحد.</p>
+
+<pre class="code"><code>class Drink:
+    # two class attributes go here
+
+    def __init__(self, name, fruit_cost):
+        self.name = name
+        self.fruit_cost = fruit_cost
+
+    # cost() and label() go here
+
+
+mango = Drink("Mango juice", 4.0)
+orange = Drink("Orange juice", 2.5)
+
+print(mango.label())    # Mango juice: 4.5 ILS
+print(orange.label())
+
+# now cups cost 0.9 — change it in ONE place
+print("--- new cup supplier ---")
+print(mango.label())
+print(orange.label())
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Drink:
+    cup_cost = 0.5
+    currency = "ILS"
+
+    def __init__(self, name, fruit_cost):
+        self.name = name
+        self.fruit_cost = fruit_cost
+
+    def cost(self):
+        return round(self.fruit_cost + self.cup_cost, 2)
+
+    def label(self):
+        return f"{self.name}: {self.cost()} {self.currency}"
+
+
+mango = Drink("Mango juice", 4.0)
+orange = Drink("Orange juice", 2.5)
+
+print(mango.label())
+print(orange.label())
+
+Drink.cup_cost = 0.9
+print("--- new cup supplier ---")
+print(mango.label())
+print(orange.label())
+</code></pre>
+      <div class="output">Mango juice: 4.5 ILS
+Orange juice: 3.0 ILS
+--- new cup supplier ---
+Mango juice: 4.9 ILS
+Orange juice: 3.4 ILS</div>
+      <p class="en">The methods read <code>self.cup_cost</code>, not <code>Drink.cup_cost</code>, and both still followed the class-level change — reading through <code>self</code> falls back to the class when the object has no value of its own. Writing <code>Drink.cup_cost</code> is what makes the update shop-wide; writing <code>mango.cup_cost</code> would have changed one drink.</p>
+      <p class="ar">الدالتان تقرآن <code>self.cup_cost</code> لا <code>Drink.cup_cost</code>، ومع ذلك تبعت كلتاهما تغيير مستوى الصنف — فالقراءة عبر <code>self</code> ترجع إلى الصنف عندما لا يملك الكائن قيمة خاصة. والكتابة <code>Drink.cup_cost</code> هي ما يجعل التحديث على مستوى المحل؛ أما الكتابة <code>mango.cup_cost</code> فكانت ستغيّر مشروبًا واحدًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — A branch that keeps its own discount</span><span class="ar">تمرين 2.2 — فرع يحتفظ بخصمه الخاص</span></h4>
+    <p class="en">The chain has a company-wide <code>discount</code> class attribute, starting at <code>0.0</code>, and a <code>price_for(amount)</code> method. Give the Rafah branch its own 10% discount through the instance, then run a company-wide 20% sale through the class and print both branches. Explain in your own words why Rafah ignores the sale, then make it obey again by deleting its own attribute with <code>del</code>.</p>
+    <p class="ar">لدى السلسلة خاصية صنف <code>discount</code> على مستوى الشركة تبدأ بـ <code>0.0</code>، ودالة <code>price_for(amount)</code>. امنح فرع رفح خصمًا خاصًا به بنسبة 10% عبر الكائن، ثم أطلق تخفيضًا على مستوى الشركة بنسبة 20% عبر الصنف واطبع الفرعين. اشرح بكلماتك لماذا يتجاهل رفح التخفيض، ثم اجعله يمتثل مرة أخرى بحذف خاصيته الخاصة بـ <code>del</code>.</p>
+
+<pre class="code"><code>class Branch:
+    discount = 0.0
+
+    def __init__(self, name):
+        self.name = name
+
+    def price_for(self, amount):
+        return round(amount * (1 - self.discount), 2)
+
+
+gaza = Branch("Gaza City")
+rafah = Branch("Rafah")
+
+# 1. give Rafah its own 10% discount
+# 2. print both branches' price_for(100)
+# 3. start a company-wide 20% sale
+# 4. print both again — and explain the result
+# 5. remove Rafah's own attribute with del
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Branch:
+    discount = 0.0
+
+    def __init__(self, name):
+        self.name = name
+
+    def price_for(self, amount):
+        return round(amount * (1 - self.discount), 2)
+
+
+gaza = Branch("Gaza City")
+rafah = Branch("Rafah")
+
+rafah.discount = 0.10      # instance attribute, Rafah only
+
+print(gaza.name, gaza.price_for(100))
+print(rafah.name, rafah.price_for(100))
+
+Branch.discount = 0.20     # company-wide winter sale
+print("--- after the company-wide sale ---")
+print(gaza.name, gaza.price_for(100))
+print(rafah.name, rafah.price_for(100))
+print("Rafah shadows the class:",
+      "discount" in rafah.__dict__)
+
+del rafah.discount
+print("after del, Rafah:", rafah.price_for(100))
+</code></pre>
+      <div class="output">Gaza City 100.0
+Rafah 90.0
+--- after the company-wide sale ---
+Gaza City 80.0
+Rafah 90.0
+Rafah shadows the class: True
+after del, Rafah: 80.0</div>
+      <p class="en">Rafah charged 90 while the rest of the chain charged 80, so the branch with the "extra" discount became the most expensive one. <code>del rafah.discount</code> removes only the instance attribute and uncovers the class attribute again — the class value was never overwritten, just hidden.</p>
+      <p class="ar">حاسب رفح بـ 90 بينما حاسبت بقية السلسلة بـ 80، فأصبح الفرع ذو الخصم «الإضافي» هو الأغلى. و<code>del rafah.discount</code> تحذف خاصية الكائن فقط فتكشف خاصية الصنف من جديد — فقيمة الصنف لم تُستبدل أبدًا، بل حُجبت فقط.</p>
+    </details>
+  </section>
+
+  <h2 id="l2-h3"><span class="en">Concept 3 — Methods that make the object speak: <code>__str__</code> and <code>__repr__</code></span><span class="ar">المفهوم 3 — دوال تجعل الكائن يتكلم: <code>__str__</code> و<code>__repr__</code></span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The shop has <code>Order</code> objects now, but printing one gives a memory address instead of a receipt, so each shift wrote its own formatting helper. The morning shift wrote <code>print_order_counter</code>; the evening shift, not knowing about it, wrote <code>print_order_receipt</code>. The same order now prints two different ways depending on who is at the till, and a customer who comes back in the evening with a morning receipt is holding a document the evening printer cannot reproduce.</p>
+    <p class="ar">لدى المحل كائنات <code>Order</code> الآن، لكن طباعة أحدها تعطي عنوان ذاكرة لا فاتورة، فكتبت كل ورديّة دالة تنسيق خاصة بها. كتبت الورديّة الصباحية <code>print_order_counter</code>؛ وكتبت المسائية، دون علمها بالأولى، <code>print_order_receipt</code>. فالطلب نفسه يُطبع الآن بطريقتين مختلفتين حسب من يقف على الصندوق، والعميل الذي يعود مساءً بفاتورة صباحية يحمل وثيقة لا تستطيع طابعة المساء إنتاجها.</p>
+  </div>
+
+<pre class="code bad"><code>class Order:
+    def __init__(self, number, customer):
+        self.number = number
+        self.customer = customer
+        self.items = []
+
+
+def print_order_counter(order):
+    # written by the morning shift
+    print(f"#{order.number} {order.customer}:"
+          f" {len(order.items)} item(s)")
+
+
+def print_order_receipt(order):
+    # written by the evening shift, same data
+    names = ", ".join(order.items)
+    print(f"Order {order.number} for {order.customer}"
+          f" [{names}]")
+
+
+o = Order(14, "Huda")
+o.items.append("mango juice")
+o.items.append("falafel plate")
+
+print_order_counter(o)
+print_order_receipt(o)
+print(o)
+</code></pre>
+
+  <div class="output">#14 Huda: 2 item(s)
+Order 14 for Huda [mango juice, falafel plate]
+&lt;__main__.Order object at 0x7f...&gt;</div>
+
+  <h3 id="l2-s10"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The object knows everything needed to describe itself, yet the description lives outside it — twice, in two functions that drifted apart the moment the second one was written. And <code>print(o)</code>, the thing every Python programmer tries first, gives a memory address, which pushes the next person to write a third helper.</p>
+  <p class="ar">الكائن يعرف كل ما يلزم لوصف نفسه، لكن الوصف يقيم خارجه — مرتين، في دالتين تباعدتا لحظة كتابة الثانية. و<code>print(o)</code>، أول ما يجربه كل مبرمج بايثون، يعطي عنوان ذاكرة، فيدفع الشخص التالي إلى كتابة دالة مساعدة ثالثة.</p>
+
+  <div class="note">
+    <h4><span class="en">Your address will not match the one above</span><span class="ar">عنوانك لن يطابق العنوان أعلاه</span></h4>
+    <p class="en">The <code>0x7f...</code> part is where the object happened to sit in memory on that run. It is different every time the program runs, and different on your machine — which is the first clue that it is telling you nothing useful about the order.</p>
+    <p class="ar">الجزء <code>0x7f...</code> هو الموضع الذي صادف أن يشغله الكائن في الذاكرة في ذلك التشغيل. وهو يختلف في كل مرة يُشغَّل فيها البرنامج، ويختلف على جهازك — وهذه أول إشارة إلى أنه لا يخبرك بشيء مفيد عن الطلب.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — <code>__str__</code>: the line a human reads</span><span class="ar">الخطوة 1 — <code>__str__</code>: السطر الذي يقرأه الإنسان</span></span>
+    <p class="en">Define a method named <code>__str__</code> that returns a string. Python calls it for you whenever the object has to become text: <code>print(obj)</code>, <code>str(obj)</code>, and inside an f-string. The two helper functions collapse into one method that lives with the data.</p>
+    <p class="ar">عرّف دالة باسم <code>__str__</code> تُعيد نصًّا. وستستدعيها بايثون نيابةً عنك كلما احتاج الكائن أن يصبح نصًّا: في <code>print(obj)</code> و<code>str(obj)</code> وداخل f-string. فتنطوي الدالتان المساعدتان في دالة واحدة تقيم مع البيانات.</p>
+
+<pre class="code good"><code>class Order:
+    def __init__(self, number, customer):
+        self.number = number
+        self.customer = customer
+        self.items = []
+
+    def __str__(self):
+        return (f"Order #{self.number} — {self.customer}"
+                f" — {len(self.items)} item(s)")
+
+
+a = Order(14, "Huda")
+a.items.append(("mango juice", 10))
+b = Order(15, "Yousef")
+
+print(a)
+print(f"evening receipt: {a}")
+print([a, b])
+</code></pre>
+
+    <div class="output">Order #14 — Huda — 1 item(s)
+evening receipt: Order #14 — Huda — 1 item(s)
+[&lt;__main__.Order object at 0x7f...&gt;, &lt;__main__.Order object at 0x7f...&gt;]</div>
+
+    <p class="en">The first two lines are identical, and that is the point: morning and evening now print the same receipt because there is only one receipt. But look at the third line — printing a <em>list</em> of orders still shows memory addresses, whose digits will differ from these on your run. <code>__str__</code> was not used there.</p>
+    <p class="ar">السطران الأولان متطابقان، وهذا هو المقصود: فالصباح والمساء يطبعان الفاتورة نفسها الآن لأن الفاتورة واحدة. لكن انظر إلى السطر الثالث — فطباعة <em>قائمة</em> من الطلبات ما زالت تُظهر عناوين ذاكرة، ستختلف أرقامها عن هذه في تشغيلك. لم تُستخدم <code>__str__</code> هناك.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — <code>__repr__</code>: the line a programmer reads</span><span class="ar">الخطوة 2 — <code>__repr__</code>: السطر الذي يقرأه المبرمج</span></span>
+    <p class="en">A container never calls <code>__str__</code> on what it holds; it calls <code>__repr__</code>. The two have different jobs: <code>__str__</code> is the customer-facing sentence, <code>__repr__</code> is the unambiguous form you want when debugging — it should say the class name and the values that identify the object.</p>
+    <p class="ar">الحاوية لا تستدعي <code>__str__</code> أبدًا على ما تحتويه؛ بل تستدعي <code>__repr__</code>. ولكل منهما مهمة مختلفة: فـ <code>__str__</code> هي الجملة الموجَّهة إلى العميل، و<code>__repr__</code> هي الصيغة القاطعة التي تريدها عند تتبع الأخطاء — وعليها أن تذكر اسم الصنف والقيم التي تعرّف الكائن.</p>
+
+<pre class="code good"><code>class Order:
+    def __init__(self, number, customer):
+        self.number = number
+        self.customer = customer
+        self.items = []
+
+    def __str__(self):
+        return (f"Order #{self.number} — {self.customer}"
+                f" — {len(self.items)} item(s)")
+
+    def __repr__(self):
+        return (f"Order(number={self.number!r},"
+                f" customer={self.customer!r},"
+                f" items={len(self.items)})")
+
+
+a = Order(14, "Huda")
+a.items.append(("mango juice", 10))
+b = Order(15, "Yousef")
+
+print(a)
+print([a, b])
+print(repr(a))
+</code></pre>
+
+    <div class="output">Order #14 — Huda — 1 item(s)
+[Order(number=14, customer='Huda', items=1), Order(number=15, customer='Yousef', items=0)]
+Order(number=14, customer='Huda', items=1)</div>
+
+    <div class="note">
+      <h4><span class="en">What <code>!r</code> does, and the fallback rule</span><span class="ar">ما يفعله <code>!r</code>، وقاعدة التراجع</span></h4>
+      <p class="en"><code>{self.customer!r}</code> inserts the <em>repr</em> of the value, which is why the name shows as <code>'Huda'</code> with quotes — so you can tell the string <code>"14"</code> from the number <code>14</code> while debugging. And the fallback goes one way only: if you define <code>__repr__</code> but no <code>__str__</code>, then <code>print(obj)</code> uses <code>__repr__</code>. If you define only <code>__str__</code>, lists still print addresses. So when you write just one of the two, write <code>__repr__</code>.</p>
+      <p class="ar">تُدرج <code>{self.customer!r}</code> صيغة <em>repr</em> للقيمة، ولهذا يظهر الاسم <code>'Huda'</code> بعلامتي تنصيص — فتميّز النص <code>"14"</code> من الرقم <code>14</code> أثناء تتبع الأخطاء. والتراجع يسير في اتجاه واحد فقط: فإن عرّفت <code>__repr__</code> دون <code>__str__</code>، استخدم <code>print(obj)</code> الدالة <code>__repr__</code>. وإن عرّفت <code>__str__</code> وحدها، ظلت القوائم تطبع العناوين. لذا إن كتبت واحدة منهما فقط، فاكتب <code>__repr__</code>.</p>
+    </div>
+  </div>
+
+  <h3 id="l2-s11"><span class="en">While we are here: stop storing what you can compute</span><span class="ar">وبما أننا هنا: توقف عن تخزين ما تستطيع حسابه</span></h3>
+
+  <p class="en">The receipt above showed the item count by computing <code>len(self.items)</code>. The tempting alternative is to keep a <code>total</code> attribute and update it whenever something changes. It works exactly until the day somebody forgets.</p>
+  <p class="ar">أظهرت الفاتورة أعلاه عدد الأصناف بحساب <code>len(self.items)</code>. والبديل المغري هو الاحتفاظ بخاصية <code>total</code> وتحديثها كلما تغيّر شيء. وهو يعمل بالضبط حتى اليوم الذي ينسى فيه أحدهم.</p>
+
+<pre class="code bad"><code>class Order:
+    def __init__(self, number, customer):
+        self.number = number
+        self.customer = customer
+        self.items = []
+        self.total = 0       # a stored snapshot
+
+
+o = Order(14, "Huda")
+o.items.append(("mango juice", 10))
+o.total = 10
+
+print("receipt says:", o.total)
+
+# the customer adds a plate; the cashier forgets the total
+o.items.append(("falafel plate", 8))
+
+print("receipt says:", o.total)
+print("really owed:", sum(p for name, p in o.items))
+</code></pre>
+
+  <div class="output">receipt says: 10
+receipt says: 10
+really owed: 18</div>
+
+  <div class="warn">
+    <h4><span class="en">A stored total is a second source of truth</span><span class="ar">الإجمالي المخزَّن مصدر حقيقة ثانٍ</span></h4>
+    <p class="en">The shop just gave away a falafel plate. <code>items</code> and <code>total</code> both claim to answer "what does this order cost?", and the moment they disagree, the object is lying with a straight face. Every single place that touches <code>items</code> must now also remember to touch <code>total</code> — and that is the Lesson 1 disease in a new costume.</p>
+    <p class="ar">المحل أهدى للتو طبق فلافل. فكل من <code>items</code> و<code>total</code> يدّعي الإجابة عن سؤال «كم يكلّف هذا الطلب؟»، وفي اللحظة التي يختلفان فيها يكذب الكائن بوجه جامد. وعلى كل موضع يلمس <code>items</code> أن يتذكر الآن لمس <code>total</code> أيضًا — وهذا هو داء الدرس 1 بزيّ جديد.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — make the total a method, and let <code>__str__</code> call it</span><span class="ar">الخطوة 3 — اجعل الإجمالي دالة، ودع <code>__str__</code> تستدعيها</span></span>
+    <p class="en">If a value can be derived from other attributes, derive it on demand. <code>add_item()</code> changes the state; <code>subtotal()</code> and <code>total()</code> read it. Nothing can drift, because there is nothing to keep in step.</p>
+    <p class="ar">إذا كان بالإمكان استنتاج قيمة من خصائص أخرى، فاستنتجها عند الطلب. فـ <code>add_item()</code> تغيّر الحالة، و<code>subtotal()</code> و<code>total()</code> تقرآنها. فلا شيء يمكن أن ينحرف، لأن لا شيء يحتاج إلى إبقائه متزامنًا.</p>
+
+<pre class="code good"><code>class Order:
+    vat_rate = 0.05
+
+    def __init__(self, number, customer, discount=0):
+        self.number = number
+        self.customer = customer
+        self.discount = discount
+        self.items = []
+
+    def add_item(self, name, price):
+        self.items.append((name, price))
+
+    def subtotal(self):
+        return sum(price for name, price in self.items)
+
+    def total(self):
+        gross = self.subtotal() * (1 + self.vat_rate)
+        return round(gross - self.discount, 2)
+
+    def __str__(self):
+        return (f"Order #{self.number} — {self.customer}"
+                f" — {len(self.items)} item(s)"
+                f" — {self.total()} ILS")
+
+    def __repr__(self):
+        return (f"Order(number={self.number!r},"
+                f" items={len(self.items)},"
+                f" total={self.total()})")
+
+
+a = Order(14, "Huda")
+a.add_item("mango juice", 10)
+print(a)
+
+a.add_item("falafel plate", 8)
+print(a)
+
+b = Order(15, "Yousef", discount=2)
+b.add_item("hummus plate", 6)
+print(f"evening receipt: {b}")
+print([a, b])
+</code></pre>
+
+    <div class="output">Order #14 — Huda — 1 item(s) — 10.5 ILS
+Order #14 — Huda — 2 item(s) — 18.9 ILS
+evening receipt: Order #15 — Yousef — 1 item(s) — 4.3 ILS
+[Order(number=14, items=2, total=18.9), Order(number=15, items=1, total=4.3)]</div>
+
+    <p class="en">The falafel plate was added with one call and the printed total moved from 10.5 to 18.9 by itself. Nobody updated a stored figure, so nobody could forget to. This is the whole lesson in four lines of output: <code>__init__</code> guarantees the shape, the class attribute holds the shared rate, and the methods compute the rest from state.</p>
+    <p class="ar">أُضيف طبق الفلافل باستدعاء واحد فانتقل الإجمالي المطبوع من 10.5 إلى 18.9 من تلقاء نفسه. لم يحدّث أحد رقمًا مخزَّنًا، فلم يستطع أحد أن ينسى تحديثه. وهذا هو الدرس كله في أربعة أسطر من الناتج: <code>__init__</code> يضمن الشكل، وخاصية الصنف تحمل النسبة المشتركة، والدوال تحسب الباقي من الحالة.</p>
+  </div>
+
+  <h3 id="l2-s12"><span class="en">Second example — a rooftop water tank</span><span class="ar">مثال ثانٍ — خزان ماء على السطح</span></h3>
+
+  <p class="en">Different domain, same principle. A water truck fills rooftop tanks. The driver needs one readable line per tank, the office needs an unambiguous one inside a list, and the fill percentage is computed rather than stored so it cannot lag behind the water.</p>
+  <p class="ar">مجال مختلف والمبدأ نفسه. شاحنة ماء تملأ خزانات الأسطح. فالسائق يحتاج سطرًا واحدًا مقروءًا لكل خزان، والمكتب يحتاج سطرًا قاطعًا داخل قائمة، ونسبة الامتلاء محسوبة لا مخزَّنة فلا يمكن أن تتأخر عن الماء.</p>
+
+<pre class="code good"><code>class WaterTank:
+    def __init__(self, roof, capacity):
+        self.roof = roof
+        self.capacity = capacity
+        self.litres = 0
+
+    def fill(self, litres):
+        self.litres += litres
+
+    def percent_full(self):
+        return round(self.litres / self.capacity * 100)
+
+    def __str__(self):
+        return (f"{self.roof}: {self.litres}/"
+                f"{self.capacity} L ({self.percent_full()}%)")
+
+    def __repr__(self):
+        return f"WaterTank(roof={self.roof!r})"
+
+
+a = WaterTank("Block A", 1000)
+b = WaterTank("Block B", 500)
+a.fill(750)
+
+print(a)
+print([a, b])
+a.fill(250)
+print(a)
+</code></pre>
+
+  <div class="output">Block A: 750/1000 L (75%)
+[WaterTank(roof='Block A'), WaterTank(roof='Block B')]
+Block A: 1000/1000 L (100%)</div>
+
+  <p class="en">One <code>fill(250)</code> call moved the printed line from 75% to 100% with nothing else updated. The list used <code>__repr__</code> and the bare <code>print</code> used <code>__str__</code> — the same object, two audiences, one source of truth.</p>
+  <p class="ar">نقل استدعاء واحد لـ <code>fill(250)</code> السطر المطبوع من 75% إلى 100% دون تحديث أي شيء آخر. واستخدمت القائمة <code>__repr__</code> واستخدمت <code>print</code> المجردة <code>__str__</code> — الكائن نفسه، وجمهوران، ومصدر حقيقة واحد.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You define <code>__str__</code> only. What does <code>print([order])</code> show?</span><span class="ar">عرّفتَ <code>__str__</code> فقط. فماذا تُظهر <code>print([order])</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">The receipt line from <code>__str__</code>, inside square brackets.</span><span class="ar">سطر الفاتورة من <code>__str__</code> داخل قوسين معقوفين.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">The default <code>&lt;__main__.Order object at 0x…&gt;</code>, because a list formats its contents with <code>__repr__</code>, which was not defined.</span><span class="ar">الصيغة الافتراضية <code>&lt;__main__.Order object at 0x…&gt;</code>، لأن القائمة تنسّق محتواها بـ <code>__repr__</code> التي لم تُعرَّف.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>TypeError</code>, because a list cannot be printed unless both methods exist.</span><span class="ar"><code>TypeError</code>، لأن القائمة لا يمكن طباعتها إلا إذا وُجدت الدالتان كلتاهما.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The receipt line, because <code>__repr__</code> falls back to <code>__str__</code> when it is missing.</span><span class="ar">سطر الفاتورة، لأن <code>__repr__</code> ترجع إلى <code>__str__</code> عند غيابها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Containers always format their contents with <code>__repr__</code>, so an undefined <code>__repr__</code> leaves the memory address showing — exactly what Step 1's third output line did. The tempting wrong answer is the last one: the fallback exists but runs the other way round. <code>__str__</code> falls back to <code>__repr__</code>, never the reverse, which is why defining <code>__repr__</code> alone fixes both <code>print(obj)</code> and <code>print([obj])</code>.</div>
+      <div class="ar">الحاويات تنسّق محتواها دائمًا بـ <code>__repr__</code>، فبقاء <code>__repr__</code> غير معرَّفة يُبقي عنوان الذاكرة ظاهرًا — وهذا بالضبط ما فعله السطر الثالث من ناتج الخطوة 1. والإجابة المغرية الخاطئة هي الأخيرة: فالتراجع موجود لكنه يسير في الاتجاه المعاكس. إذ ترجع <code>__str__</code> إلى <code>__repr__</code> ولا يحدث العكس أبدًا، ولهذا فإن تعريف <code>__repr__</code> وحدها يصلح <code>print(obj)</code> و<code>print([obj])</code> معًا.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 3.1 — A daily sheet that prints itself</span><span class="ar">تمرين 3.1 — كشف يومي يطبع نفسه</span></h4>
+    <p class="en">Write <code>DailySheet</code> with <code>day</code>, <code>cashier</code> and an empty <code>orders</code> list. Add <code>add_order(customer, amount)</code>, a <code>takings()</code> method that sums the amounts, a <code>__str__</code> giving the shift summary, and a <code>__repr__</code> giving the debugging form. Your output must be identical whether you print the sheet directly, inside an f-string, or inside a list.</p>
+    <p class="ar">اكتب صنفًا <code>DailySheet</code> يحمل <code>day</code> و<code>cashier</code> وقائمة <code>orders</code> فارغة. أضف <code>add_order(customer, amount)</code>، ودالة <code>takings()</code> تجمع المبالغ، و<code>__str__</code> تعطي ملخص الورديّة، و<code>__repr__</code> تعطي صيغة تتبع الأخطاء. ويجب أن يتوافق ناتجك سواء طبعت الكشف مباشرة أو داخل f-string أو داخل قائمة.</p>
+
+<pre class="code"><code>class DailySheet:
+    def __init__(self, day, cashier):
+        self.day = day
+        self.cashier = cashier
+        # add the empty orders list
+
+    # add_order(), takings(), __str__, __repr__
+
+
+mon = DailySheet("Mon", "Huda")
+mon.add_order("Yousef", 18)
+mon.add_order("Amal", 7)
+
+tue = DailySheet("Tue", "Kareem")
+tue.add_order("Noor", 31)
+
+print(mon)             # Mon (Huda): 2 order(s), 25 ILS
+print(f"end of shift: {tue}")
+print([mon, tue])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class DailySheet:
+    def __init__(self, day, cashier):
+        self.day = day
+        self.cashier = cashier
+        self.orders = []
+
+    def add_order(self, customer, amount):
+        self.orders.append((customer, amount))
+
+    def takings(self):
+        return sum(a for customer, a in self.orders)
+
+    def __str__(self):
+        return (f"{self.day} ({self.cashier}):"
+                f" {len(self.orders)} order(s),"
+                f" {self.takings()} ILS")
+
+    def __repr__(self):
+        return (f"DailySheet(day={self.day!r},"
+                f" orders={len(self.orders)})")
+
+
+mon = DailySheet("Mon", "Huda")
+mon.add_order("Yousef", 18)
+mon.add_order("Amal", 7)
+
+tue = DailySheet("Tue", "Kareem")
+tue.add_order("Noor", 31)
+
+print(mon)
+print(f"end of shift: {tue}")
+print([mon, tue])
+</code></pre>
+      <div class="output">Mon (Huda): 2 order(s), 25 ILS
+end of shift: Tue (Kareem): 1 order(s), 31 ILS
+[DailySheet(day='Mon', orders=2), DailySheet(day='Tue', orders=1)]</div>
+      <p class="en"><code>takings()</code> is a method, not an attribute, so the 25 can never fall behind the two orders that produced it. Note that <code>__str__</code> reads the count with <code>len(self.orders)</code> and the money with <code>self.takings()</code> — both derived at the moment of printing.</p>
+      <p class="ar"><code>takings()</code> دالة لا خاصية، فلا يمكن للرقم 25 أن يتأخر عن الطلبين الذين أنتجاه. ولاحظ أن <code>__str__</code> تقرأ العدد بـ <code>len(self.orders)</code> والمال بـ <code>self.takings()</code> — وكلاهما مستنتج في لحظة الطباعة.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 3.2 — Kill the drifting combo price</span><span class="ar">تمرين 3.2 — اقضِ على سعر العرض المنحرف</span></h4>
+    <p class="en">The starter code stores <code>price</code> as an attribute and the second part is served free. Rewrite it so <code>price</code> is a method computed from <code>parts</code>, and add a <code>__str__</code> showing the part count and the live price. The same two <code>add_part</code> calls must then produce two different printed prices.</p>
+    <p class="ar">الكود الابتدائي يخزّن <code>price</code> كخاصية فيُقدَّم الجزء الثاني مجانًا. أعد كتابته ليكون <code>price</code> دالة محسوبة من <code>parts</code>، وأضف <code>__str__</code> تُظهر عدد الأجزاء والسعر الحيّ. ويجب حينئذ أن ينتج استدعاءا <code>add_part</code> نفساهما سعرين مطبوعين مختلفين.</p>
+
+<pre class="code bad"><code>class Combo:
+    def __init__(self, name):
+        self.name = name
+        self.parts = []
+        self.price = 0      # stored, drifts out of date
+
+    def add_part(self, part, cost):
+        self.parts.append((part, cost))
+
+
+family = Combo("Family box")
+family.add_part("4 falafel plates", 24)
+family.price = 24
+print(family.name, family.price)
+
+family.add_part("2 mango juices", 20)
+print(family.name, family.price)
+</code></pre>
+
+    <div class="output">Family box 24
+Family box 24</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Combo:
+    def __init__(self, name):
+        self.name = name
+        self.parts = []
+
+    def add_part(self, part, cost):
+        self.parts.append((part, cost))
+
+    def price(self):
+        return sum(c for part, c in self.parts)
+
+    def __str__(self):
+        return (f"{self.name}: {len(self.parts)} part(s),"
+                f" {self.price()} ILS")
+
+
+family = Combo("Family box")
+family.add_part("4 falafel plates", 24)
+print(family)
+
+family.add_part("2 mango juices", 20)
+print(family)
+</code></pre>
+      <div class="output">Family box: 1 part(s), 24 ILS
+Family box: 2 part(s), 44 ILS</div>
+      <p class="en">The <code>self.price = 0</code> line disappeared from <code>__init__</code>, and so did the <code>family.price = 24</code> line at the call site — the caller is no longer allowed to assert a price, only to add parts. Removing the attribute removed the whole class of bug, not just this instance of it.</p>
+      <p class="ar">اختفى سطر <code>self.price = 0</code> من <code>__init__</code>، واختفى معه سطر <code>family.price = 24</code> في موضع الاستدعاء — فلم يُعد مسموحًا للمستدعي أن يقرر سعرًا، بل أن يضيف أجزاءً فقط. وإزالة الخاصية أزالت نوع الخلل بأكمله، لا هذه الحالة منه فقط.</p>
+    </details>
+  </section>
+
+  <h2 id="l2-h4"><span class="en">Second example — a training session at the centre</span><span class="ar">مثال ثانٍ — حصة تدريبية في المركز</span></h2>
+
+  <p class="en">Different domain, all three ideas at once. A vocational training centre runs sessions. Every room holds 20 by default, so <code>seats_default</code> is a class attribute. <code>__init__</code> gives <code>seats</code> and <code>room</code> defaults and creates the empty <code>attendees</code> list. <code>__str__</code> prints the one line the coordinator pins on the door.</p>
+  <p class="ar">مجال مختلف، والأفكار الثلاث معًا. مركز تدريب مهني يُشغّل حصصًا تدريبية. وكل قاعة تتسع لعشرين افتراضيًا، فتكون <code>seats_default</code> خاصية صنف. ويمنح <code>__init__</code> قيمًا افتراضية لـ <code>seats</code> و<code>room</code> وينشئ قائمة <code>attendees</code> الفارغة. وتطبع <code>__str__</code> السطر الواحد الذي يعلّقه المنسّق على الباب.</p>
+
+<pre class="code good"><code>class ClassSession:
+    seats_default = 20
+
+    def __init__(self, topic, trainer, seats=None,
+                 room="Lab 1"):
+        self.topic = topic
+        self.trainer = trainer
+        if seats is None:
+            seats = ClassSession.seats_default
+        self.seats = seats
+        self.room = room
+        self.attendees = []
+
+    def seats_left(self):
+        return self.seats - len(self.attendees)
+
+    def enrol(self, name):
+        if self.seats_left() == 0:
+            return f"{self.topic} is full"
+        self.attendees.append(name)
+        return f"{name} enrolled in {self.topic}"
+
+    def __str__(self):
+        return (f"{self.topic} / {self.trainer}"
+                f" — {self.room} —"
+                f" {self.seats_left()} seat(s) left")
+
+
+python_am = ClassSession("Python basics", "Raed")
+excel_pm = ClassSession("Excel reporting", "Mona",
+                        seats=3, room="Lab 2")
+
+print(python_am)
+print(excel_pm)
+
+for name in ["Huda", "Amal", "Kareem", "Yousef"]:
+    print(excel_pm.enrol(name))
+
+print(excel_pm)
+</code></pre>
+
+  <div class="output">Python basics / Raed — Lab 1 — 20 seat(s) left
+Excel reporting / Mona — Lab 2 — 3 seat(s) left
+Huda enrolled in Excel reporting
+Amal enrolled in Excel reporting
+Kareem enrolled in Excel reporting
+Excel reporting is full
+Excel reporting / Mona — Lab 2 — 0 seat(s) left</div>
+
+  <p class="en">Three details worth copying. <code>seats=None</code> rather than <code>seats=seats_default</code>, because a parameter default cannot see names inside the class body being defined — the lookup happens in <code>__init__</code>'s body instead. <code>room="Lab 1"</code> is a safe default because a string is immutable and cannot be modified by one session on behalf of the others. And <code>seats_left()</code> is computed, so the door sign cannot go stale after an enrolment.</p>
+  <p class="ar">ثلاث تفاصيل تستحق النقل. <code>seats=None</code> بدلًا من <code>seats=seats_default</code>، لأن القيمة الافتراضية للمعامل لا تستطيع رؤية الأسماء داخل جسم الصنف الجاري تعريفه — فيحدث البحث في جسم <code>__init__</code> بدلًا من ذلك. و<code>room="Lab 1"</code> قيمة افتراضية آمنة لأن النص غير قابل للتغيير فلا تستطيع حصة تعديله نيابةً عن البقية. و<code>seats_left()</code> محسوبة، فلا يمكن للافتة الباب أن تتقادم بعد تسجيل مشترك.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which value belongs on the class rather than on each object?</span><span class="ar">أي قيمة تنتمي إلى الصنف لا إلى كل كائن؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">The <code>attendees</code> list, so that all sessions can share one register.</span><span class="ar">قائمة <code>attendees</code>، كي تتشارك كل الحصص سجلًا واحدًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The <code>room</code>, because every session gets its room from a timetable.</span><span class="ar">قيمة <code>room</code>، لأن كل حصة تأخذ قاعتها من جدول زمني.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">The <code>seats_default</code> of 20, because it is one shared policy of the centre that should change in a single place.</span><span class="ar">قيمة <code>seats_default</code> البالغة 20، لأنها سياسة واحدة مشتركة للمركز يجب أن تتغير في مكان واحد.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The <code>trainer</code>, because trainers are reused across many sessions.</span><span class="ar">قيمة <code>trainer</code>، لأن المدربين يتكرر استخدامهم في حصص كثيرة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A class attribute is right for a fact that belongs to the kind, not to the individual: the centre's standard room size is one policy, so <code>ClassSession.seats_default = 25</code> updates it everywhere. The tempting wrong answer is the first: a shared <code>attendees</code> list sounds efficient, but it is the mutable-default bug promoted to a feature — enrolling Huda in the Python session would also enrol her in Excel, exactly like the shared <code>items=[]</code> earlier. Anything an object modifies in place must be created per object, in <code>__init__</code>.</div>
+      <div class="ar">خاصية الصنف مناسبة لحقيقة تنتمي إلى النوع لا إلى الفرد: فحجم القاعة المعياري في المركز سياسة واحدة، لذا يحدّثها <code>ClassSession.seats_default = 25</code> في كل مكان. والإجابة المغرية الخاطئة هي الأولى: فقائمة <code>attendees</code> المشتركة تبدو موفِّرة، لكنها خلل القيمة الافتراضية القابلة للتغيير وقد رُقِّي إلى ميزة — فتسجيل هدى في حصة Python سيسجّلها في Excel أيضًا، تمامًا كما حدث مع <code>items=[]</code> المشتركة سابقًا. فكل ما يعدّله الكائن في مكانه يجب أن يُنشأ لكل كائن داخل <code>__init__</code>.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l2-s13"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">When objects are built by hand in several places, "what does a valid object contain?" has several answers, and they disagree. <code>__init__</code> makes it one place with one answer.</span><span class="ar">عندما تُبنى الكائنات يدويًا في مواضع عدة، يصبح لسؤال «ما الذي يحتويه الكائن السليم؟» إجابات عدة تتناقض. و<code>__init__</code> يجعله موضعًا واحدًا بإجابة واحدة.</span></li>
+      <li><span class="en"><code>__init__</code> should set <em>every</em> attribute the object will ever have: the passed-in ones, the defaulted ones, and the empty or derived ones such as <code>self.items = []</code> and <code>self.created_at</code>.</span><span class="ar">على <code>__init__</code> ضبط <em>كل</em> خاصية سيملكها الكائن يومًا: المُمرَّرة، وذات القيمة الافتراضية، والفارغة أو المشتقة مثل <code>self.items = []</code> و<code>self.created_at</code>.</span></li>
+      <li><span class="en">Adding a field then becomes a one-line change in one place, instead of a hunt through every construction site in which one is always missed.</span><span class="ar">وتصبح إضافة حقل حينئذ تعديلًا في سطر واحد في مكان واحد، بدلًا من مطاردة في كل مواضع البناء يُنسى فيها واحد دائمًا.</span></li>
+      <li><span class="en">Never write a list, dict or set as a parameter default. Defaults are evaluated once at definition time, so every object shares that one value. Write <code>None</code> and build the real value in the body.</span><span class="ar">لا تكتب قائمة أو قاموسًا أو مجموعة كقيمة افتراضية لمعامل أبدًا. فالقيم الافتراضية تُقيَّم مرة واحدة عند التعريف، فيتشارك كل الكائنات تلك القيمة الواحدة. اكتب <code>None</code> وابنِ القيمة الحقيقية في الجسم.</span></li>
+      <li><span class="en">A fact that belongs to the whole kind — a VAT rate, a shop name, a default room size — belongs on the class, written once in the class body, not copied into every object.</span><span class="ar">الحقيقة التي تنتمي إلى النوع كله — نسبة ضريبة، اسم محل، سعة قاعة افتراضية — تنتمي إلى الصنف، تُكتب مرة واحدة في جسم الصنف، لا تُنسخ في كل كائن.</span></li>
+      <li><span class="en">Reading <code>obj.x</code> checks the object first, then the class. Writing <code>obj.x = v</code> always creates an instance attribute that shadows the class one for that object forever; only <code>Class.x = v</code> changes the shared value.</span><span class="ar">قراءة <code>obj.x</code> تفحص الكائن أولًا ثم الصنف. والكتابة <code>obj.x = v</code> تنشئ دائمًا خاصية كائن تحجب خاصية الصنف عن ذلك الكائن إلى الأبد؛ وحدها <code>Class.x = v</code> تغيّر القيمة المشتركة.</span></li>
+      <li><span class="en"><code>__str__</code> is the human line (<code>print(obj)</code>, f-strings); <code>__repr__</code> is the debugging line and the one containers use. The fallback runs one way: define only <code>__repr__</code> and both work.</span><span class="ar"><code>__str__</code> هي السطر الموجَّه إلى الإنسان (<code>print(obj)</code> وf-strings)؛ و<code>__repr__</code> هي سطر تتبع الأخطاء وهي ما تستخدمه الحاويات. والتراجع يسير في اتجاه واحد: عرّف <code>__repr__</code> وحدها فتعمل الاثنتان.</span></li>
+      <li><span class="en">Giving the object its own <code>__str__</code> replaces every scattered <code>print_order(...)</code> helper, so one receipt is printed the same way from everywhere in the program.</span><span class="ar">منح الكائن دالة <code>__str__</code> خاصة به يُغني عن كل دالة <code>print_order(...)</code> مبعثرة، فتُطبع فاتورة واحدة بالطريقة نفسها من كل موضع في البرنامج.</span></li>
+      <li><span class="en">Compute from state instead of storing it. A stored <code>total</code> is a second source of truth that drifts the first time someone adds an item and forgets to update it; <code>total()</code> cannot be out of date.</span><span class="ar">احسب من الحالة بدلًا من تخزينها. فـ <code>total</code> المخزَّن مصدر حقيقة ثانٍ ينحرف في أول مرة يضيف فيها أحدهم صنفًا وينسى تحديثه؛ أما <code>total()</code> فلا يمكن أن تتقادم.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

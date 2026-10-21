@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Capstone: Two Styles, One Program · Python OOP by Example" data-ar="المشروع الختامي · البرمجة الكائنية بلغة بايثون">Capstone: Two Styles, One Program · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-07" data-path="lessons/chapter-1-lesson-7.html">
+<main>
+<section class="page" id="lesson-07">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 7</span>
+  <h1><span class="en">Capstone: Two Styles, One Program</span><span class="ar">المشروع الختامي: أسلوبان لبرنامج واحد</span></h1>
+
+  <p class="lede en">There is no new concept in this lesson. One real program — a phone repair shop's ticket desk — is written twice, once with dicts and functions and once with classes, and the two files print byte-for-byte identical output; by the end you will be able to point at any line of the object-oriented file and name the lesson that earned it, and to say out loud which of the two files you would rather be handed next Tuesday when the shop changes its mind.</p>
+  <p class="lede ar">لا مفهوم جديد في هذا الدرس. فبرنامج واحد حقيقي — مكتب تذاكر في محل تصليح هواتف — مكتوب مرتين، مرة بالقواميس والدوال ومرة بالأصناف، والملفان يطبعان ناتجًا مطابقًا حرفًا بحرف؛ وبنهايته ستكون قادرًا على أن تشير إلى أي سطر في الملف الكائني وتسمّي الدرس الذي كسبه، وعلى أن تقول بصوت مسموع أيّ الملفين تفضّل أن يُسلَّم إليك الثلاثاء القادم حين يغيّر المحل رأيه.</p>
+
+  <div class="note">
+    <h4><span class="en">What this lesson is</span><span class="ar">ما هذا الدرس</span></h4>
+    <p class="en">Six lessons each introduced one idea against one small example. A real program is not six small examples; it is one body of code in which encapsulation, polymorphism and composition have to share a file and get along. This lesson replays the whole course on one such program, so that the principles stop being six separate techniques and become one way of reading code.</p>
+    <p class="ar">قدّم كلٌّ من الدروس الستة فكرةً واحدة في مقابل مثال صغير واحد. والبرنامج الحقيقي ليس ستة أمثلة صغيرة؛ إنه جسد كود واحد يضطر فيه التغليف وتعدد الأشكال والتركيب إلى مشاركة ملف والتوافق فيه. فيعيد هذا الدرس تمثيل المنهج كله على برنامج من هذا القبيل، لتكفّ المبادئ عن أن تكون ستّ تقنيات منفصلة وتصبح طريقةً واحدة في قراءة الكود.</p>
+    <p class="en">Both versions are good code. The structured one is not a strawman written badly on purpose so that classes can look clever beside it — it is the version a careful programmer writes without classes, and you should read it as something you would be content to have written. The question this lesson asks is not "which is correct" but "which one costs less when the requirement changes", and the answer turns out to depend on <em>which</em> requirement changes.</p>
+    <p class="ar">النسختان كودٌ جيّد. فالنسخة البنيوية ليست خصمًا من قشّ كُتب سيّئًا بقصد أن تبدو الأصناف بارعة بجانبه — بل هي النسخة التي يكتبها مبرمج متيقّظ بلا أصناف، وينبغي أن تقرأها كشيء يرضيك أن تكون كتبته. والسؤال الذي يطرحه هذا الدرس ليس «أيّهما صحيح» بل «أيّهما أقلّ كلفةً حين يتغيّر المطلوب»، ويتبيّن أن الجواب يعتمد على <em>أيّ</em> مطلوب يتغيّر.</p>
+  </div>
+
+  <h2 id="l7-h1"><span class="en">The brief</span><span class="ar">المطلوب</span></h2>
+
+  <p class="en">A phone repair shop in Gaza takes in devices, quotes a price, moves each job along a bench, and wants one page of paper at the end of the day. Here is the specification both files implement, and nothing more:</p>
+  <p class="ar">محل تصليح هواتف في غزة يستلم أجهزة، ويسعّر الإصلاح، ويحرّك كل عمل على طاولة العمل، ويريد صفحة ورق واحدة في آخر اليوم. وهذه هي المواصفة التي ينفّذها الملفان، ولا شيء أكثر منها:</p>
+
+  <ul>
+    <li><span class="en"><strong>Intake.</strong> Each ticket carries a customer name, a device, the kind of fault, a priority of <code>normal</code> or <code>urgent</code>, a parts estimate and the technician who will do the work.</span><span class="ar"><strong>الاستلام.</strong> تحمل كل تذكرة اسم عميل وجهازًا ونوع الخلل وأولوية <code>normal</code> أو <code>urgent</code> وتقدير قِطع والفنّي الذي سيؤدّي العمل.</span></li>
+    <li><span class="en"><strong>The quote.</strong> A fixed diagnosis fee of 20 ILS plus parts, and an urgent job carries a 25% surcharge on the whole subtotal.</span><span class="ar"><strong>التسعيرة.</strong> أجر تشخيص ثابت 20 شيكلًا زائدَ القِطع، ويحمل العمل المستعجل زيادةً 25% على المجموع الجزئي كله.</span></li>
+    <li><span class="en"><strong>Three kinds of job, priced by three different rules.</strong> A screen replacement is fee plus parts. A battery adds 10 ILS of fitting and calibration. A water-damage job adds a 35 ILS inspection charge for opening the phone, and — the inspection rule — if the board turns out to be corroded, the parts estimate is multiplied by 1.5.</span><span class="ar"><strong>ثلاثة أنواع من العمل تُسعَّر بثلاث قواعد مختلفة.</strong> فاستبدال الشاشة أجرٌ زائدَ القِطع. والبطارية تضيف 10 شواكل تركيبًا ومعايرة. وعمل أضرار الماء يضيف أجر فحص 35 شيكلًا لفتح الهاتف، و — قاعدة الفحص — إن تبيّن أن اللوحة متآكلة ضُرب تقدير القِطع في 1.5.</span></li>
+    <li><span class="en"><strong>A status flow in one direction.</strong> <code>received</code> → <code>in progress</code> → <code>ready</code> → <code>collected</code>, one step at a time, and any other move is refused with a printed reason. The scenario deliberately tries to hand a phone to its owner while it is still on the bench.</span><span class="ar"><strong>مسار حالات في اتجاه واحد.</strong> <code>received</code> ← <code>in progress</code> ← <code>ready</code> ← <code>collected</code>، خطوةً خطوة، وتُرفض أي حركة أخرى بسببٍ مطبوع. ويحاول السيناريو قصدًا تسليم هاتف لصاحبه وهو لا يزال على طاولة العمل.</span></li>
+    <li><span class="en"><strong>A daily report.</strong> How many tickets sit on each status, how much money was actually taken — collected tickets only, not quoted ones — and which technician is carrying the most work.</span><span class="ar"><strong>تقرير يومي.</strong> كم تذكرة تقف على كل حالة، وكم مالًا قُبض فعلًا — التذاكر المُستلَمة وحدها لا المسعَّرة — وأيّ فنّي يحمل أكبر قدر من العمل.</span></li>
+    <li><span class="en"><strong>No input.</strong> <code>main()</code> runs a fixed scripted day with six tickets, so that the two files can be run side by side and compared with <code>diff</code>.</span><span class="ar"><strong>بلا إدخال.</strong> تشغّل <code>main()</code> يومًا مكتوبًا ثابتًا بستّ تذاكر، ليتمكّن المرء من تشغيل الملفين جنبًا إلى جنب ومقارنتهما بـ <code>diff</code>.</span></li>
+  </ul>
+
+  <h3 id="l7-s1"><span class="en">The output — once, because it is the same output</span><span class="ar">الناتج — مرة واحدة، لأنه الناتج نفسه</span></h3>
+
+  <p class="en">This is what both files print. Not similar output: the same bytes. Run them and see.</p>
+  <p class="ar">هذا ما يطبعه الملفان. وليس ناتجًا متشابهًا: بل البايتات نفسها. شغّلهما وانظر.</p>
+
+  <div class="output">Gaza Phone Clinic -- repair desk
+--------------------------------
+
+intake
+  T-101 Huda Nassar     iPhone 11     screen  normal   200.00
+  T-102 Rami Hania      Galaxy A12    battery urgent   125.00
+  T-103 Mona Abu Shaar  Redmi Note 9  water   normal   190.00
+  T-104 Kareem Zourob   iPhone XR     screen  urgent   300.00
+  T-105 Dalia Khoudary  Nokia G21     battery normal    85.00
+  T-106 Basel Madhoun   Galaxy S10    water   normal   175.00
+
+work log
+  T-101 -&gt; in progress
+  T-101 -&gt; ready
+  T-101 -&gt; collected
+  T-102 -&gt; in progress
+  T-102 -&gt; ready
+  T-102 -&gt; collected
+  T-105 -&gt; in progress
+  T-105 -&gt; ready
+  T-105 -&gt; collected
+  T-104 -&gt; in progress
+  T-104 -&gt; ready
+  T-103 -&gt; in progress
+  T-103 -- rejected: cannot go from in progress to collected
+
+daily report
+  tickets per status
+    received       1
+    in progress    1
+    ready          1
+    collected      3
+  income collected     410.00 ILS
+  busiest technician Samir Qeshta (4 tickets)</div>
+
+  <p class="en">Two numbers in there are worth checking by hand before you read any code. <code>T-103</code> is a water job with a corroded board: 20 diagnosis + 35 inspection + 90 × 1.5 = 190.00. And the income is 410.00, not the 1075.00 the intake lines add up to, because only three tickets were ever collected — a quote is not money.</p>
+  <p class="ar">رقمان هناك يستحقّان التحقّق باليد قبل أن تقرأ أي كود. فـ <code>T-103</code> عمل ماء بلوحة متآكلة: 20 تشخيصًا + 35 فحصًا + 90 × 1.5 = 190.00. والدخل 410.00 لا 1075.00 التي تجمعها أسطر الاستلام، لأن ثلاث تذاكر فقط استُلمت أصلًا — فالتسعيرة ليست مالًا.</p>
+
+  <h2 id="l7-h2"><span class="en">Version 1 — the structured program</span><span class="ar">النسخة 1 — البرنامج البنيوي</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The shop has one laptop behind the counter and one program on it, written by a cousin who studied programming for two terms. It works. It has worked for a year. In that year the shop started doing water damage, which it did not do before; it hired a second technician; it added the "waiting for part" state to a whiteboard because the program had no room for it; and the owner is now talking about a second counter in Rafah.</p>
+    <p class="ar">للمحل حاسوب محمول واحد وراء المنضدة وبرنامج واحد عليه، كتبه قريبٌ درس البرمجة فصلين. وهو يعمل. وقد عمل عامًا. وفي ذلك العام بدأ المحل يعمل في أضرار الماء ولم يكن يعملها قبل؛ ووظّف فنيًّا ثانيًا؛ وأضاف حالة «في انتظار قطعة» إلى لوح أبيض لأنه لا موضع لها في البرنامج؛ ويتحدّث المالك الآن عن منضدة ثانية في رفح.</p>
+    <p class="en">None of that is a bug report. Every one of those is a <em>change</em>, and the only question a design can be judged by is what each one costs to make. So read the structured program below not as a thing that might be wrong, but as a thing that will be edited — by you, on a Tuesday, in a hurry — and keep a running count of how many places each request would touch.</p>
+    <p class="ar">ولا شيء من ذلك تقرير عِلّة. فكل واحد من تلك <em>تغيير</em>، والسؤال الوحيد الذي يُحكَم به على تصميم هو ما تكلّفه كل واحدة منها. فاقرأ البرنامج البنيوي أدناه لا شيئًا قد يكون خاطئًا، بل شيئًا سيُعدَّل — بيدك، في يوم ثلاثاء، على عجل — وأبقِ حسابًا جاريًا لعدد المواضع التي سيمسّها كل طلب.</p>
+  </div>
+
+  <p class="en">File: <code>repair_shop_structured.py</code>, 177 lines. Dictionaries for the data, functions for the verbs, one module-level constant block at the top. This is the shape most working Python in the world has.</p>
+  <p class="ar">الملف: <code>repair_shop_structured.py</code>، 177 سطرًا. قواميس للبيانات، ودوال للأفعال، وكتلة ثوابت واحدة على مستوى الوحدة في الأعلى. وهذه هي الصورة التي عليها أكثر كود بايثون العامل في العالم.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 1 — the data shape</span><span class="ar">الجزء 1 — شكل البيانات</span></span>
+    <p class="en">A ticket is a dict. There is no class to enforce which keys exist, so one factory function is written to build them all — this is already a good decision, and the only reason the nine keys stay consistent across six tickets.</p>
+    <p class="ar">التذكرة قاموس. ولا صنف يفرض أي المفاتيح موجودة، فتُكتب دالة مصنع واحدة لبنائها كلها — وهذا قرار جيّد أصلًا، وهو السبب الوحيد في بقاء المفاتيح التسعة متّسقة على ستّ تذاكر.</p>
+
+<pre class="code"><code>"""Phone repair shop ticket desk -- structured version.
+
+Same behaviour as repair_shop_oop.py: lists, dicts and functions
+instead of classes. No input() anywhere; main() runs a fixed
+scenario so the two files can be diffed line for line.
+"""
+
+# ---- shop constants -------------------------------------------
+
+DIAG_FEE = 20.0             # charged on every ticket
+URGENT_RATE = 0.25          # surcharge on an urgent job
+BATTERY_FITTING = 10.0      # calibration after a new battery
+WATER_INSPECTION = 35.0     # cost of opening a wet phone
+CORROSION_FACTOR = 1.5      # corroded boards need more parts
+
+STATUS_FLOW = ["received", "in progress", "ready", "collected"]
+
+
+# ---- the data shape -------------------------------------------
+
+def make_ticket(tid, customer, device, kind, priority, parts,
+                technician, corrosion=False):
+    """Build one repair ticket as a plain dictionary."""
+    return {
+        "id": tid,
+        "customer": customer,
+        "device": device,
+        "kind": kind,              # screen / battery / water
+        "priority": priority,      # normal / urgent
+        "parts": parts,            # parts estimate in ILS
+        "technician": technician,
+        "corrosion": corrosion,    # only read for water jobs
+        "status": "received",
+    }
+</code></pre>
+
+    <p class="en">Notice <code>corrosion</code>. It is meaningful only for a water job, and it sits on every ticket anyway, because a dict has one shape for all its instances. A screen replacement carries a corrosion flag it will never consult. That is not a bug; it is the first small tax of one shape fitting three kinds of thing.</p>
+    <p class="ar">لاحظ <code>corrosion</code>. فهي ذات معنى لعمل الماء وحده، وهي قائمة على كل تذكرة رغم ذلك، لأن للقاموس شكلًا واحدًا لكل حالاته. فاستبدال الشاشة يحمل راية تآكل لن يراجعها أبدًا. وذلك ليس عِلّة؛ بل هو أول ضريبة صغيرة لشكلٍ واحد يفي بثلاثة أنواع من الأشياء.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 2 — pricing: one function, three branches</span><span class="ar">الجزء 2 — التسعير: دالة واحدة وثلاثة فروع</span></span>
+    <p class="en">The three pricing rules go into one <code>if/elif</code> chain, and the urgent surcharge goes into a second function that wraps it. That split is well done: the surcharge is written once and applies to all three kinds, so nobody has to remember to add 25% in three places.</p>
+    <p class="ar">تذهب قواعد التسعير الثلاث إلى سلسلة <code>if/elif</code> واحدة، وتذهب زيادة الاستعجال إلى دالة ثانية تلفّها. وذلك الفصل مُحسَن: فالزيادة مكتوبة مرة واحدة وتسري على الأنواع الثلاثة، فلا يضطر أحد إلى تذكّر إضافة 25% في ثلاثة مواضع.</p>
+
+<pre class="code"><code># ---- pricing --------------------------------------------------
+
+def job_subtotal(ticket):
+    """Diagnosis fee plus parts, priced per kind of job."""
+    kind = ticket["kind"]
+    parts = ticket["parts"]
+    if kind == "screen":
+        return DIAG_FEE + parts
+    elif kind == "battery":
+        return DIAG_FEE + parts + BATTERY_FITTING
+    elif kind == "water":
+        if ticket["corrosion"]:
+            parts = parts * CORROSION_FACTOR
+        return DIAG_FEE + WATER_INSPECTION + parts
+    else:
+        raise ValueError(f"unknown job kind: {kind}")
+
+
+def quote(ticket):
+    """The customer's price: subtotal plus urgent surcharge."""
+    total = job_subtotal(ticket)
+    if ticket["priority"] == "urgent":
+        total = total * (1 + URGENT_RATE)
+    return total
+</code></pre>
+
+    <p class="en">And credit where it is due: the <code>else</code> raises. Lesson 6's clinic had a silent <code>else</code> that priced an unknown type at the full fee and lost money quietly for a year. This one refuses to guess. A reviewer should ask for exactly this, and here it already is.</p>
+    <p class="ar">والفضل لذي فضل: فرع <code>else</code> يرفع خطأ. فكان لعيادة الدرس 6 فرع <code>else</code> صامت يسعّر نوعًا مجهولًا بالأجر الكامل فيخسر المال في صمت عامًا كاملًا. وهذا يرفض التخمين. وينبغي للمراجع أن يطلب هذا بالضبط، وهو ها هنا أصلًا.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 3 — the status flow</span><span class="ar">الجزء 3 — مسار الحالات</span></span>
+    <p class="en">The legal order lives in one list, <code>STATUS_FLOW</code>, and the rule is derived from it rather than written out as six comparisons. <code>next_status</code> answers "where may this ticket go", and <code>step</code> is the single function the rest of the program is supposed to call.</p>
+    <p class="ar">يقيم الترتيب القانوني في قائمة واحدة، <code>STATUS_FLOW</code>، وتُستنبط القاعدة منها لا تُكتب ستّ مقارنات. فـ <code>next_status</code> تجيب «إلى أين يجوز لهذه التذكرة أن تمضي»، و<code>step</code> هي الدالة الوحيدة التي يُفترض ببقية البرنامج أن تستدعيها.</p>
+
+<pre class="code"><code># ---- status flow ----------------------------------------------
+
+def next_status(status):
+    """The only status a ticket is allowed to move to."""
+    i = STATUS_FLOW.index(status)
+    if i + 1 &lt; len(STATUS_FLOW):
+        return STATUS_FLOW[i + 1]
+    return None
+
+
+def step(ticket, new_status):
+    """Move a ticket one step, or refuse and say why."""
+    old = ticket["status"]
+    if new_status != next_status(old):
+        print(f"  {ticket['id']} -- rejected: cannot go"
+              f" from {old} to {new_status}")
+        return False
+    ticket["status"] = new_status
+    print(f"  {ticket['id']} -&gt; {new_status}")
+    return True
+</code></pre>
+
+    <p class="en">This is the one place the structured version is making a promise it cannot keep, and it is worth naming now rather than at the end. The rule is correct. The rule is also optional: <code>ticket["status"] = "collected"</code> works from anywhere in the program, in any file that imports this one, and it bypasses <code>step</code> entirely. The guard is a <em>convention</em> — a door with a sign on it, in a wall with no bricks.</p>
+    <p class="ar">هذا هو الموضع الوحيد الذي تَعِد فيه النسخة البنيوية وعدًا لا تستطيع الوفاء به، ويجدر تسميته الآن لا في النهاية. فالقاعدة صحيحة. والقاعدة اختيارية أيضًا: فـ <code>ticket["status"] = "collected"</code> تعمل من أي موضع في البرنامج، وفي أي ملف يستورد هذا الملف، وتتجاوز <code>step</code> تجاوزًا تامًّا. فالحارس <em>عُرْف</em> — بابٌ عليه لافتة، في جدار بلا طوب.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 4 — intake and the report</span><span class="ar">الجزء 4 — الاستلام والتقرير</span></span>
+    <p class="en">Four small functions, each one doing one countable thing, and a fifth that prints. Every one of them takes <code>tickets</code> as its first parameter — remember that detail, it comes back in the comparison.</p>
+    <p class="ar">أربع دوال صغيرة، تؤدي كل واحدة شيئًا واحدًا قابلًا للعدّ، وخامسةٌ تطبع. وتأخذ كل واحدة منها <code>tickets</code> معاملها الأول — فتذكّر تلك التفصيلة، فهي تعود في المقارنة.</p>
+
+<pre class="code"><code># ---- intake and report ----------------------------------------
+
+def print_intake(tickets):
+    """One line per ticket with its quoted price."""
+    print("intake")
+    for t in tickets:
+        print(f"  {t['id']} {t['customer']:16}"
+              f"{t['device']:14}{t['kind']:8}"
+              f"{t['priority']:7}{quote(t):8.2f}")
+
+
+def count_status(tickets, status):
+    """How many tickets sit on this status right now."""
+    return sum(1 for t in tickets if t["status"] == status)
+
+
+def income(tickets):
+    """Money actually taken: collected tickets only."""
+    return sum(quote(t) for t in tickets
+               if t["status"] == "collected")
+
+
+def workload(tickets):
+    """Technician name -&gt; number of tickets assigned."""
+    load = {}
+    for t in tickets:
+        name = t["technician"]
+        load[name] = load.get(name, 0) + 1
+    return load
+
+
+def print_report(tickets):
+    """Tickets per status, income, busiest technician."""
+    print("daily report")
+    print("  tickets per status")
+    for status in STATUS_FLOW:
+        print(f"    {status:14}{count_status(tickets, status):2}")
+    print(f"  income collected   {income(tickets):8.2f} ILS")
+    load = workload(tickets)
+    busiest = max(load, key=lambda name: load[name])
+    print(f"  busiest technician {busiest}"
+          f" ({load[busiest]} tickets)")
+</code></pre>
+
+    <p class="en">This part is the structured version at its best, and it needs no apology at all. <code>income</code> is four lines and obviously right. <code>workload</code> is a dict accumulator any reader can check in ten seconds. <code>print_report</code> loops over <code>STATUS_FLOW</code> instead of printing four hard-coded labels, which means adding a status to the list will extend the report with no edit here. An object-oriented rewrite will not make any of these shorter or clearer — it will only move them.</p>
+    <p class="ar">هذا الجزء هو النسخة البنيوية في أحسن حالها، ولا يحتاج اعتذارًا إطلاقًا. فـ <code>income</code> أربعة أسطر وصحيحة بوضوح. و<code>workload</code> مجمّع قاموس يستطيع أي قارئ التحقّق منه في عشر ثوانٍ. و<code>print_report</code> تدور على <code>STATUS_FLOW</code> لا تطبع أربع لافتات مثبتة في الكود، ومعنى ذلك أن إضافة حالة إلى القائمة ستمدّ التقرير بلا تعديل هنا. ولن تجعل إعادةُ كتابةٍ كائنيةٌ أيًّا من هذه أقصر ولا أوضح — بل ستنقلها فحسب.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 5 — the scripted day</span><span class="ar">الجزء 5 — اليوم المكتوب</span></span>
+    <p class="en">Six tickets, a work log, a report. The last two <code>step</code> calls are the interesting ones: <code>T-103</code> goes to <code>in progress</code>, then the customer turns up asking for the phone.</p>
+    <p class="ar">ستّ تذاكر، وسجلّ عمل، وتقرير. واستدعاءا <code>step</code> الأخيران هما المثيران: فـ <code>T-103</code> تمضي إلى <code>in progress</code>، ثم يحضر العميل طالبًا الهاتف.</p>
+
+<pre class="code"><code># ---- the scripted day -----------------------------------------
+
+def main():
+    title = "Gaza Phone Clinic -- repair desk"
+    print(title)
+    print("-" * len(title))
+    print()
+
+    tickets = [
+        make_ticket("T-101", "Huda Nassar", "iPhone 11",
+                    "screen", "normal", 180.0,
+                    "Samir Qeshta"),
+        make_ticket("T-102", "Rami Hania", "Galaxy A12",
+                    "battery", "urgent", 70.0,
+                    "Lina Barhoum"),
+        make_ticket("T-103", "Mona Abu Shaar", "Redmi Note 9",
+                    "water", "normal", 90.0,
+                    "Samir Qeshta", corrosion=True),
+        make_ticket("T-104", "Kareem Zourob", "iPhone XR",
+                    "screen", "urgent", 220.0,
+                    "Samir Qeshta"),
+        make_ticket("T-105", "Dalia Khoudary", "Nokia G21",
+                    "battery", "normal", 55.0,
+                    "Lina Barhoum"),
+        make_ticket("T-106", "Basel Madhoun", "Galaxy S10",
+                    "water", "normal", 120.0,
+                    "Samir Qeshta"),
+    ]
+    print_intake(tickets)
+    print()
+
+    by_id = {t["id"]: t for t in tickets}
+    print("work log")
+    for tid in ("T-101", "T-102", "T-105"):
+        step(by_id[tid], "in progress")
+        step(by_id[tid], "ready")
+        step(by_id[tid], "collected")
+    step(by_id["T-104"], "in progress")
+    step(by_id["T-104"], "ready")
+    step(by_id["T-103"], "in progress")
+    # the customer arrives before the phone is ready
+    step(by_id["T-103"], "collected")
+    print()
+
+    print_report(tickets)
+
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+
+    <div class="tip">
+      <h4><span class="en">What this version does well</span><span class="ar">ما تُحسنه هذه النسخة</span></h4>
+      <p class="en">Say it plainly, because the next section will be flattering to the other file. Every function here is short, named for what it returns, and testable by calling it with a list of dicts — no object to construct first. The whole program can be read top to bottom in one pass with no jumping. A new developer needs to know <em>zero</em> vocabulary beyond dicts, lists and functions to change the battery fitting fee. The business rules are not hidden anywhere: three pricing rules in one chain, one status rule in <code>STATUS_FLOW</code>. For a program of this size, handed to a competent programmer who will read it once and edit one number, this file is arguably the better deliverable of the two.</p>
+      <p class="ar">قُلها صراحةً، فالقسم القادم سيكون مُجامِلًا للملف الآخر. فكل دالة هنا قصيرة، ومسمّاة بما تعيد، وقابلة للاختبار باستدعائها بقائمة قواميس — فلا كائن يُبنى أولًا. ويمكن قراءة البرنامج كله من أعلاه إلى أسفله في مرور واحد بلا قفز. ويحتاج مطوّر جديد إلى <em>صفر</em> مفردات بعد القواميس والقوائم والدوال ليغيّر أجر تركيب البطارية. والقواعد التجارية ليست مخفيّة في أي موضع: ثلاث قواعد تسعير في سلسلة واحدة، وقاعدة حالات واحدة في <code>STATUS_FLOW</code>. ولبرنامج بهذا الحجم، يُسلَّم لمبرمج كفؤ سيقرأه مرة ويعدّل رقمًا واحدًا، يجوز القول إن هذا الملف هو الأحسن تسليمًا من الاثنين.</p>
+    </div>
+  </div>
+
+  <h2 id="l7-h3"><span class="en">Version 2 — the object-oriented program</span><span class="ar">النسخة 2 — البرنامج الكائني</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Nothing above is wrong, and that is what makes this the interesting case. Four concrete pains are waiting in that file anyway. The charging-port repair the shop starts offering in March needs a new branch cut into the middle of <code>job_subtotal</code>, which is working code that currently prices every ticket the shop has. The <code>"charging"</code> string that branch tests for is defined nowhere, so a typo at a <code>make_ticket</code> call reaches the <code>else</code> and raises in front of a customer rather than at the developer's desk.</p>
+    <p class="ar">لا شيء فوق خاطئ، وذلك هو ما يجعل هذه الحالة مثيرة. فأربعة أوجاع ملموسة تنتظر في ذلك الملف رغم ذلك. فإصلاح منفذ الشحن الذي يبدأ المحل عرضه في آذار يحتاج فرعًا جديدًا يُشَقّ في وسط <code>job_subtotal</code>، وهي كودٌ يعمل ويسعّر الآن كل تذكرة في المحل. ونصّ <code>"charging"</code> الذي يفحصه ذلك الفرع غير معرَّف في أي موضع، فيبلغ خطأ مطبعي في استدعاء <code>make_ticket</code> فرعَ <code>else</code> فيرفع الخطأ أمام عميل لا على مكتب المطوّر.</p>
+    <p class="en">The third is quieter and costs more: <code>step()</code> guards the status flow correctly and is also entirely optional, so the day a colleague writes <code>ticket["status"] = "collected"</code> in a new "mark as paid" helper, an unrepaired phone leaves the shop and no line of code complains. And the fourth is the Rafah counter: all five report functions take <code>tickets</code> as a parameter, so a second branch means changing five signatures together and threading two lists through <code>main</code>.</p>
+    <p class="ar">والثالث أهدأ وأغلى: فـ <code>step()</code> تحرس مسار الحالات حراسةً صحيحة وهي اختيارية تمامًا أيضًا، فيوم يكتب زميل <code>ticket["status"] = "collected"</code> في دالة مساعدة جديدة لـ«التأشير مدفوعًا» يخرج هاتف غير مُصلَح من المحل ولا يشكو سطر كود. والرابع منضدة رفح: فدوال التقرير الخمس كلها تأخذ <code>tickets</code> معاملًا، فيعني الفرع الثاني تغيير خمسة توقيعات معًا وتمريرَ قائمتين عبر <code>main</code>.</p>
+    <p class="en">Each rewrite below is aimed at one of those four, and each is labelled with the lesson that solves it.</p>
+    <p class="ar">وكل إعادة كتابة أدناه موجَّهة إلى واحد من تلك الأربعة، وكل واحدة مُلَبْسَنة بالدرس الذي يحلّها.</p>
+  </div>
+
+  <p class="en">File: <code>repair_shop_oop.py</code>, 184 lines — seven lines longer than the structured version, which is worth knowing because "classes triple your code" is a thing people say and it is not what happened here. Same output, same constants, same scenario. Read each part against the lesson named on it.</p>
+  <p class="ar">الملف: <code>repair_shop_oop.py</code>، 184 سطرًا — أطول بسبعة أسطر من النسخة البنيوية، ويجدر معرفة ذلك لأن «الأصناف تضاعف كودك ثلاثًا» شيء يقوله الناس وليس هو ما حدث هنا. والناتج نفسه، والثوابت نفسها، والسيناريو نفسه. فاقرأ كل جزء في مقابل الدرس المسمّى عليه.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 1 — the job types (Lessons 4, 5, 6)</span><span class="ar">الجزء 1 — أنواع العمل (الدروس 4 و5 و6)</span></span>
+    <p class="en">The <code>if/elif</code> chain from <code>job_subtotal</code> becomes three classes with one method each. <code>Job(ABC)</code> with <code>@abstractmethod</code> is <strong>Lesson 4's abstraction</strong>: the base class names the question every job must answer and refuses to be instantiated itself. The three <code>subtotal</code> bodies are <strong>Lesson 6's polymorphism</strong> — same name, three implementations, and the caller never asks which. <code>WaterJob.__init__</code> calling <code>super().__init__(parts)</code> is <strong>Lesson 5</strong>: it adds one field of its own and lets the parent keep doing the part it already did.</p>
+    <p class="ar">تصبح سلسلة <code>if/elif</code> من <code>job_subtotal</code> ثلاثة أصناف لكل منها دالة واحدة. و<code>Job(ABC)</code> مع <code>@abstractmethod</code> هي <strong>تجريد الدرس 4</strong>: فصنف الأساس يسمّي السؤال الذي يجب أن يجيب عنه كل عمل ويرفض أن يُنشأ هو نفسه. والأجساد الثلاثة لـ <code>subtotal</code> هي <strong>تعدد أشكال الدرس 6</strong> — الاسم نفسه وثلاثة تنفيذات، ولا يسأل المستدعي أيّها قط. واستدعاء <code>WaterJob.__init__</code> لـ <code>super().__init__(parts)</code> هو <strong>الدرس 5</strong>: فهي تضيف حقلًا واحدًا خاصًّا بها وتدع الأب يواصل أداء الجزء الذي كان يؤدّيه أصلًا.</p>
+
+<pre class="code good"><code>"""Repair shop desk, OOP. Same output as the structured file."""
+
+from abc import ABC, abstractmethod
+
+# ---- shop constants -------------------------------------------
+
+DIAG_FEE = 20.0             # charged on every ticket
+URGENT_RATE = 0.25          # surcharge on an urgent job
+BATTERY_FITTING = 10.0      # calibration after a new battery
+WATER_INSPECTION = 35.0     # cost of opening a wet phone
+CORROSION_FACTOR = 1.5      # corroded boards need more parts
+
+STATUS_FLOW = ["received", "in progress", "ready", "collected"]
+
+# ---- the job types: one price rule each -----------------------
+
+class Job(ABC):
+    def __init__(self, parts):
+        self.parts = parts
+
+    @abstractmethod
+    def subtotal(self):
+        """Diagnosis fee plus whatever this job needs."""
+
+
+class ScreenJob(Job):
+    kind = "screen"
+
+    def subtotal(self):
+        return DIAG_FEE + self.parts
+
+
+class BatteryJob(Job):
+    kind = "battery"
+
+    def subtotal(self):
+        return DIAG_FEE + self.parts + BATTERY_FITTING
+
+
+class WaterJob(Job):
+    kind = "water"
+
+    def __init__(self, parts, corrosion=False):
+        super().__init__(parts)
+        self.corrosion = corrosion
+
+    def subtotal(self):
+        parts = self.parts
+        if self.corrosion:
+            parts = parts * CORROSION_FACTOR
+        return DIAG_FEE + WATER_INSPECTION + parts
+</code></pre>
+
+    <p class="en">Three things the structured version could not do are now true. <code>corrosion</code> exists only on <code>WaterJob</code>, so a <code>ScreenJob</code> has no corrosion flag to be confused by — the data shape finally matches reality. <code>kind</code> is a class attribute, <strong>Lesson 2</strong>: one string per type, stored once for the whole class and not copied into every ticket. And the <code>else: raise ValueError</code> branch has nowhere to live, because you can no longer be holding a job of an unknown kind: an unknown kind is an unwritten class, and an unwritten class cannot be instantiated.</p>
+    <p class="ar">ثلاثة أمور لم تستطعها النسخة البنيوية صارت صحيحة الآن. فـ <code>corrosion</code> موجودة على <code>WaterJob</code> وحده، فلا راية تآكل لـ <code>ScreenJob</code> يلتبس بها — فشكل البيانات صار مطابقًا للواقع أخيرًا. و<code>kind</code> خاصية صنف، <strong>الدرس 2</strong>: نصّ واحد لكل نوع، يُخزَّن مرة واحدة للصنف كله ولا يُنسَخ في كل تذكرة. وفرع <code>else: raise ValueError</code> لا موضع له ليقيم فيه، لأنك لم تعد تستطيع أن تحمل عملًا من نوع مجهول: فالنوع المجهول صنف غير مكتوب، والصنف غير المكتوب لا يُنشأ.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 4. Why is <code>Job</code> an <code>ABC</code> with an abstract <code>subtotal</code>, rather than a plain class whose <code>subtotal</code> returns <code>DIAG_FEE</code>?</span><span class="ar">الدرس 4. لِمَ كان <code>Job</code> صنف <code>ABC</code> له <code>subtotal</code> مجرّدة، لا صنفًا صريحًا تعيد <code>subtotal</code> فيه <code>DIAG_FEE</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Abstract methods run faster, because Python skips the base implementation.</span><span class="ar">الدوال المجرّدة أسرع تنفيذًا، لأن بايثون تتخطّى تنفيذ الأساس.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">A forgotten <code>subtotal</code> becomes a named <code>TypeError</code> at creation, instead of a plausible 20.00 ILS on a customer's receipt.</span><span class="ar">تصير <code>subtotal</code> المنسيّة <code>TypeError</code> مسمّى عند الإنشاء، لا 20.00 شيكلًا معقولة على إيصال عميل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>ABC</code> is required before a subclass may call <code>super().__init__()</code>.</span><span class="ar">لأن <code>ABC</code> لازم قبل أن يجوز لصنف مشتق استدعاء <code>super().__init__()</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because only an <code>ABC</code> can hold the <code>parts</code> attribute shared by all three job types.</span><span class="ar">لأن <code>ABC</code> وحده يستطيع حمل خاصية <code>parts</code> المشتركة بين أنواع العمل الثلاثة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A default that is wrong but plausible is the most expensive kind of bug, because nothing ever complains: a new job type with no <code>subtotal</code> would quote every repair at 20.00 ILS and the shop would find out from its bank. <code>@abstractmethod</code> converts that into <code>TypeError: Can't instantiate abstract class ... without an implementation for abstract method 'subtotal'</code>, on your machine, before a single ticket exists. Note what the base class still does: it holds <code>__init__</code> and <code>self.parts</code>, which is Lesson 5's inheritance — an <code>ABC</code> can demand one method and donate another in the same breath. The third and fourth options are both invented; <code>super()</code> and shared attributes work on any class.</div>
+      <div class="ar">الافتراض الخاطئ المعقول أغلى أنواع العلل، لأن لا شيء يشكو قط: فلكان نوع عمل جديد بلا <code>subtotal</code> يسعّر كل إصلاح 20.00 شيكلًا وكان المحل سيعلم من مصرفه. وتحوّل <code>@abstractmethod</code> ذلك إلى <code>TypeError: Can't instantiate abstract class ... without an implementation for abstract method 'subtotal'</code>، على حاسوبك، قبل وجود تذكرة واحدة. ولاحظ ما يبقى صنف الأساس يفعله: فهو يحمل <code>__init__</code> و<code>self.parts</code>، وذلك وراثة الدرس 5 — فيستطيع <code>ABC</code> أن يطالب بدالة ويتبرّع بأخرى في نَفَس واحد. والخياران الثالث والرابع مُختلَقان؛ فـ <code>super()</code> والخصائص المشتركة تعمل على أي صنف.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 6. <code>Ticket.quote</code> calls <code>self.job.subtotal()</code> and never mentions <code>ScreenJob</code>, <code>BatteryJob</code> or <code>WaterJob</code>. What does that one line buy?</span><span class="ar">الدرس 6. تستدعي <code>Ticket.quote</code> الدالةَ <code>self.job.subtotal()</code> ولا تذكر <code>ScreenJob</code> ولا <code>BatteryJob</code> ولا <code>WaterJob</code> قط. فماذا يشتري ذلك السطر الواحد؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Speed: Python resolves <code>subtotal</code> once at import instead of testing a string on every call.</span><span class="ar">السرعة: فتحلّ بايثون <code>subtotal</code> مرة واحدة عند الاستيراد لا تفحص نصًّا في كل استدعاء.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">A charging-port job class written next month prices correctly through this same line, with no edit to <code>Ticket</code>.</span><span class="ar">صنفُ عملِ منفذ شحن يُكتب الشهر القادم يُسعَّر تسعيرًا صحيحًا عبر هذا السطر نفسه، بلا تعديل في <code>Ticket</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It guarantees every job type prices correctly, because the <code>ABC</code> checks that the three <code>subtotal</code> bodies agree.</span><span class="ar">يضمن أن كل نوع عمل يُسعَّر تسعيرًا صحيحًا، لأن <code>ABC</code> يفحص توافق أجساد <code>subtotal</code> الثلاثة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing the structured version lacks: <code>job_subtotal(ticket)</code> is also one call written once.</span><span class="ar">لا شيء تفقده النسخة البنيوية: فـ <code>job_subtotal(ticket)</code> هي أيضًا استدعاء واحد مكتوب مرة واحدة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Polymorphism is measured at the call site, by what the caller does <em>not</em> have to know: <code>Ticket</code> was written before <code>WarrantyRepair</code> existed and prices it correctly anyway, which is the whole of Exercise 7.2. The fourth option is the one that deserves a real answer rather than a dismissal, because it is half right — <code>job_subtotal(ticket)</code> is indeed one call written once, and the two lines look equally short. The difference is behind the call: that function body contains the list of kinds, so a new kind means editing it, while <code>self.job.subtotal()</code> contains no list at all. One call site, two very different blast radii. The first option is the usual false economy — the string test it saves is nanoseconds and was never the argument. The third invents a guarantee nothing can make: an <code>ABC</code> promises a method <em>exists</em>, never that its arithmetic is right, and a <code>subtotal</code> that returns <code>self.parts * 100</code> satisfies it completely.</div>
+      <div class="ar">يُقاس تعدد الأشكال في موضع الاستدعاء بما <em>لا</em> يلزم المستدعي أن يعرفه: فقد كُتب <code>Ticket</code> قبل وجود <code>WarrantyRepair</code> ويسعّره تسعيرًا صحيحًا رغم ذلك، وذلك هو تمرين 7.2 كله. والخيار الرابع هو الذي يستحقّ جوابًا حقيقيًّا لا نفضًا، لأنه نصف صحيح — فـ <code>job_subtotal(ticket)</code> استدعاء واحد مكتوب مرة واحدة فعلًا، والسطران يبدوان قصيرين سواءً بسواء. والفرق خلف الاستدعاء: فجسد تلك الدالة فيه قائمةُ الأنواع، فيعني النوع الجديد تعديلَها، أما <code>self.job.subtotal()</code> فلا قائمة فيها إطلاقًا. موضع استدعاء واحد، ونطاقا انفجار مختلفان جدًّا. والخيار الأول هو الاقتصاد الكاذب المعتاد — ففحص النصّ الذي يوفّره نانوثوانٍ ولم يكن حجّةً قط. والثالث يختلق ضمانًا لا يستطيعه شيء: فـ <code>ABC</code> يعد بأن الدالة <em>موجودة</em>، لا بأن حسابها صحيح قط، و<code>subtotal</code> التي تعيد <code>self.parts * 100</code> تُرضيه إرضاءً تامًّا.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 2 — the ticket, with a guarded status (Lessons 2, 3, 5, 6)</span><span class="ar">الجزء 2 — التذكرة بحالة محروسة (الدروس 2 و3 و5 و6)</span></span>
+    <p class="en"><code>self.job = job</code> is <strong>Lesson 5's composition</strong>: a ticket <em>has a</em> job, it is not a kind of job. That one line is why a ticket's own class knows nothing about screens or water. <code>_status</code> with a read-only <code>@property</code> and one <code>advance()</code> method is <strong>Lesson 3's encapsulation</strong>, and this is the part that actually changes what the program is capable of being broken by. <code>quote</code> is a <code>@property</code> too, so it reads like a field and is computed every time — no stale copy of a price can exist. And <code>__str__</code> is <strong>Lesson 6</strong>, holding the intake line format.</p>
+    <p class="ar"><code>self.job = job</code> هو <strong>تركيب الدرس 5</strong>: فللتذكرة عمل، وهي ليست نوعًا من العمل. وذلك السطر الواحد هو السبب في أن صنف التذكرة نفسه لا يعرف شيئًا عن الشاشات ولا الماء. و<code>_status</code> مع <code>@property</code> للقراءة فقط ودالة <code>advance()</code> واحدة هي <strong>تغليف الدرس 3</strong>، وهذا هو الجزء الذي يغيّر فعلًا ما يستطيع البرنامج أن يُكسَر به. و<code>quote</code> خاصية <code>@property</code> أيضًا، فتُقرأ كأنها حقل وتُحسب في كل مرة — فلا نسخة قديمة من سعر يمكن أن توجد. و<code>__str__</code> هي <strong>الدرس 6</strong>، تحمل صيغة سطر الاستلام.</p>
+
+<pre class="code good"><code># ---- the ticket: status is guarded ----------------------------
+
+class Ticket:
+    def __init__(self, tid, customer, device, job, priority,
+                 technician):
+        self.id = tid
+        self.customer = customer
+        self.device = device
+        self.job = job                  # composition
+        self.priority = priority
+        self.technician = technician
+        self._status = "received"       # private on purpose
+
+    @property
+    def status(self):
+        return self._status
+
+    @property
+    def quote(self):
+        """Job price plus the urgent surcharge."""
+        total = self.job.subtotal()
+        if self.priority == "urgent":
+            total = total * (1 + URGENT_RATE)
+        return total
+
+    def advance(self, new_status):
+        """The only door into _status, and it checks."""
+        i = STATUS_FLOW.index(self._status)
+        allowed = (STATUS_FLOW[i + 1]
+                   if i + 1 &lt; len(STATUS_FLOW) else None)
+        if new_status != allowed:
+            raise ValueError(f"cannot go from {self._status}"
+                             f" to {new_status}")
+        self._status = new_status
+
+    def __str__(self):
+        return (f"{self.id} {self.customer:16}"
+                f"{self.device:14}{self.job.kind:8}"
+                f"{self.priority:7}{self.quote:8.2f}")
+</code></pre>
+
+    <p class="en">Look at <code>self.job.subtotal()</code> inside <code>quote</code>. The surcharge logic lives in <code>Ticket</code> and the pricing rules live in the job classes, and neither knows the other's code — <code>Ticket</code> never names <code>ScreenJob</code>, and <code>ScreenJob</code> has never heard of a surcharge. That is composition plus polymorphism doing in one line what the structured version did with two functions and a chain, and the difference is not length, it is that <code>Ticket</code> will keep working against job types that do not exist yet.</p>
+    <p class="ar">انظر <code>self.job.subtotal()</code> في داخل <code>quote</code>. فمنطق الزيادة يقيم في <code>Ticket</code> وقواعد التسعير تقيم في أصناف العمل، ولا يعرف أحدهما كود الآخر — فـ <code>Ticket</code> لا يسمّي <code>ScreenJob</code> قط، و<code>ScreenJob</code> لم يسمع بزيادة قط. وذلك تركيبٌ وتعدد أشكال يؤدّيان في سطر واحد ما أدّته النسخة البنيوية بدالتين وسلسلة، والفرق ليس الطول، بل أن <code>Ticket</code> سيواصل العمل في مقابل أنواع عمل لم توجد بعد.</p>
+
+    <p class="en">And the guard is now real. <code>ticket.status = "collected"</code> does not quietly succeed as the dict version did — the property has no setter, so Python raises <code>AttributeError: property 'status' of 'Ticket' object has no setter</code> and the mistake is a crash on the developer's machine instead of a phone handed over a counter.</p>
+    <p class="ar">والحارس حقيقي الآن. فـ <code>ticket.status = "collected"</code> لا تنجح في صمت كما كانت تنجح نسخة القاموس — فلا setter للخاصية، فترفع بايثون <code>AttributeError: property 'status' of 'Ticket' object has no setter</code> فيكون الخطأ انهيارًا على حاسوب المطوّر لا هاتفًا يُسلَّم فوق منضدة.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 3. The structured <code>step()</code> checks the transition correctly. Why is the OOP <code>advance()</code> still a stronger guarantee?</span><span class="ar">الدرس 3. تفحص <code>step()</code> البنيوية الانتقال فحصًا صحيحًا. فلِمَ تبقى <code>advance()</code> الكائنية ضمانًا أقوى؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because raising an exception is always safer than printing and returning <code>False</code>.</span><span class="ar">لأن رفع استثناء أأمن دائمًا من الطبع وإعادة <code>False</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because <code>_status</code> has no setter, so <code>advance()</code> is the only way in; <code>ticket["status"] = ...</code> bypasses <code>step()</code> from anywhere.</span><span class="ar">لأن <code>_status</code> لا setter لها، فتكون <code>advance()</code> السبيل الوحيد إلى الداخل؛ و<code>ticket["status"] = ...</code> تتجاوز <code>step()</code> من أي موضع.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>_status</code> is private, so code outside the class cannot read or write it at all.</span><span class="ar">لأن <code>_status</code> خاصّة، فلا يستطيع كود خارج الصنف قراءتها ولا كتابتها إطلاقًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because a method is checked at import time, while a function body is only checked when called.</span><span class="ar">لأن الدالة العضو تُفحص في وقت الاستيراد، أما جسد الدالة فلا يُفحص إلا عند الاستدعاء.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Encapsulation is not about having a correct check; the structured file has one. It is about there being exactly one way in, so the check cannot be routed around by a developer in a hurry three files away. The third option is the one to be honest about: Python has no real privacy, and <code>ticket._status = "collected"</code> absolutely works if you type it. The difference is that you must type an underscore, which is the language's way of saying "you are now doing something you will have to defend in review" — a convention, but a loud one, and the read path through <code>ticket.status</code> is genuinely read-only because the property has no setter. The first option confuses style with safety, and the fourth is invented: Python checks neither at import time.</div>
+      <div class="ar">التغليف ليس امتلاكَ فحص صحيح؛ فللملف البنيوي فحص. بل هو أن يكون هناك سبيل واحد بالضبط إلى الداخل، فلا يستطيع مطوّر على عجل في ملف ثالث أن يحيد عن الفحص. والخيار الثالث هو الذي يجدر الصدق فيه: فلا خصوصية حقيقية في بايثون، و<code>ticket._status = "collected"</code> تعمل قطعًا إن كتبتها. والفرق أنه يجب عليك كتابة شَرْطة سفلية، وهي طريقة اللغة في قول «أنت تفعل الآن شيئًا سيلزمك الدفاع عنه في المراجعة» — عُرْفٌ، لكنه عُرْف عالي الصوت، ومسار القراءة عبر <code>ticket.status</code> للقراءة فقط حقًّا لأن الخاصية لا setter لها. والخيار الأول يخلط الأسلوب بالأمان، والرابع مُختلَق: فبايثون لا تفحص هذا ولا ذاك في وقت الاستيراد.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 2. <code>kind = "screen"</code> sits in the class body of <code>ScreenJob</code>, not in an <code>__init__</code>. What does that buy?</span><span class="ar">الدرس 2. تقع <code>kind = "screen"</code> في جسد صنف <code>ScreenJob</code> لا في <code>__init__</code>. فماذا يشتري ذلك؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Nothing — it is identical to <code>self.kind = "screen"</code> in <code>__init__</code>, just written higher up.</span><span class="ar">لا شيء — فهي مطابقة لـ <code>self.kind = "screen"</code> في <code>__init__</code>، مكتوبةً أعلى فحسب.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">One string stored once for the whole class, readable as <code>ScreenJob.kind</code> without building an instance.</span><span class="ar">نصّ واحد يُخزَّن مرة واحدة للصنف كله، يُقرأ <code>ScreenJob.kind</code> بلا بناء حالة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It makes <code>kind</code> read-only, so no instance can ever shadow it.</span><span class="ar">تجعل <code>kind</code> للقراءة فقط، فلا تستطيع حالة أن تحجبها قط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It is required: <code>__str__</code> can only reach class attributes, not instance ones.</span><span class="ar">إنها لازمة: فلا تستطيع <code>__str__</code> بلوغ إلا خصائص الصنف لا خصائص الحالة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A class attribute is a fact about the type, not about any one object, so it lives on the class: six tickets in the scenario, and the string <code>"screen"</code> exists once in memory and once in the source. The tempting wrong answer is the third, and it is the one worth being careful about — a class attribute is <em>not</em> read-only. <code>job.kind = "something"</code> on an instance silently creates an instance attribute that shadows the class one for that object only, which is a genuinely confusing bug to chase. If you need it truly fixed, that is what Lesson 3's read-only <code>@property</code> is for. The fourth is simply false: <code>__str__</code> reads <code>self.job.kind</code>, and attribute lookup checks the instance first and the class second without caring which you wrote.</div>
+      <div class="ar">خاصية الصنف حقيقة عن النوع لا عن كائن بعينه، فتقيم على الصنف: ستّ تذاكر في السيناريو، والنصّ <code>"screen"</code> موجود مرة في الذاكرة ومرة في المصدر. والجواب الخاطئ المغري هو الثالث، وهو الذي يجدر التيقّظ له — فخاصية الصنف <em>ليست</em> للقراءة فقط. فـ <code>job.kind = "something"</code> على حالة تُنشئ في صمت خاصية حالة تحجب خاصية الصنف لذلك الكائن وحده، وهي عِلّة محيّرة حقًّا في تتبّعها. فإن احتجت تثبيتها حقًّا فلذلك وُجدت <code>@property</code> للقراءة فقط في الدرس 3. والرابع كاذب بسادة: فـ <code>__str__</code> تقرأ <code>self.job.kind</code>، ويفحص البحث عن الخاصية الحالةَ أولًا والصنفَ ثانيًا بلا اهتمام بأيّهما كتبت.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 3 — the shop: intake, work log, report (Lessons 1, 2, 6)</span><span class="ar">الجزء 3 — المحل: الاستلام وسجلّ العمل والتقرير (الدروس 1 و2 و6)</span></span>
+    <p class="en">Every function in Part 4 of the structured version took <code>tickets</code> as its first parameter. That repeated parameter was the data and its verbs asking to be one thing — which is <strong>Lesson 1</strong>, the whole reason classes exist. Here they are one thing, and the parameter is gone: it became <code>self.tickets</code>.</p>
+    <p class="ar">أخذت كل دالة في الجزء 4 من النسخة البنيوية <code>tickets</code> معاملها الأول. وكان ذلك المعامل المتكرّر بياناتٍ وأفعالها تطلب أن تكون شيئًا واحدًا — وذلك <strong>الدرس 1</strong>، وهو كل سبب وجود الأصناف. وها هما شيء واحد هنا، والمعامل ذهب: فقد صار <code>self.tickets</code>.</p>
+
+<pre class="code good"><code># ---- the shop: intake, work log, report -----------------------
+
+class RepairShop:
+    def __init__(self, name):
+        self.name = name
+        self.tickets = []
+
+    def intake(self, ticket):
+        self.tickets.append(ticket)
+
+    def move(self, tid, new_status):
+        """Ask the ticket to move; report its refusal."""
+        ticket = next(t for t in self.tickets if t.id == tid)
+        try:
+            ticket.advance(new_status)
+        except ValueError as err:
+            print(f"  {tid} -- rejected: {err}")
+            return False
+        print(f"  {tid} -&gt; {new_status}")
+        return True
+
+    def print_intake(self):
+        print("intake")
+        for t in self.tickets:
+            print(f"  {t}")        # __str__ does the work
+
+    def income(self):
+        return sum(t.quote for t in self.tickets
+                   if t.status == "collected")
+
+    def workload(self):
+        load = {}
+        for t in self.tickets:
+            load[t.technician] = load.get(t.technician, 0) + 1
+        return load
+
+    def print_report(self):
+        print("daily report")
+        print("  tickets per status")
+        for s in STATUS_FLOW:
+            n = sum(1 for t in self.tickets if t.status == s)
+            print(f"    {s:14}{n:2}")
+        print(f"  income collected   {self.income():8.2f} ILS")
+        load = self.workload()
+        busiest = max(load, key=lambda name: load[name])
+        print(f"  busiest technician {busiest}"
+              f" ({load[busiest]} tickets)")
+</code></pre>
+
+    <p class="en">Two honest observations. First, <code>income</code>, <code>workload</code> and <code>print_report</code> are the same code as before with <code>t["status"]</code> changed to <code>t.status</code>. They were already good; being inside a class did not improve them, and claiming otherwise would be a lie. Second, the division of labour in <code>move</code> is the one real gain here: <code>Ticket.advance</code> decides what is legal and raises, and <code>RepairShop.move</code> decides what to do about a refusal — in this program, print it. A web version of this shop would catch the same <code>ValueError</code> and return a 409 instead, and <code>Ticket</code> would not need a single edit, because it never knew there was a console.</p>
+    <p class="ar">ملاحظتان صادقتان. الأولى أن <code>income</code> و<code>workload</code> و<code>print_report</code> هي الكود نفسه كما كان مع تغيير <code>t["status"]</code> إلى <code>t.status</code>. فقد كانت جيّدة أصلًا؛ ولم يُحسنها كونها داخل صنف، ولكان الزعم بغير ذلك كذبًا. والثانية أن تقسيم العمل في <code>move</code> هو المكسب الحقيقي الواحد هنا: فـ <code>Ticket.advance</code> تقرّر ما هو قانوني وترفع الخطأ، و<code>RepairShop.move</code> تقرّر ما يُفعل بالرفض — وفي هذا البرنامج، طبعُه. ولكانت نسخة ويب من هذا المحل تلقف <code>ValueError</code> نفسه وتعيد 409 بدلًا من ذلك، ولما احتاج <code>Ticket</code> تعديلًا واحدًا، لأنه لم يعرف قط أن هناك طرفية.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 1. In the structured file, five functions take <code>tickets</code> as their first parameter. What is that repetition evidence of?</span><span class="ar">الدرس 1. في الملف البنيوي تأخذ خمس دوال <code>tickets</code> معاملها الأول. فعلى أي شيء يدلّ ذلك التكرار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">A performance problem: the list is copied on every call, which a class would avoid.</span><span class="ar">مشكلة أداء: فالقائمة تُنسَخ في كل استدعاء، وكان صنف سيتجنّب ذلك.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">A piece of data and the functions that act on it belong together — the parameter is the missing <code>self</code>.</span><span class="ar">قطعةُ بيانات والدوال التي تعمل عليها تنتميان معًا — فالمعامل هو <code>self</code> الغائب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing at all; passing data explicitly is always better than hiding it in an object.</span><span class="ar">لا شيء إطلاقًا؛ فتمرير البيانات صراحةً أحسن دائمًا من إخفائها في كائن.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Missing default arguments — <code>tickets=[]</code> would remove the repetition.</span><span class="ar">معاملات افتراضية ناقصة — ولكانت <code>tickets=[]</code> أزالت التكرار.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A parameter that appears in every function in a module is that module's state asking to become an object; <code>self.tickets</code> is literally that parameter, stored once. The first option is simply false — Python passes the list by reference, so nothing is copied, and performance was never the argument for classes. The third is the interesting wrong answer, because it is a real position held by real programmers, and it is right about small programs: explicit is better than implicit, and a four-function script loses nothing by passing its list around. It becomes wrong at the scale where "the list" grows into a list plus a name plus a branch plus a technician roster, and every signature has to change together. The fourth is worse than wrong: <code>tickets=[]</code> is Python's famous mutable-default trap, where one list is shared by every call for the lifetime of the program.</div>
+      <div class="ar">المعامل الذي يظهر في كل دالة في وحدة هو وضعُ تلك الوحدة يطلب أن يصير كائنًا؛ و<code>self.tickets</code> هي ذلك المعامل حرفيًّا، مخزَّنًا مرة واحدة. والخيار الأول كاذب بسادة — فبايثون تمرّر القائمة بالمرجع، فلا شيء يُنسَخ، ولم يكن الأداء حجّةً للأصناف قط. والثالث هو الجواب الخاطئ المثير، لأنه موقف حقيقي يحمله مبرمجون حقيقيون، وهو مُحِقّ في البرامج الصغيرة: فالصريح أحسن من المضمر، ولا يخسر سكربت من أربع دوال شيئًا بتمرير قائمته. ويصير خاطئًا عند المقياس الذي تنمو فيه «القائمة» قائمةً زائدَ اسم زائدَ فرع زائدَ كشف فنّيين، فيجب أن تتغيّر كل التوقيعات معًا. والرابع أسوأ من الخاطئ: فـ <code>tickets=[]</code> هي فخّ بايثون الشهير للافتراضي القابل للتغيير، حيث تتشارك كل الاستدعاءات قائمةً واحدة مدى حياة البرنامج.</div>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Part 4 — the same scripted day</span><span class="ar">الجزء 4 — اليوم المكتوب نفسه</span></span>
+    <p class="en">The scenario reads almost identically to the structured one, which is the point: the shape of the program the user experiences did not change. <code>make_ticket(..., "water", "normal", 90.0, ..., corrosion=True)</code> became <code>Ticket(..., WaterJob(90.0, corrosion=True), ...)</code> — the kind of job is no longer a string argument among other strings, it is an object, and the corrosion flag is attached to the only thing that cares about it.</p>
+    <p class="ar">يُقرأ السيناريو مطابقًا للبنيوي تقريبًا، وهذا هو المقصود: فصورة البرنامج التي يعيشها المستخدم لم تتغيّر. فصارت <code>make_ticket(..., "water", "normal", 90.0, ..., corrosion=True)</code> هي <code>Ticket(..., WaterJob(90.0, corrosion=True), ...)</code> — فنوع العمل لم يعد معاملًا نصيًّا بين نصوص أخرى، بل صار كائنًا، وراية التآكل ملحقة بالشيء الوحيد الذي يعنيه أمرها.</p>
+
+<pre class="code good"><code># ---- the scripted day -----------------------------------------
+
+def main():
+    shop = RepairShop("Gaza Phone Clinic -- repair desk")
+    print(shop.name)
+    print("-" * len(shop.name))
+    print()
+
+    for t in [
+        Ticket("T-101", "Huda Nassar", "iPhone 11",
+               ScreenJob(180.0), "normal", "Samir Qeshta"),
+        Ticket("T-102", "Rami Hania", "Galaxy A12",
+               BatteryJob(70.0), "urgent", "Lina Barhoum"),
+        Ticket("T-103", "Mona Abu Shaar", "Redmi Note 9",
+               WaterJob(90.0, corrosion=True), "normal",
+               "Samir Qeshta"),
+        Ticket("T-104", "Kareem Zourob", "iPhone XR",
+               ScreenJob(220.0), "urgent", "Samir Qeshta"),
+        Ticket("T-105", "Dalia Khoudary", "Nokia G21",
+               BatteryJob(55.0), "normal", "Lina Barhoum"),
+        Ticket("T-106", "Basel Madhoun", "Galaxy S10",
+               WaterJob(120.0), "normal", "Samir Qeshta"),
+    ]:
+        shop.intake(t)
+    shop.print_intake()
+    print()
+
+    print("work log")
+    for tid in ("T-101", "T-102", "T-105"):
+        shop.move(tid, "in progress")
+        shop.move(tid, "ready")
+        shop.move(tid, "collected")
+    shop.move("T-104", "in progress")
+    shop.move("T-104", "ready")
+    shop.move("T-103", "in progress")
+    # the customer arrives before the phone is ready
+    shop.move("T-103", "collected")
+    print()
+
+    shop.print_report()
+
+
+if __name__ == "__main__":
+    main()
+</code></pre>
+
+    <p class="en">Run both files and diff them. If you have a shell to hand:</p>
+    <p class="ar">شغّل الملفين وقارنهما بـ diff. وإن كان لديك صَدَفة:</p>
+
+<pre class="code"><code># in a terminal, not in Python
+# python3 repair_shop_structured.py &gt; a.txt
+# python3 repair_shop_oop.py &gt; b.txt
+# diff a.txt b.txt    # prints nothing: they are identical
+</code></pre>
+
+    <p class="en"><code>diff</code> prints nothing. Two files with almost no lines in common, producing the same thirty-four lines of output. Everything this lesson is about lives in the gap between those two facts.</p>
+    <p class="ar">لا تطبع <code>diff</code> شيئًا. ملفان لا تكاد تكون بينهما أسطر مشتركة، يُنتجان أسطر الناتج الأربعة والثلاثين نفسها. وكل ما يعنيه هذا الدرس يقيم في الفجوة بين هاتين الحقيقتين.</p>
+  </div>
+
+  <h2 id="l7-h4"><span class="en">Side by side — what each change actually costs</span><span class="ar">جنبًا إلى جنب — ما تكلّفه كل تغيير فعلًا</span></h2>
+
+  <p class="en">The two files are equal today. They stop being equal on the day the shop asks for something. Below are six requests a real shop makes, with the number of places each version must be edited, counted honestly against the files printed above.</p>
+  <p class="ar">الملفان متكافئان اليوم. ويكفّان عن التكافؤ يوم يطلب المحل شيئًا. وهذه ستّ طلبات يطلبها محل حقيقي، مع عدد المواضع التي يجب تعديلها في كل نسخة، معدودةً عدًّا صادقًا في مقابل الملفين المطبوعين فوق.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">The request</span><span class="ar">الطلب</span></th>
+        <th><span class="en">Structured</span><span class="ar">البنيوية</span></th>
+        <th><span class="en">Object-oriented</span><span class="ar">الكائنية</span></th>
+        <th><span class="en">Principle at work</span><span class="ar">المبدأ العامل</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="en">Add a new job type: a charging-port repair</span><span class="ar">إضافة نوع عمل جديد: إصلاح منفذ شحن</span></td>
+        <td><span class="en">1 place — a new branch in <code>job_subtotal</code> — but it is an edit <em>inside</em> working code, and the new kind string has no definition anywhere, so a typo at the call site reaches the <code>else</code> at runtime</span><span class="ar">موضع واحد — فرع جديد في <code>job_subtotal</code> — لكنه تعديل <em>داخل</em> كود يعمل، ولا تعريف لنصّ النوع الجديد في أي موضع، فيبلغ خطأ مطبعي في موضع الاستدعاء فرعَ <code>else</code> في وقت التشغيل</span></td>
+        <td><span class="en">0 edits — one new class at the bottom of the file; nothing above it is touched</span><span class="ar">صفر تعديل — صنف جديد واحد في أسفل الملف؛ ولا يُمسّ شيء فوقه</span></td>
+        <td><span class="en">Lesson 6 — polymorphism; a change that only adds code cannot break code that works</span><span class="ar">الدرس 6 — تعدد الأشكال؛ فالتغيير الذي لا يفعل إلا إضافة كود لا يستطيع كسر كود يعمل</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Add a status: "waiting for part", which may return to "in progress"</span><span class="ar">إضافة حالة: «في انتظار قطعة»، ويجوز أن تعود إلى «قيد العمل»</span></td>
+        <td><span class="en">2 places — <code>STATUS_FLOW</code>, and <code>next_status</code> must stop assuming one successor; the report follows for free</span><span class="ar">موضعان — <code>STATUS_FLOW</code>، ويجب أن تكفّ <code>next_status</code> عن افتراض خَلَف واحد؛ ويتبع التقرير مجانًا</span></td>
+        <td><span class="en">2 places — <code>STATUS_FLOW</code> and <code>Ticket.advance</code>; the same work, honestly</span><span class="ar">موضعان — <code>STATUS_FLOW</code> و<code>Ticket.advance</code>؛ العمل نفسه بصدق</span></td>
+        <td><span class="en">Neither style wins. Both already derive the rule from one list — a tie this table should admit</span><span class="ar">لا أسلوب يفوز. فكلاهما يستنبط القاعدة أصلًا من قائمة واحدة — تعادل ينبغي لهذا الجدول أن يقرّ به</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Forbid collecting a ticket that has not been paid</span><span class="ar">منع استلام تذكرة لم تُدفع</span></td>
+        <td><span class="en">1 place to write the check in <code>step</code> — and every assignment of <code>ticket["status"]</code> anywhere in the codebase to audit, forever, because the check is optional</span><span class="ar">موضع واحد لكتابة الفحص في <code>step</code> — وكل إسناد لـ <code>ticket["status"]</code> في أي موضع من الكود للتدقيق، إلى الأبد، لأن الفحص اختياري</span></td>
+        <td><span class="en">1 place — inside <code>advance</code>, which is the only door into <code>_status</code>; there is no second path to audit</span><span class="ar">موضع واحد — في داخل <code>advance</code>، وهي الباب الوحيد إلى <code>_status</code>؛ فلا مسار ثانٍ للتدقيق</span></td>
+        <td><span class="en">Lesson 3 — encapsulation; one guarded door is worth more than one correct check</span><span class="ar">الدرس 3 — التغليف؛ فبابٌ محروس واحد أنفع من فحصٍ صحيح واحد</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Two technicians share one ticket, and the report splits the credit</span><span class="ar">فنّيان يتشاركان تذكرة واحدة، ويقسم التقرير الحصّة</span></td>
+        <td><span class="en">3 places — the <code>"technician"</code> key in <code>make_ticket</code>, <code>workload</code>, and every reader of the key; the six <code>make_ticket</code> calls change shape too</span><span class="ar">ثلاثة مواضع — مفتاح <code>"technician"</code> في <code>make_ticket</code>، و<code>workload</code>، وكل قارئ للمفتاح؛ وتتغيّر صورة استدعاءات <code>make_ticket</code> الستة أيضًا</span></td>
+        <td><span class="en">2 places — <code>Ticket.__init__</code> takes a list, <code>workload</code> loops it; a <code>technicians</code> property can keep old callers working</span><span class="ar">موضعان — تأخذ <code>Ticket.__init__</code> قائمة، وتدور عليها <code>workload</code>؛ وتستطيع خاصية <code>technicians</code> أن تُبقي المستدعين القدماء عاملين</span></td>
+        <td><span class="en">Lesson 3 — a property is a seam; a dict key is not</span><span class="ar">الدرس 3 — الخاصية وصلة؛ ومفتاح القاموس ليس وصلة</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">A second branch, each with its own tickets, its own report and a shop-wide total</span><span class="ar">فرع ثانٍ، لكلٍّ تذاكره وتقريره ومجموعٌ لكل المحل</span></td>
+        <td><span class="en">Every reporting function — all five take <code>tickets</code>, so each needs a branch argument or a second list threaded through <code>main</code>; the module-level constants are now shop-wide facts that may differ per branch</span><span class="ar">كل دالة تقرير — فالخمس كلها تأخذ <code>tickets</code>، فتحتاج كل واحدة معامل فرع أو قائمة ثانية تُمرَّر عبر <code>main</code>؛ وثوابت مستوى الوحدة صارت حقائق تسري على المحل كله وقد تختلف من فرع لآخر</span></td>
+        <td><span class="en">0 edits — <code>RepairShop("Rafah")</code> is a second instance; the class was always a template for many shops</span><span class="ar">صفر تعديل — <code>RepairShop("رفح")</code> حالة ثانية؛ فقد كان الصنف قالبًا لمحلّات كثيرة دائمًا</span></td>
+        <td><span class="en">Lesson 1 — a class is a template; an instance is a copy of the state, not of the code</span><span class="ar">الدرس 1 — الصنف قالب؛ والحالة نسخة من الوضع لا من الكود</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Add one new question about every job: "how many days of labour?"</span><span class="ar">إضافة سؤال جديد عن كل عمل: «كم يومًا من العمل؟»</span></td>
+        <td><span class="en">1 place — one new function with one new chain, written in one sitting, next to the others</span><span class="ar">موضع واحد — دالة جديدة واحدة بسلسلة جديدة واحدة، تُكتب في جلسة واحدة، بجانب أخواتها</span></td>
+        <td><span class="en">4 places — the <code>@abstractmethod</code> on <code>Job</code> and a body in all three subclasses, or the three refuse to instantiate</span><span class="ar">أربعة مواضع — <code>@abstractmethod</code> على <code>Job</code> وجسدٌ في الأصناف الثلاثة المشتقة، وإلا رفضت الثلاثة أن تُنشأ</span></td>
+        <td><span class="en">Lesson 6's trade-off, running the other way: classes are open to new types and closed to new operations</span><span class="ar">مقايضة الدرس 6 تجري في الاتجاه المعاكس: فالأصناف مفتوحة للأنواع الجديدة مغلقة للعمليات الجديدة</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3 id="l7-s2"><span class="en">Where the structured version is the better choice</span><span class="ar">حيث تكون النسخة البنيوية هي الخيار الأحسن</span></h3>
+
+  <p class="en">The last row of that table is the first honest answer, and there are more. These are not consolation prizes; they are cases where reaching for classes is the wrong instinct and a reviewer should say so.</p>
+  <p class="ar">السطر الأخير من ذلك الجدول هو أول جواب صادق، وهناك أكثر. وهذه ليست جوائز ترضية؛ بل هي حالات يكون فيها اللجوء إلى الأصناف الحسّ الخاطئ وينبغي للمراجع أن يقول ذلك.</p>
+
+  <ul>
+    <li><span class="en"><strong>A one-off script.</strong> "Read yesterday's ticket export, print how many were urgent, delete the script." There is no second reader, no second requirement and no tomorrow. Four lines of <code>csv</code> and a <code>sum</code> is the whole correct program; a <code>Ticket</code> class here is a cost with no buyer.</span><span class="ar"><strong>سكربت لمرة واحدة.</strong> «اقرأ تصدير تذاكر الأمس، واطبع كم منها كان مستعجلًا، واحذف السكربت.» فلا قارئ ثانٍ ولا مطلوب ثانٍ ولا غد. وأربعة أسطر من <code>csv</code> ودالة <code>sum</code> هي البرنامج الصحيح كله؛ وصنف <code>Ticket</code> هنا كلفةٌ بلا مشترٍ.</span></li>
+    <li><span class="en"><strong>A tiny data transform.</strong> A dict in, a dict out, no state kept between calls, nothing to protect. <code>def normalise(row): ...</code> is a pure function and that is the most testable thing in programming. Wrapping it in a <code>Normaliser</code> class with an empty <code>__init__</code> adds a noun to the project and nothing else — this is the pattern books call a "god object with one method", and it is a real defect.</span><span class="ar"><strong>تحويل بيانات صغير.</strong> قاموس داخلًا وقاموس خارجًا، ولا وضع يُحفظ بين الاستدعاءات، ولا شيء يُحمى. فـ <code>def normalise(row): ...</code> دالة خالصة وهي أكثر الأشياء قابلية للاختبار في البرمجة. ولفّها في صنف <code>Normaliser</code> له <code>__init__</code> فارغ يضيف اسمًا إلى المشروع ولا شيء غير ذلك — وهذا النمط تسميه الكتب «كائنًا إلهًا بدالة واحدة»، وهو عيب حقيقي.</span></li>
+    <li><span class="en"><strong>A single-pass report.</strong> Walk the rows once, accumulate three totals, print. The structured <code>print_report</code> above is the proof: an object-oriented rewrite moved it inside a class and improved it by exactly nothing. If all a program does is read data and print a summary, the data has no invariant to guard and no behaviour to vary — the two things classes are for.</span><span class="ar"><strong>تقرير بمرور واحد.</strong> امشِ على السطور مرة، واجمع ثلاثة مجاميع، واطبع. ودالة <code>print_report</code> البنيوية فوق هي البرهان: فنقلتها إعادةُ كتابةٍ كائنيةٌ إلى داخل صنف وأحسنتها بلا شيء بالضبط. فإن كان كل ما يفعله البرنامج قراءةَ بيانات وطبعَ ملخّص فلا ثابتَ للبيانات يُحرَس ولا سلوكَ يتنوّع — وهما الشيئان اللذان لأجلهما الأصناف.</span></li>
+    <li><span class="en"><strong>When the operations grow and the types do not.</strong> The last table row, said once more because it decides real arguments: a shop with exactly three job kinds that will be asked twelve new questions this year is better served by twelve functions than by twelve methods on three classes.</span><span class="ar"><strong>حين تنمو العمليات ولا تنمو الأنواع.</strong> سطر الجدول الأخير، يُقال مرة أخرى لأنه يحسم خصومات حقيقية: فمحلٌّ له ثلاثة أنواع عمل بالضبط وسيُسأل اثني عشر سؤالًا جديدًا هذا العام تخدمه اثنتا عشرة دالة خدمةً أحسن من اثنتي عشرة دالة على ثلاثة أصناف.</span></li>
+  </ul>
+
+  <div class="note">
+    <h4><span class="en">OOP is a tool, not a religion</span><span class="ar">الكائنية أداة لا ديانة</span></h4>
+    <p class="en">Over-engineering a 30-line script with five classes is a defect, exactly as a 400-line <code>if/elif</code> chain is a defect. Both make the next person slower, and only one of them has a name that sounds like a compliment. If you cannot say which future change a class is buying you, you have not designed anything — you have added a noun.</p>
+    <p class="ar">الهندسة المفرطة لسكربت من 30 سطرًا بخمسة أصناف عيب، كما أن سلسلة <code>if/elif</code> من 400 سطر عيب بالضبط. فكلاهما يُبطئ الشخص القادم، وواحد منهما وحده له اسم يشبه المدح. فإن لم تستطع أن تقول أي تغيير مستقبلي يشتريه لك صنف فأنت لم تصمّم شيئًا — بل أضفت اسمًا.</p>
+    <p class="en">The test is one question, asked out loud: <em>what change does this class make cheap?</em> For <code>Job</code> the answer is "a new kind of repair, with no edit to existing code". For <code>Ticket</code> it is "a status that cannot be corrupted from outside". Those are good answers. "It is more object-oriented" is not an answer, and neither is "we might need it later" — later is when you add the class, and the structured version you are replacing will tell you exactly what shape it should have.</p>
+    <p class="ar">والاختبار سؤال واحد يُسأل بصوت مسموع: <em>أي تغيير يجعله هذا الصنف رخيصًا؟</em> فالجواب في حالة <code>Job</code> «نوع إصلاح جديد بلا تعديل في كود قائم». وفي حالة <code>Ticket</code> «حالة لا يمكن إفسادها من الخارج». وهذان جوابان جيّدان. و«إنه أكثر كائنيّة» ليس جوابًا، ولا «قد نحتاجه لاحقًا» — فلاحقًا هو حين تُضيف الصنف، وستقول لك النسخةُ البنيوية التي تستبدلها ما الصورة التي ينبغي أن يكون عليها بالضبط.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 7.1 — Add a "waiting for part" status to both versions, and count the edits</span><span class="ar">تمرين 7.1 — أضف حالة «في انتظار قطعة» إلى النسختين، وأحصِ التعديلات</span></h4>
+    <p class="en">The shop runs out of iPhone screens. Add a fifth status, <code>"waiting for part"</code>, that sits between <code>in progress</code> and <code>ready</code> — and the hard part: a ticket may go from <code>waiting for part</code> <em>back</em> to <code>in progress</code> when the part arrives. That breaks the one-successor assumption in both files. Do it in the structured file and in the OOP file, and write down how many places you edited in each.</p>
+    <p class="ar">تنفد شاشات آيفون من المحل. فأضف حالة خامسة، <code>"waiting for part"</code>، تقع بين <code>in progress</code> و<code>ready</code> — والجزء الصعب: يجوز للتذكرة أن تمضي من <code>waiting for part</code> <em>عائدةً</em> إلى <code>in progress</code> حين تصل القطعة. وذلك يكسر افتراض الخَلَف الواحد في الملفين. فافعل ذلك في الملف البنيوي وفي الملف الكائني، واكتب كم موضعًا عدّلت في كل منهما.</p>
+    <p class="en">A ticket moved to <code>waiting for part</code> and then straight to <code>ready</code> must be refused; the same ticket sent back to <code>in progress</code> and then to <code>ready</code> must be allowed.</p>
+    <p class="ar">ويجب رفض تذكرة نُقلت إلى <code>waiting for part</code> ثم إلى <code>ready</code> مباشرة؛ ويجب السماح للتذكرة نفسها إذا أُعيدت إلى <code>in progress</code> ثم إلى <code>ready</code>.</p>
+
+<pre class="code"><code># A one-successor list cannot express a status that has two
+# legal exits. Replace it with a map of status -&gt; allowed
+# next statuses, and rewrite the guard against the map.
+
+STATUS_FLOW = ["received", "in progress", "waiting for part",
+               "ready", "collected"]
+
+ALLOWED = {
+    # fill this in: which statuses may follow each status?
+}
+
+
+def step(ticket, new_status):
+    old = ticket["status"]
+    # 1. replace this check so it uses ALLOWED
+    if new_status != next_status(old):
+        print(f"  {ticket['id']} -- rejected: cannot go"
+              f" from {old} to {new_status}")
+        return False
+    ticket["status"] = new_status
+    print(f"  {ticket['id']} -&gt; {new_status}")
+    return True
+
+
+t = {"id": "T-107", "status": "received"}
+step(t, "in progress")
+step(t, "waiting for part")
+step(t, "ready")              # must be refused
+step(t, "in progress")        # part arrived
+step(t, "ready")
+step(t, "collected")
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+
+      <p class="en">The structured version. <code>next_status</code> is deleted — a function that returns one answer cannot describe a fork — and the list is replaced by a map.</p>
+      <p class="ar">النسخة البنيوية. تُحذف <code>next_status</code> — فدالة تعيد جوابًا واحدًا لا تستطيع وصف تشعّب — وتُستبدل القائمة بخريطة.</p>
+
+<pre class="code good"><code>STATUS_FLOW = ["received", "in progress", "waiting for part",
+               "ready", "collected"]
+
+# a status may now have more than one legal successor
+ALLOWED = {
+    "received": ["in progress"],
+    "in progress": ["waiting for part", "ready"],
+    "waiting for part": ["in progress"],
+    "ready": ["collected"],
+    "collected": [],
+}
+
+
+def step(ticket, new_status):
+    old = ticket["status"]
+    if new_status not in ALLOWED[old]:
+        print(f"  {ticket['id']} -- rejected: cannot go"
+              f" from {old} to {new_status}")
+        return False
+    ticket["status"] = new_status
+    print(f"  {ticket['id']} -&gt; {new_status}")
+    return True
+
+
+t = {"id": "T-107", "status": "received"}
+step(t, "in progress")
+step(t, "waiting for part")
+step(t, "ready")
+step(t, "in progress")
+step(t, "ready")
+step(t, "collected")
+</code></pre>
+
+      <div class="output">  T-107 -&gt; in progress
+  T-107 -&gt; waiting for part
+  T-107 -- rejected: cannot go from waiting for part to ready
+  T-107 -&gt; in progress
+  T-107 -&gt; ready
+  T-107 -&gt; collected</div>
+
+      <p class="en">Now the OOP file. The same two conceptual edits, in <code>STATUS_FLOW</code> and in <code>Ticket.advance</code>.</p>
+      <p class="ar">والآن الملف الكائني. التعديلان المفهوميان نفسهما، في <code>STATUS_FLOW</code> وفي <code>Ticket.advance</code>.</p>
+
+<pre class="code good"><code>ALLOWED = {
+    "received": ["in progress"],
+    "in progress": ["waiting for part", "ready"],
+    "waiting for part": ["in progress"],
+    "ready": ["collected"],
+    "collected": [],
+}
+
+
+class Ticket:
+    def __init__(self, tid):
+        self.id = tid
+        self._status = "received"
+
+    @property
+    def status(self):
+        return self._status
+
+    def advance(self, new_status):
+        if new_status not in ALLOWED[self._status]:
+            raise ValueError(f"cannot go from {self._status}"
+                             f" to {new_status}")
+        self._status = new_status
+
+
+t = Ticket("T-107")
+for s in ("in progress", "waiting for part", "ready",
+          "in progress", "ready", "collected"):
+    try:
+        t.advance(s)
+        print(f"  {t.id} -&gt; {s}")
+    except ValueError as err:
+        print(f"  {t.id} -- rejected: {err}")
+</code></pre>
+
+      <div class="output">  T-107 -&gt; in progress
+  T-107 -&gt; waiting for part
+  T-107 -- rejected: cannot go from waiting for part to ready
+  T-107 -&gt; in progress
+  T-107 -&gt; ready
+  T-107 -&gt; collected</div>
+
+      <p class="en">Two edits each, and that is the honest count — this exercise is the row of the table where OOP wins nothing. Both files already kept the status rule in one named place, so both paid the same price. Two things are worth noticing anyway. The report needed no edit in either file, because both loop over <code>STATUS_FLOW</code> rather than printing four fixed labels, which is a design decision the structured author made and deserves credit for. And <code>ALLOWED</code> is now a tiny state machine written as data: every legal move in the shop is visible in seven lines, and the guard is one <code>in</code> test that never changes again. That is the real lesson of this exercise, and it has nothing to do with classes.</p>
+      <p class="ar">تعديلان في كل منهما، وذلك هو العدد الصادق — فهذا التمرين هو سطر الجدول الذي لا تفوز الكائنية فيه بشيء. فقد حفظ الملفان أصلًا قاعدة الحالات في موضع واحد مسمّى، فدفع كلاهما الثمن نفسه. وأمران يجدر ملاحظتهما مع ذلك. فالتقرير لم يحتج تعديلًا في أيٍّ من الملفين، لأن كليهما يدور على <code>STATUS_FLOW</code> ولا يطبع أربع لافتات ثابتة، وهو قرار تصميمي اتّخذه مؤلف النسخة البنيوية ويستحقّ عليه الفضل. و<code>ALLOWED</code> صارت الآن آلة حالات صغيرة مكتوبة بياناتٍ: فكل حركة قانونية في المحل مرئية في سبعة أسطر، والحارس اختبار <code>in</code> واحد لن يتغيّر مرة أخرى. وذلك هو درس هذا التمرين الحقيقي، ولا صلة له بالأصناف.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 7.2 — A warranty re-repair, without touching one existing class</span><span class="ar">تمرين 7.2 — إصلاح بضمان، بلا مساس بصنف قائم واحد</span></h4>
+    <p class="en">The shop guarantees its own work for 90 days. A phone that comes back inside that window is repaired free; a phone that comes back after it pays the normal price for whatever the original job was. Add a <code>WarrantyRepair</code> job type to the OOP version with one rule: you may not edit <code>Job</code>, <code>ScreenJob</code>, <code>BatteryJob</code> or <code>WaterJob</code>. Not one character.</p>
+    <p class="ar">يضمن المحل عمله 90 يومًا. فالهاتف الذي يعود داخل تلك النافذة يُصلَح مجانًا؛ والذي يعود بعدها يدفع السعر العادي لأيّ كان العمل الأصلي. فأضف نوع عمل <code>WarrantyRepair</code> إلى النسخة الكائنية بقاعدة واحدة: لا يجوز لك تعديل <code>Job</code> ولا <code>ScreenJob</code> ولا <code>BatteryJob</code> ولا <code>WaterJob</code>. ولا حرفًا واحدًا.</p>
+    <p class="en">The hint is in the brief: "whatever the original job was". A warranty repair <em>has an</em> original job. Lesson 5 named that relationship, and Lesson 6 is why asking the held job for its own <code>subtotal()</code> works without knowing which kind it is.</p>
+    <p class="ar">التلميح في نصّ الطلب: «أيّ كان العمل الأصلي». فلإصلاح الضمان عملٌ أصلي. وسمّى الدرس 5 تلك العلاقة، والدرس 6 هو السبب في أن سؤال العمل الممسوك عن <code>subtotal()</code> الخاصّة به يعمل بلا معرفة نوعه.</p>
+
+<pre class="code"><code>from abc import ABC, abstractmethod
+
+DIAG_FEE = 20.0
+BATTERY_FITTING = 10.0
+
+
+class Job(ABC):
+    def __init__(self, parts):
+        self.parts = parts
+
+    @abstractmethod
+    def subtotal(self):
+        """What this job costs."""
+
+
+class ScreenJob(Job):
+    kind = "screen"
+
+    def subtotal(self):
+        return DIAG_FEE + self.parts
+
+
+class BatteryJob(Job):
+    kind = "battery"
+
+    def subtotal(self):
+        return DIAG_FEE + self.parts + BATTERY_FITTING
+
+
+# --- write only below this line ---
+
+class WarrantyRepair(Job):
+    kind = "warranty"
+    # 1. __init__ takes the original Job and days_since,
+    #    and calls super().__init__ with no parts of its own
+    # 2. an in_warranty property: 90 days or fewer
+    # 3. subtotal(): free inside the window, otherwise
+    #    whatever the original job charges
+
+
+jobs = [ScreenJob(180.0),
+        BatteryJob(70.0),
+        WarrantyRepair(ScreenJob(180.0), days_since=12),
+        WarrantyRepair(BatteryJob(70.0), days_since=200)]
+
+for j in jobs:
+    print(f"  {j.kind:9}{j.subtotal():8.2f}")
+</code></pre>
+
+    <div class="output">Traceback (most recent call last):
+  File "warranty.py", line 43, in &lt;module&gt;
+    WarrantyRepair(ScreenJob(180.0), days_since=12),
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: Can't instantiate abstract class WarrantyRepair without an implementation for abstract method 'subtotal'</div>
+
+    <p class="en">That is the starter's output as written, and it is Lesson 4 doing its job: the class is refused at creation, named, before any price is printed. Your finished version prints four lines.</p>
+    <p class="ar">هذا ناتج الكود الابتدائي كما هو مكتوب، وهو الدرس 4 يؤدي عمله: فيُرفض الصنف عند الإنشاء، مسمّى، قبل طبع أي سعر. وتطبع نسختك المنجزة أربعة أسطر.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+
+<pre class="code good"><code>class WarrantyRepair(Job):
+    """A re-repair of our own work: no fee, parts on us."""
+
+    kind = "warranty"
+
+    def __init__(self, original_job, days_since):
+        super().__init__(0.0)
+        self.original_job = original_job   # composition
+        self.days_since = days_since
+
+    @property
+    def in_warranty(self):
+        return self.days_since &lt;= 90
+
+    def subtotal(self):
+        if self.in_warranty:
+            return 0.0
+        return self.original_job.subtotal()
+
+
+jobs = [ScreenJob(180.0),
+        BatteryJob(70.0),
+        WarrantyRepair(ScreenJob(180.0), days_since=12),
+        WarrantyRepair(BatteryJob(70.0), days_since=200)]
+
+for j in jobs:
+    print(f"  {j.kind:9}{j.subtotal():8.2f}")
+</code></pre>
+
+      <div class="output">  screen     200.00
+  battery    100.00
+  warranty     0.00
+  warranty   100.00</div>
+
+      <p class="en">Four lessons are load-bearing in eighteen lines, and no existing class was touched. <code>WarrantyRepair</code> <strong>is a</strong> <code>Job</code> — inheritance, Lesson 5 — so <code>Ticket</code> accepts it with no edit and the intake table prints it without knowing it exists. It also <strong>has a</strong> <code>Job</code> — composition, the same lesson — and that is the whole trick: <code>self.original_job.subtotal()</code> works against a screen, a battery, a water job or a future charging-port job, because <strong>polymorphism</strong> means the held object answers for itself. <code>in_warranty</code> is a <code>@property</code> from Lesson 3, so the 90-day rule is named once and readable as <code>j.in_warranty</code> rather than copied as <code>days &lt;= 90</code> into every caller. And <code>super().__init__(0.0)</code> is honest bookkeeping: a warranty repair has no parts estimate of its own, and the parent still gets initialised.</p>
+      <p class="ar">أربعة دروس حامِلة في ثمانية عشر سطرًا، ولم يُمسّ صنف قائم. فـ <code>WarrantyRepair</code> <strong>هو نوع من</strong> <code>Job</code> — وراثة، الدرس 5 — فيقبله <code>Ticket</code> بلا تعديل ويطبعه جدول الاستلام بلا معرفة وجوده. و<strong>له</strong> <code>Job</code> أيضًا — تركيب، الدرس نفسه — وتلك هي الحيلة كلها: فـ <code>self.original_job.subtotal()</code> تعمل في مقابل شاشة أو بطارية أو عمل ماء أو عمل منفذ شحن مستقبلي، لأن <strong>تعدد الأشكال</strong> يعني أن الكائن الممسوك يجيب عن نفسه. و<code>in_warranty</code> خاصية <code>@property</code> من الدرس 3، فتُسمّى قاعدة التسعين يومًا مرة واحدة وتُقرأ <code>j.in_warranty</code> لا تُنسَخ <code>days &lt;= 90</code> في كل مستدعٍ. و<code>super().__init__(0.0)</code> مسك دفاتر صادق: فلإصلاح الضمان لا تقدير قِطع خاصّ به، ويُهيّأ الأب رغم ذلك.</p>
+
+      <p class="en">Try the same requirement against the structured file and feel the difference. There is no object to hold, so the original job's kind and parts have to be copied onto the warranty ticket as more keys, and <code>job_subtotal</code> grows a <code>"warranty"</code> branch that reaches back into the chain it is already inside — a function calling itself with a rewritten dict. It can be made to work. It cannot be made to not touch the existing code.</p>
+      <p class="ar">جرّب المطلوب نفسه في مقابل الملف البنيوي واستشعر الفرق. فلا كائن يُمسَك، فيجب نسخ نوع العمل الأصلي وقِطعه إلى تذكرة الضمان مفاتيحَ أخرى، وتنمو في <code>job_subtotal</code> فرعُ <code>"warranty"</code> يعود إلى السلسلة التي هو في داخلها أصلًا — دالةٌ تستدعي نفسها بقاموس مُعاد كتابته. ويمكن جعله يعمل. ولا يمكن جعله لا يمسّ الكود القائم.</p>
+    </details>
+  </section>
+
+  <h2 id="l7-h5"><span class="en">Two questions to finish on</span><span class="ar">سؤالان للختام</span></h2>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lesson 5. <code>Ticket</code> holds <code>self.job</code> instead of <code>Ticket</code> being subclassed into <code>ScreenTicket</code>, <code>BatteryTicket</code>, <code>WaterTicket</code>. Why is composition right here?</span><span class="ar">الدرس 5. يمسك <code>Ticket</code> بـ <code>self.job</code> بدلًا من أن يُشتقّ <code>Ticket</code> إلى <code>ScreenTicket</code> و<code>BatteryTicket</code> و<code>WaterTicket</code>. فلِمَ كان التركيب صحيحًا هنا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because inheritance is slower, and three subclasses would triple the memory per ticket.</span><span class="ar">لأن الوراثة أبطأ، ولكانت ثلاثة أصناف مشتقة تضاعف ذاكرة التذكرة ثلاثًا.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">A ticket <em>has a</em> job; it is not a kind of job. Priority, status and customer vary independently of the repair, and subclassing would multiply the combinations.</span><span class="ar">للتذكرة عمل؛ وهي ليست نوعًا من العمل. فالأولوية والحالة والعميل تتنوّع باستقلال عن الإصلاح، ولكان الاشتقاق يضاعف التراكيب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>Job</code> is abstract, and an abstract class may never be inherited from twice.</span><span class="ar">لأن <code>Job</code> مجرّد، ولا يجوز قط أن يُورَث من صنف مجرّد مرتين.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because composition always beats inheritance; a well-designed program contains no subclasses.</span><span class="ar">لأن التركيب يتغلّب على الوراثة دائمًا؛ فلا أصناف مشتقة في برنامج جيّد التصميم.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The sentence test decides it: "a ticket is a screen job" is false, while "a ticket has a job" is exactly true. The cost of getting it wrong is combinatorial — add urgency as a subclass axis too and you are writing <code>UrgentWaterTicket</code>, six classes for two independent ideas. The fourth option is the trap, because it is a slogan people repeat: this very file inherits three job types from <code>Job</code> and is better for it, since those three really are kinds of the same thing with shared <code>__init__</code>. The right reading of "prefer composition" is that inheritance should be reached for when a sentence with "is a" in it is true and a family shares code — not never. The third option is false; <code>Job</code> has three subclasses in the file you just read.</div>
+      <div class="ar">اختبار الجملة يحسمها: فـ«التذكرة عمل شاشة» كاذبة، و«للتذكرة عمل» صادقة بالضبط. وكلفة الخطأ تراكيبية — فأضف الاستعجال محورَ اشتقاق أيضًا فتكون تكتب <code>UrgentWaterTicket</code>، ستة أصناف لفكرتين مستقلتين. والخيار الرابع هو الفخّ، لأنه شعار يردّده الناس: فهذا الملف بعينه يورث ثلاثة أنواع عمل من <code>Job</code> وهو أحسن بذلك، لأن تلك الثلاثة أنواع من الشيء نفسه حقًّا لها <code>__init__</code> مشتركة. والقراءة الصحيحة لـ«آثِر التركيب» أن الوراثة ينبغي أن تُلجأ إليها حين تصدق جملة فيها «هو نوع من» وتتشارك عائلةٌ كودًا — لا أبدًا. والخيار الثالث كاذب؛ فلـ <code>Job</code> ثلاثة أصناف مشتقة في الملف الذي قرأته قبل قليل.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Synthesis. Both files are under 200 lines and print identical output. Which claim about them is actually true?</span><span class="ar">التركيب. الملفان أقلّ من 200 سطر ويطبعان ناتجًا مطابقًا. فأي زعم عنهما صادق فعلًا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">The OOP version is objectively better; the structured version only survives because the program is small.</span><span class="ar">النسخة الكائنية أحسن موضوعيًّا؛ ولا تبقى البنيوية إلا لأن البرنامج صغير.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">They cost the same to read and differ only in what the <em>next</em> change costs — and which one is cheaper depends on whether new job types or new questions arrive.</span><span class="ar">كلفتهما في القراءة سواء، ولا يختلفان إلا في كلفة التغيير <em>القادم</em> — وأيّهما أرخص يعتمد على ما إن كانت الواردة أنواع عمل جديدة أم أسئلة جديدة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Identical output proves the two designs are equivalent, so the choice between them is a matter of taste.</span><span class="ar">الناتج المطابق يبرهن تكافؤ التصميمين، فيكون الاختيار بينهما مسألة ذوق.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The structured version is simpler, and simpler code is always the professional choice.</span><span class="ar">البنيوية أبسط، والكود الأبسط هو الخيار المهني دائمًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The comparison table is the whole answer: a new job type costs the OOP file zero edits and the structured file an edit inside working code, while a new question about every job costs the OOP file four edits and the structured file one. Neither direction is a universal win, so the design question is always "which axis does this program grow along", and the answer comes from the shop, not from the language. The third option is the subtlest wrong answer — identical output proves the two are equivalent <em>today</em>, which is exactly the trap: software costs are almost entirely about tomorrow, and today's test suite cannot tell you which file will still be correct after the next six requests. The first and fourth are the same mistake wearing opposite hats, and both skip the only question that matters.</div>
+      <div class="ar">جدول المقارنة هو الجواب كله: فنوع العمل الجديد يكلّف الملف الكائني صفر تعديل والبنيوي تعديلًا داخل كود يعمل، أما السؤال الجديد عن كل عمل فيكلّف الكائني أربعة تعديلات والبنيوي واحدًا. فلا اتجاه فوزٌ شامل، فيكون سؤال التصميم دائمًا «على أي محور ينمو هذا البرنامج»، ويأتي الجواب من المحل لا من اللغة. والخيار الثالث ألطف الأجوبة الخاطئة — فالناتج المطابق يبرهن تكافؤهما <em>اليوم</em>، وذلك هو الفخّ بالضبط: فكلف البرمجيات كلها تقريبًا عن الغد، ولا تستطيع حزمة اختبارات اليوم أن تقول لك أي ملف سيبقى صحيحًا بعد الطلبات الستّ القادمة. والأول والرابع الخطأ نفسه يلبس قبّعتين متعاكستين، ويتخطّى كلاهما السؤال الوحيد المهمّ.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l7-s3"><span class="en">The whole course, and what to learn next</span><span class="ar">المنهج كله، وما تتعلّمه بعده</span></h3>
+    <ul>
+      <li><span class="en"><strong>Lesson 1 — a class is a template.</strong> When the same parameter appears in every function in a file, the data and its verbs want to be one thing, and <code>self</code> is that parameter with a shorter name.</span><span class="ar"><strong>الدرس 1 — الصنف قالب.</strong> فحين يظهر المعامل نفسه في كل دالة في ملف تريد البياناتُ وأفعالها أن تكون شيئًا واحدًا، و<code>self</code> هي ذلك المعامل باسم أقصر.</span></li>
+      <li><span class="en"><strong>Lesson 2 — <code>__init__</code> is the one place an object is made valid,</strong> a class attribute is a fact about the type rather than the object, and <code>__str__</code> is where the printed shape of a thing belongs.</span><span class="ar"><strong>الدرس 2 — <code>__init__</code> هي الموضع الوحيد الذي يُجعل فيه الكائن صحيحًا،</strong> وخاصية الصنف حقيقة عن النوع لا عن الكائن، و<code>__str__</code> هي حيث تنتمي صورةُ الشيء المطبوعة.</span></li>
+      <li><span class="en"><strong>Lesson 3 — encapsulation is one door, not one check.</strong> <code>_status</code> plus a read-only <code>@property</code> plus <code>advance()</code> is why "forbid collecting an unpaid ticket" is a one-place change with nothing left to audit.</span><span class="ar"><strong>الدرس 3 — التغليف بابٌ واحد لا فحصٌ واحد.</strong> فـ <code>_status</code> زائدَ <code>@property</code> للقراءة فقط زائدَ <code>advance()</code> هو السبب في أن «امنع استلام تذكرة غير مدفوعة» تغييرٌ في موضع واحد لا يبقى بعده شيء للتدقيق.</span></li>
+      <li><span class="en"><strong>Lesson 4 — abstraction turns a forgotten method into a named crash.</strong> <code>Job(ABC)</code> with <code>@abstractmethod subtotal</code> fails at creation, on your machine, instead of quoting every repair at the diagnosis fee.</span><span class="ar"><strong>الدرس 4 — التجريد يحوّل الدالة المنسيّة انهيارًا مسمّى.</strong> فـ <code>Job(ABC)</code> مع <code>@abstractmethod subtotal</code> يفشل عند الإنشاء، على حاسوبك، لا يسعّر كل إصلاح بأجر التشخيص.</span></li>
+      <li><span class="en"><strong>Lesson 5 — inherit for "is a", compose for "has a".</strong> Three job types inherit from <code>Job</code> because they are kinds of one thing; <code>Ticket</code> holds a <code>Job</code> because a ticket is not a repair. The warranty exercise needed both at once.</span><span class="ar"><strong>الدرس 5 — وَرِّث لـ«هو نوع من»، وركِّب لـ«له».</strong> فأنواع العمل الثلاثة ترث من <code>Job</code> لأنها أنواع من شيء واحد؛ ويمسك <code>Ticket</code> بـ <code>Job</code> لأن التذكرة ليست إصلاحًا. واحتاج تمرين الضمان كليهما معًا.</span></li>
+      <li><span class="en"><strong>Lesson 6 — polymorphism deletes the chain.</strong> <code>self.job.subtotal()</code> is written once and works against three classes today and a charging-port class next month; <code>__str__</code> let <code>print(f"  {t}")</code> replace a format string the shop had no business knowing.</span><span class="ar"><strong>الدرس 6 — تعدد الأشكال يحذف السلسلة.</strong> فـ <code>self.job.subtotal()</code> مكتوبة مرة واحدة وتعمل في مقابل ثلاثة أصناف اليوم وصنف منفذ شحن الشهر القادم؛ وأتاحت <code>__str__</code> لـ <code>print(f"  {t}")</code> أن تحلّ محلّ نصّ تنسيق لم يكن للمحل شأن بمعرفته.</span></li>
+      <li><span class="en"><strong>The two files cost the same to read.</strong> They differ in the price of the next change, and the comparison table is the only honest way to argue about design: name the change, count the edits, name the principle.</span><span class="ar"><strong>كلفة الملفين في القراءة سواء.</strong> ويختلفان في ثمن التغيير القادم، وجدول المقارنة هو السبيل الصادق الوحيد إلى الخصومة في التصميم: سمِّ التغيير، وأحصِ التعديلات، وسمِّ المبدأ.</span></li>
+      <li><span class="en"><strong>Classes are open to new types and closed to new operations;</strong> functions over dicts are the mirror image. A one-off script, a tiny pure transform and a single-pass report are better off structured, and saying so out loud is a sign of judgement, not of weakness.</span><span class="ar"><strong>الأصناف مفتوحة للأنواع الجديدة مغلقة للعمليات الجديدة؛</strong> والدوال على القواميس صورتها في المرآة. فسكربت لمرة واحدة وتحويل خالص صغير وتقرير بمرور واحد أحسن حالًا بنيويةً، وقولُ ذلك بصوت مسموع علامةُ تمييز لا ضعف.</span></li>
+      <li><span class="en"><strong>Next: modules and packages.</strong> The OOP file is 184 lines; at 600 it wants splitting into <code>jobs.py</code>, <code>tickets.py</code> and <code>reports.py</code> with one <code>import</code> line each. Learn how Python finds those files and what <code>__init__.py</code> is for.</span><span class="ar"><strong>التالي: الوحدات والحزم.</strong> فالملف الكائني 184 سطرًا؛ وعند 600 يطلب الانشطار إلى <code>jobs.py</code> و<code>tickets.py</code> و<code>reports.py</code> بسطر <code>import</code> لكلٍّ. فتعلّم كيف تجد بايثون تلك الملفات ولأي شيء <code>__init__.py</code>.</span></li>
+      <li><span class="en"><strong>Next: testing with <code>unittest</code> or <code>pytest</code>.</strong> The scripted <code>main()</code> is a test done by eye. A real test asserts <code>Ticket(..., WaterJob(90.0, corrosion=True), ...).quote == 190.0</code> and tells you the day somebody breaks it.</span><span class="ar"><strong>التالي: الاختبار بـ <code>unittest</code> أو <code>pytest</code>.</strong> فدالة <code>main()</code> المكتوبة اختبارٌ بالعين. والاختبار الحقيقي يؤكّد <code>Ticket(..., WaterJob(90.0, corrosion=True), ...).quote == 190.0</code> ويقول لك في اليوم الذي يكسره فيه أحد.</span></li>
+      <li><span class="en"><strong>Next: type hints.</strong> <code>def intake(self, ticket: Ticket) -&gt; None:</code> costs nothing at runtime and lets an editor tell you that <code>ticket["status"]</code> is wrong before you run anything.</span><span class="ar"><strong>التالي: تلميحات الأنواع.</strong> فـ <code>def intake(self, ticket: Ticket) -&gt; None:</code> لا تكلّف شيئًا في وقت التشغيل وتتيح لمحرّر أن يقول لك إن <code>ticket["status"]</code> خطأ قبل أن تشغّل شيئًا.</span></li>
+      <li><span class="en"><strong>Next: design patterns, read sceptically.</strong> You already used three without their names: a factory (<code>make_ticket</code>), a strategy (a <code>Job</code> held by a <code>Ticket</code>) and a decorator (<code>WarrantyRepair</code> wrapping another job). Patterns are names for things you will rediscover anyway — learn them to talk to other programmers, not to decide what to build.</span><span class="ar"><strong>التالي: أنماط التصميم، تُقرأ بتشكّك.</strong> فقد استعملت ثلاثة أصلًا بلا أسمائها: مصنعًا (<code>make_ticket</code>)، واستراتيجيةً (<code>Job</code> يمسك به <code>Ticket</code>)، ومزخرِفًا (<code>WarrantyRepair</code> يلفّ عملًا آخر). والأنماط أسماءٌ لأشياء ستعيد اكتشافها على كل حال — فتعلّمها لتحدّث مبرمجين آخرين، لا لتقرّر ما تبني.</span></li>
+      <li><span class="en"><strong>And the last question, for every class you ever write:</strong> <em>what change does this make cheap?</em> If you cannot answer, write the function.</span><span class="ar"><strong>والسؤال الأخير، لكل صنف تكتبه أبدًا:</strong> <em>أي تغيير يجعله هذا رخيصًا؟</em> فإن لم تستطع الجواب فاكتب الدالة.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

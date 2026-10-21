@@ -1,33 +1,11 @@
 /* ============================================================
-   Assessment + code-trace layer.
-   Adds: question cards, the five answer widgets, test result
-   panels and the step-through execution lab.
-   Inherits every colour from course.css; only the natural
-   level tones (sage / sand / clay) are new.
+   The assessment layer: question cards, the five answer widgets
+   (choice, text, order, match, pick-a-line), the test toolbar
+   and its filters, and the result panel.
+
+   Colours come from tokens.css, including the level tones.
+   Loaded only by pages that carry a question bank.
    ============================================================ */
-
-:root {
-  --easy: #3f6f4f;
-  --easy-soft: #e8f1e9;
-  --mid: #8a6420;
-  --mid-soft: #f7efdd;
-  --hard: #9c4a35;
-  --hard-soft: #f8e9e4;
-  --chip-bg: var(--surface-2);
-  --line-hit: #fff4cf;
-  --line-hit-bar: #d9a200;
-}
-
-:root[data-theme="dark"] {
-  --easy: #93c9a3;
-  --easy-soft: #16241a;
-  --mid: #e0bd77;
-  --mid-soft: #26200f;
-  --hard: #e9a68f;
-  --hard-soft: #2a1711;
-  --line-hit: #2c2512;
-  --line-hit-bar: #d9a200;
-}
 
 /* ---------- test page intro ---------- */
 .testhead {
@@ -364,221 +342,30 @@ input.fillin:focus, textarea.fillin:focus { outline: 2px solid var(--accent); bo
 .result .weak h4 { margin: 0 0 6px; font-size: 14.5px; }
 .result .weak ul { margin: 0; padding-inline-start: 20px; font-size: 14.5px; }
 
-/* ---------- execution trace lab ---------- */
-.trace {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 14px 16px;
-  margin: 20px 0;
-}
-.trace > h4 { margin: 0 0 4px; font-size: 16px; }
-.trace > .lede { margin: 0 0 12px; font-size: 15px; color: var(--text-soft); }
-
-.trace-grid { display: grid; grid-template-columns: 1.25fr .9fr; gap: 12px; }
-@media (max-width: 720px) { .trace-grid { grid-template-columns: 1fr; } }
-
-.trace-code {
-  margin: 0; padding: 10px 0;
-  background: var(--code-bg); color: var(--code-text);
-  border-radius: 10px; overflow-x: auto;
-  font-family: var(--mono); font-size: 13.5px; line-height: 1.65;
-  direction: ltr; text-align: left;
-}
-.trace-code .row { display: flex; border-inline-start: 3px solid transparent; }
-.trace-code .ln {
-  flex: none; width: 3.2ch; padding-inline-end: 10px;
-  text-align: end; color: #7b8696; user-select: none;
-}
-.trace-code .lx { white-space: pre; padding-inline-end: 14px; }
-.trace-code .row.now {
-  background: rgba(217,162,0,.16);
-  border-inline-start-color: var(--line-hit-bar);
-}
-.trace-code .row.done { opacity: .72; }
-
-.trace-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.trace-pane {
-  border: 1px solid var(--border); border-radius: 10px;
-  background: var(--surface-2); padding: 9px 11px;
-}
-.trace-pane h5 {
-  margin: 0 0 7px; font-size: 11.5px; letter-spacing: .05em;
-  text-transform: uppercase; color: var(--text-soft);
-}
-.vars { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.vars td {
-  padding: 3px 6px; border-bottom: 1px solid var(--border);
-  vertical-align: top;
-}
-.vars tr:last-child td { border-bottom: 0; }
-.vars .vn {
-  font-family: var(--mono); color: var(--accent);
-  white-space: nowrap; direction: ltr;
-}
-.vars .vv { font-family: var(--mono); direction: ltr; word-break: break-word; }
-.vars tr.changed .vv {
-  background: var(--line-hit); border-radius: 4px;
-  box-shadow: 0 0 0 3px var(--line-hit);
-}
-.vars .empty { color: var(--text-soft); font-style: italic; font-family: var(--font); }
-
-.trace-out {
-  margin: 0; font-family: var(--mono); font-size: 13.5px;
-  white-space: pre-wrap; direction: ltr; text-align: left;
-  min-height: 1.6em; color: var(--text);
-}
-.trace-out .muted { color: var(--text-soft); font-style: italic; font-family: var(--font); }
-
-.trace-note {
-  margin: 10px 0 0; padding: 9px 12px;
-  border-inline-start: 3px solid var(--accent);
-  background: var(--accent-soft); border-radius: 0 9px 9px 0;
-  font-size: 14.5px;
-}
-html[dir="rtl"] .trace-note { border-radius: 9px 0 0 9px; }
-
-.trace-ctrl {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 7px;
-  margin-top: 11px;
-}
-.trace-ctrl .btn { font-size: 13.5px; padding: 6px 12px; }
-.trace-ctrl .step {
-  font-size: 13px; color: var(--text-soft);
-  font-variant-numeric: tabular-nums; margin-inline-start: auto;
-}
-.trace-ctrl .btn:disabled { opacity: .45; cursor: default; }
-.trace-scrub {
-  flex: 1 1 100%; width: 100%; margin: 2px 0 0;
-  accent-color: var(--accent);
-}
-
-/* ---------- misc ---------- */
-.callout {
-  border: 1px solid var(--border);
-  border-inline-start: 4px solid var(--accent);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: var(--surface);
-  padding: 12px 15px; margin: 18px 0;
-}
-html[dir="rtl"] .callout { border-radius: var(--radius) 0 0 var(--radius); }
-.callout h4 { margin: 0 0 5px; font-size: 15px; }
-.callout p:last-child { margin-bottom: 0; }
-.callout.prereq { border-inline-start-color: var(--warn); }
-.callout.ahead  { border-inline-start-color: var(--good); }
-
-.seelist { margin: 8px 0 0; padding-inline-start: 20px; }
-.seelist li { margin-bottom: 4px; }
-
-@media print {
-  .testbar, .qfilter, .qactions, .trace-ctrl { display: none !important; }
-  .qbox details { open: open; }
-}
-
-/* ---------- drawer: grouped outline + on-this-page jump list ---------- */
-.drawer { display: flex; flex-direction: column; }
-.drawer ol { flex: none; counter-reset: lesson; }
-
-/* Only lessons carry a number, so the badges read 1..7 even though
-   tests, the lab and the two exams sit between them in the list. */
-.drawer li { counter-increment: none; }
-.drawer li.nv-lesson { counter-increment: lesson; }
-.drawer li.nv-lesson a::before { content: counter(lesson); }
-
-.drawer li.nv-test a,
-.drawer li.nv-lab a {
-  margin-inline-start: 18px;
-  font-size: 14px;
-  color: var(--text-soft);
-}
-.drawer li.nv-test a::before { content: "✎"; opacity: .75; }
-.drawer li.nv-lab a::before  { content: "▶"; opacity: .75; }
-.drawer li.nv-exam a {
-  font-weight: 600;
-  background: var(--surface-2);
-}
-.drawer li.nv-exam a::before { content: "★"; }
-.drawer li.nv-home a::before { content: "⌂"; }
-
-.drawer .jump {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  overflow-y: auto;
-  min-height: 0;
-}
-.drawer .jump h2 { margin-bottom: 8px; }
-.drawer .jump ul { list-style: none; margin: 0; padding: 0; }
-.drawer .jump li { margin-bottom: 2px; }
-.drawer .jump li.h3 a { margin-inline-start: 14px; font-size: 13px; opacity: .85; }
-.drawer .jump a {
-  display: block;
-  padding: 5px 9px;
-  font-size: 13.5px;
-  line-height: 1.45;
-  border-radius: 8px;
-  color: var(--text-soft);
-  text-decoration: none;
-}
-.drawer .jump a::before { content: none; }
-.drawer .jump a:hover { background: var(--surface-2); color: var(--accent); }
-.drawer .jump a code { font-size: 12.5px; }
-
-
 /* ============================================================
-   Narrow-screen overflow.
-
-   Four places where content wider than a phone pushed the whole
-   page sideways instead of scrolling inside its own box. The
-   first two are in the original chapter content, the second two
-   in the question widgets.
+   Narrow-screen overflow - two places where a question wider
+   than a phone pushed the page sideways instead of scrolling
+   inside its own box.
    ============================================================ */
 
-/* 1. Program output: pre-wrap breaks at spaces, so a long
-   unbreakable line (a traceback path, a padded table row) still
-   overflowed. Let the block scroll instead. */
-.output {
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-}
-
-/* 2. A wide comparison table cannot shrink below its min-content
-   width, so on a phone it scrolls inside itself. Left alone on
-   wider screens, where width:100% is still what is wanted. */
-@media (max-width: 760px) {
-  main table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-  }
-}
-
-/* 3. An answer option holding a code block is a flex item, and a
-   flex item defaults to min-width:auto — it refuses to shrink
-   below its content and drags the card past the viewport. */
+/* An answer option holding a code block is a flex item, and a flex
+   item defaults to min-width:auto - it refuses to shrink below its
+   content and drags the card past the viewport. */
 .answers .opt { min-width: 0; }
 .answers .opt .ob { min-width: 0; flex: 1 1 auto; }
 .answers .opt .ob pre.code { max-width: 100%; }
 
-/* 4. Same shrink problem on the card and its stem. */
+/* Same shrink problem on the card and its stem. */
 .qbox, .qstem, .qwidget, .assess { min-width: 0; }
 .qbox pre.code, .qstem pre.code { max-width: 100%; }
 
-/* 5. Inline code: an identifier like RefrigeratedTruckCourier is one
-   unbreakable word, and the span is display:inline-block, so it is
-   sized shrink-to-fit from its min-content width. `anywhere` is the
-   keyword that reduces that min-content width; `break-word` by
-   definition does not, which is why it had no effect here. Lines
-   still only break when the word genuinely does not fit. */
-code:not(pre code) { overflow-wrap: anywhere; }
-
-/* 6. The topbar and the test toolbar are both sticky, so anything
-   scrolled into view programmatically (the result panel, a card
-   jumped to from a filter) has to clear roughly 100px of chrome. */
-.qbox, .result, .trace { scroll-margin-top: 112px; }
-
-/* On a phone the toolbar wraps onto a second row, so it needs more. */
+/* On a phone the test toolbar wraps onto a second row, so anything
+   scrolled to programmatically needs to clear more chrome. */
 @media (max-width: 560px) {
-  .qbox, .result, .trace { scroll-margin-top: 168px; }
+  .qbox, .result { scroll-margin-top: 168px; }
+}
+
+@media print {
+  .testbar, .qfilter, .qactions { display: none !important; }
+  .qbox details { open: open; }
 }

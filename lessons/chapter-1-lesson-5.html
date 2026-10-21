@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Inheritance &amp; Composition · Python OOP by Example" data-ar="الوراثة والتركيب · البرمجة الكائنية بلغة بايثون">Inheritance &amp; Composition · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-05" data-path="lessons/chapter-1-lesson-5.html">
+<main>
+<section class="page" id="lesson-05">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 5</span>
+  <h1><span class="en">Inheritance &amp; Composition</span><span class="ar">الوراثة والتركيب</span></h1>
+
+  <p class="lede en">By the end of this lesson you will be able to delete three copies of the same method and keep one, extend an inherited method instead of retyping it, and — just as importantly — recognise the day inheritance stops helping and start building objects out of smaller objects instead.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستكون قادرًا على حذف ثلاث نسخ من الدالة نفسها والإبقاء على واحدة، وعلى توسيع دالة موروثة بدلًا من إعادة كتابتها، و— وهذا بالقدر نفسه من الأهمية — على أن تتبيّن اليوم الذي تكفّ فيه الوراثة عن الإفادة فتبدأ ببناء الكائنات من كائنات أصغر بدلًا منها.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A delivery service works one city. Three bicycle couriers on the short runs, two motorbikes for anything across town, and one pickup truck for furniture, water tanks and the clinic's monthly order. A dispatcher assigns routes from a laptop; at the end of the day the same program prints what each courier earned.</p>
+    <p class="ar">شركة توصيل تعمل في مدينة واحدة. ثلاثة مندوبين بالدراجات للمسافات القصيرة، ودراجتان ناريتان لكل ما يعبر المدينة، وسيارة بيك أب واحدة للأثاث وخزانات المياه وطلب العيادة الشهري. ويوزّع مُرسِل المسارات من حاسوب محمول؛ وفي آخر اليوم يطبع البرنامج نفسه ما كسبه كل مندوب.</p>
+    <p class="en">Lesson 4 gave us a base class whose job was to <em>state a requirement</em>. This lesson uses a base class for the opposite reason: to <em>hand out finished code</em> that several classes would otherwise each keep a copy of. Then it shows you the point where that stops working.</p>
+    <p class="ar">منح الدرس 4 صنف أساس مهمته أن <em>يقرّر مطلبًا</em>. وهذا الدرس يستخدم صنف أساس لسبب مضاد: أن <em>يوزّع كودًا جاهزًا</em> كانت عدة أصناف ستحتفظ كل منها بنسخة منه لولاه. ثم يعرض عليك النقطة التي يكفّ عندها ذلك عن العمل.</p>
+  </div>
+
+  <h2 id="l5-h1"><span class="en">Concept 1 — Three classes, one method, written three times</span><span class="ar">المفهوم 1 — ثلاثة أصناف، ودالة واحدة مكتوبة ثلاث مرات</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The couriers were added to the program one kind at a time. First <code>BicycleCourier</code>. Then the motorbikes arrived, and whoever wrote <code>MotorbikeCourier</code> did the sensible thing under pressure: copied the bicycle class, changed two numbers. Then the truck. Three classes, and between them three identical <code>__init__</code> bodies, three identical <code>record_delivery()</code> methods, three identical <code>daily_report()</code> methods. Only <code>speed_kmh</code> and <code>fee_per_km</code> actually differ.</p>
+    <p class="ar">أُضيف المندوبون إلى البرنامج نوعًا بعد نوع. فأولًا <code>BicycleCourier</code>. ثم وصلت الدراجات النارية، فصنع من كتب <code>MotorbikeCourier</code> الصنيع المعقول تحت الضغط: نسخ صنف الدراجة وغيّر رقمين. ثم الشاحنة. ثلاثة أصناف، وبينها ثلاث نسخ متطابقة من جسد <code>__init__</code>، وثلاث دوال <code>record_delivery()</code> متطابقة، وثلاث دوال <code>daily_report()</code> متطابقة. والمختلف فعلًا هو <code>speed_kmh</code> و<code>fee_per_km</code> وحدهما.</p>
+    <p class="en">Nothing is wrong yet. Duplication is never wrong on the day you write it; it is wrong on the day somebody changes it. That day arrives when the dispatcher brings a new rule: no courier may be paid for more than twelve deliveries a day, because beyond that the insurance does not cover them.</p>
+    <p class="ar">ولا شيء معتل بعد. فالتكرار ليس خطأً أبدًا في اليوم الذي تكتبه فيه؛ بل يصبح خطأً في اليوم الذي يغيّره فيه أحد. ويأتي ذلك اليوم عندما يجيء المُرسِل بقاعدة جديدة: لا يُدفَع لأي مندوب على أكثر من اثنتي عشرة توصيلة في اليوم، لأن التأمين لا يغطّيه بعد ذلك.</p>
+    <p class="en">The developer opens the file, finds <code>record_delivery</code>, adds the cap. Finds the next one, adds the cap. Saves. Two of three. The truck class is forty lines further down the file, and nobody is paid to scroll.</p>
+    <p class="ar">يفتح المطوّر الملف، فيجد <code>record_delivery</code> ويضيف الحد. ويجد التالية فيضيف الحد. ويحفظ. اثنتان من ثلاث. وصنف الشاحنة أربعون سطرًا أبعد في الملف، ولا أحد يُدفع له ليمرّر الشاشة.</p>
+  </div>
+
+  <h3 id="l5-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is <code>delivery.py</code> as the service runs it. Read it the way you would read a real file — quickly, looking for the differences.</p>
+  <p class="ar">هذا ملف <code>delivery.py</code> كما تشغّله الشركة. اقرأه كما تقرأ ملفًا حقيقيًا — بسرعة، باحثًا عن الفروق.</p>
+
+<pre class="code bad"><code>class BicycleCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 15
+        self.fee_per_km = 1.5
+
+    def record_delivery(self, km):
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+class MotorbikeCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 45
+        self.fee_per_km = 3.0
+
+    def record_delivery(self, km):
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+class TruckCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 30
+        self.fee_per_km = 6.0
+
+    def record_delivery(self, km):
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+crew = [BicycleCourier("Samir", "0599-100100"),
+        MotorbikeCourier("Wael", "0599-200200"),
+        TruckCourier("Abu Yazan", "0599-300300")]
+
+for rider in crew:
+    earned = sum(rider.record_delivery(4) for _ in range(13))
+    print(rider.daily_report(), f"{earned:8.2f} ILS")
+</code></pre>
+
+  <div class="output">Samir      13 drops  1.50 ILS/km    78.00 ILS
+Wael       13 drops  3.00 ILS/km   156.00 ILS
+Abu Yazan  13 drops  6.00 ILS/km   312.00 ILS</div>
+
+  <p class="en">Fifty-eight lines, of which maybe twenty are distinct. Each courier made thirteen four-kilometre runs — a busy day — and everybody got paid for all thirteen, because the cap does not exist yet.</p>
+  <p class="ar">ثمانية وخمسون سطرًا، منها نحو عشرين سطرًا مميزًا. أدّى كل مندوب ثلاث عشرة رحلة بأربعة كيلومترات — يوم مزدحم — وقُبض للجميع ثمن الثلاث عشرة كلها، لأن الحد غير موجود بعد.</p>
+
+  <h3 id="l5-s2"><span class="en">Now apply the cap — to two of the three</span><span class="ar">الآن طبّق الحد — على اثنين من الثلاثة</span></h3>
+
+  <p class="en">Here is the same file after the change. Read only the three <code>record_delivery</code> methods — everything else is untouched — and notice that the duplication which cost nothing to write is now the thing you have to audit by eye.</p>
+  <p class="ar">وهذا الملف نفسه بعد التغيير. اقرأ دوال <code>record_delivery</code> الثلاث فقط — فكل ما عداها بلا مساس — ولاحظ أن التكرار الذي لم تكلّف كتابته شيئًا هو الآن ما عليك تدقيقه بعينك.</p>
+
+<pre class="code bad"><code>MAX_DROPS = 12      # new rule from the dispatcher
+
+
+class BicycleCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 15
+        self.fee_per_km = 1.5
+
+    def record_delivery(self, km):
+        if self.deliveries_today &gt;= MAX_DROPS:    # patched
+            return 0.0
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+class MotorbikeCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 45
+        self.fee_per_km = 3.0
+
+    def record_delivery(self, km):
+        if self.deliveries_today &gt;= MAX_DROPS:    # patched
+            return 0.0
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+class TruckCourier:
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+        self.speed_kmh = 30
+        self.fee_per_km = 6.0
+
+    def record_delivery(self, km):
+        # NOT patched - nobody remembered the third copy
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+
+crew = [BicycleCourier("Samir", "0599-100100"),
+        MotorbikeCourier("Wael", "0599-200200"),
+        TruckCourier("Abu Yazan", "0599-300300")]
+
+for rider in crew:
+    earned = sum(rider.record_delivery(4) for _ in range(13))
+    print(rider.daily_report(), f"{earned:8.2f} ILS")
+</code></pre>
+
+  <div class="output">Samir      12 drops  1.50 ILS/km    72.00 ILS
+Wael       12 drops  3.00 ILS/km   144.00 ILS
+Abu Yazan  13 drops  6.00 ILS/km   312.00 ILS</div>
+
+  <div class="warn">
+    <h4><span class="en">Nothing crashed, and that is the trouble</span><span class="ar">لم ينهر شيء، وهذه هي المشكلة</span></h4>
+    <p class="en">There is no error anywhere. Two couriers are capped at twelve. The truck did thirteen and was paid for thirteen, on the most expensive rate in the company — and the thirteenth delivery is the one the insurance does not cover. If the truck turns over on that run, the company finds out what the program has been doing.</p>
+    <p class="ar">لا خطأ في أي موضع. فمندوبان محدودان باثنتي عشرة. والشاحنة أدّت ثلاث عشرة وقُبض لها ثمن ثلاث عشرة، بأغلى سعر في الشركة — والتوصيلة الثالثة عشرة هي التي لا يغطّيها التأمين. فإن انقلبت الشاحنة في تلك الرحلة عرفت الشركة ما كان البرنامج يفعله.</p>
+    <p class="en">And notice how the output hides it. Twelve, twelve, thirteen: three numbers in a column, one of them different, in a report that nobody reads line by line because it has looked the same for a year.</p>
+    <p class="ar">ولاحظ كيف يخفيه الناتج. اثنتا عشرة، اثنتا عشرة، ثلاث عشرة: ثلاثة أرقام في عمود، واحد منها مختلف، في تقرير لا يقرأه أحد سطرًا سطرًا لأنه يبدو كما هو منذ عام.</p>
+  </div>
+
+  <h3 id="l5-s3"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">Count what the three classes share and what they do not. Shared: the three attributes set in <code>__init__</code>, the counting, the fee arithmetic, the report format — everything that makes somebody a courier. Different: two numbers.</p>
+  <p class="ar">أحصِ ما تتشاركه الأصناف الثلاثة وما لا تتشاركه. المشترك: الخصائص الثلاث المضبوطة في <code>__init__</code>، والعدّ، وحساب الأجرة، وصيغة التقرير — كل ما يجعل أحدًا مندوبًا. والمختلف: رقمان.</p>
+
+  <p class="en">The defect is not the typing. It is that <strong>the shared behaviour has no single home</strong>, so there is nowhere to put a change. "Cap the deliveries" is one idea, and the program has three places to express it, and the correctness of the program depends on a human remembering the number three. Next quarter there will be a fourth courier type and the number will be four, and nobody will update the habit.</p>
+  <p class="ar">العيب ليس الكتابة. بل أن <strong>السلوك المشترك لا موطن واحد له</strong>، فلا موضع لوضع تغيير فيه. فـ «حدّد التوصيلات» فكرة واحدة، وللبرنامج ثلاثة مواضع للتعبير عنها، وصحة البرنامج معلّقة بأن يتذكّر إنسان الرقم ثلاثة. وفي الربع القادم سيكون هناك نوع رابع من المندوبين فيصبح الرقم أربعة، ولن يحدّث أحد العادة.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — one home for the shared behaviour</span><span class="ar">الخطوة 1 — موطن واحد للسلوك المشترك</span></span>
+    <p class="en">Write a class called <code>Courier</code> holding everything the three had in common, and let the three say <code>class BicycleCourier(Courier)</code>. That is <strong>inheritance</strong>: the subclass starts with everything the base class has, and only writes down its differences. Here the differences are two class attributes, so each subclass is three lines.</p>
+    <p class="ar">اكتب صنفًا اسمه <code>Courier</code> يحمل كل ما كان مشتركًا بين الثلاثة، ودع الثلاثة تقول <code>class BicycleCourier(Courier)</code>. وهذه هي <strong>الوراثة</strong>: فالصنف المشتق يبدأ بكل ما في صنف الأساس، ولا يكتب إلا فروقه. والفروق هنا خاصيتا صنف، فيكون كل صنف مشتق ثلاثة أسطر.</p>
+
+<pre class="code good"><code>MAX_DROPS = 12
+
+
+class Courier:
+    speed_kmh = 0
+    fee_per_km = 0.0
+
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+
+    def record_delivery(self, km):
+        if self.deliveries_today &gt;= MAX_DROPS:
+            return 0.0
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+    def daily_report(self):
+        return (f"{self.name:9} {self.deliveries_today:3}"
+                f" drops  {self.fee_per_km:.2f} ILS/km")
+
+    def __str__(self):
+        return f"{self.name} ({type(self).__name__})"
+
+
+class BicycleCourier(Courier):
+    speed_kmh = 15
+    fee_per_km = 1.5
+
+
+class MotorbikeCourier(Courier):
+    speed_kmh = 45
+    fee_per_km = 3.0
+
+
+class TruckCourier(Courier):
+    speed_kmh = 30
+    fee_per_km = 6.0
+
+
+crew = [BicycleCourier("Samir", "0599-100100"),
+        MotorbikeCourier("Wael", "0599-200200"),
+        TruckCourier("Abu Yazan", "0599-300300")]
+
+for rider in crew:
+    earned = sum(rider.record_delivery(4) for _ in range(13))
+    print(rider.daily_report(), f"{earned:8.2f} ILS")
+</code></pre>
+
+    <div class="output">Samir      12 drops  1.50 ILS/km    72.00 ILS
+Wael       12 drops  3.00 ILS/km   144.00 ILS
+Abu Yazan  12 drops  6.00 ILS/km   288.00 ILS</div>
+
+    <p class="en">Twelve, twelve, twelve. The truck is capped, and nobody wrote a cap for the truck. Fifty-eight lines became forty-eight, which is a modest saving — but the real figure is a different one: <code>record_delivery</code> went from three copies to one, so "where do I change the cap?" now has exactly one answer, and the creation lines at the bottom never moved.</p>
+    <p class="ar">اثنتا عشرة، اثنتا عشرة، اثنتا عشرة. فالشاحنة محدودة، ولم يكتب أحد حدًّا للشاحنة. وصار الثمانية والخمسون سطرًا ثمانية وأربعين، وهو توفير متواضع — لكن الرقم الحقيقي رقم آخر: فقد صارت <code>record_delivery</code> نسخة واحدة بعد ثلاث، فصار لسؤال «أين أغيّر الحد؟» جواب واحد بالضبط، ولم تتحرّك أسطر الإنشاء في الأسفل قط.</p>
+
+    <p class="en">One detail about the two numbers. <code>fee_per_km = 1.5</code> sits in the class body, not in <code>__init__</code> — it is a class attribute, as in Lesson 2, and that is the right place for it, because the fee belongs to <em>being a bicycle courier</em> and not to Samir personally. <code>self.fee_per_km</code> inside the base class still finds it: Python looks on the instance first, then on the object's own class, then up the chain. The base defines <code>fee_per_km = 0.0</code> as a placeholder; every subclass shadows it.</p>
+    <p class="ar">تفصيل عن الرقمين. فـ <code>fee_per_km = 1.5</code> يقيم في جسد الصنف لا في <code>__init__</code> — فهو خاصية صنف، كما في الدرس 2، وهذا موضعه الصحيح، لأن الأجرة تخصّ <em>كونك مندوب دراجة</em> لا سميرًا شخصيًا. و<code>self.fee_per_km</code> داخل صنف الأساس تجدها رغم ذلك: فبايثون تنظر في الكائن أولًا، ثم في صنف الكائن نفسه، ثم صعودًا في السلسلة. ويعرّف الأساس <code>fee_per_km = 0.0</code> كقيمة نائبة؛ وكل صنف مشتق يحجبها.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — when a subclass needs to do <em>more</em>: <code>super()</code></span><span class="ar">الخطوة 2 — حين يحتاج الصنف المشتق إلى <em>مزيد</em>: <code>super()</code></span></span>
+    <p class="en">The truck is not quite like the others after all. It has a plate number the office needs on the report, and every drop costs twenty shekels of loading labour on top of the distance. So <code>TruckCourier</code> has to change two inherited methods — but "change" must not mean "retype".</p>
+    <p class="ar">الشاحنة ليست كغيرها تمامًا في النهاية. فلها رقم لوحة يحتاجه المكتب في التقرير، وكل توصيلة تكلّف عشرين شيكلًا أجرة تحميل فوق المسافة. فعلى <code>TruckCourier</code> أن يغيّر دالتين موروثتين — لكن «يغيّر» يجب ألا تعني «يعيد الكتابة».</p>
+    <p class="en"><code>super()</code> means "the same method, as the base class wrote it". Call it, then add your part. <code>__init__</code> works the same way: <code>super().__init__(name, phone)</code> does the shared three assignments, then the subclass stores the plate.</p>
+    <p class="ar">تعني <code>super()</code> «الدالة نفسها كما كتبها صنف الأساس». فاستدعها ثم أضف جزءك. و<code>__init__</code> تعمل بالطريقة نفسها: فـ <code>super().__init__(name, phone)</code> تؤدي الإسنادات الثلاثة المشتركة، ثم يخزّن الصنف المشتق اللوحة.</p>
+
+<pre class="code good"><code>class TruckCourier(Courier):
+    speed_kmh = 30
+    fee_per_km = 6.0
+    LOADING_FEE = 20.0
+
+    def __init__(self, name, phone, plate):
+        super().__init__(name, phone)   # the shared three
+        self.plate = plate              # then the extra
+
+    def record_delivery(self, km):
+        fee = super().record_delivery(km)   # extend, not
+        if fee == 0.0:                      # replace
+            return 0.0
+        return round(fee + self.LOADING_FEE, 2)
+
+    def daily_report(self):
+        base = super().daily_report()
+        return f"{base}  plate {self.plate}"
+
+
+crew = [BicycleCourier("Samir", "0599-100100"),
+        MotorbikeCourier("Wael", "0599-200200"),
+        TruckCourier("Abu Yazan", "0599-300300", "4-21399")]
+
+for rider in crew:
+    earned = sum(rider.record_delivery(4) for _ in range(13))
+    print(rider.daily_report(), f"{earned:8.2f} ILS")
+</code></pre>
+
+    <div class="output">Samir      12 drops  1.50 ILS/km    72.00 ILS
+Wael       12 drops  3.00 ILS/km   144.00 ILS
+Abu Yazan  12 drops  6.00 ILS/km  plate 4-21399   528.00 ILS</div>
+
+    <p class="en">Read <code>TruckCourier.record_delivery</code> once more. It does not count deliveries and it does not know <code>MAX_DROPS</code> exists. It asks the base class for the distance fee — which counts, and caps, and returns <code>0.0</code> when the cap is hit — and then adds loading on top, except on a refused delivery, where there is nothing to load. Twelve drops at 4 km: 24 shekels of distance plus 20 of loading, twelve times, is 528. The cap still holds, in a method the truck overrode, because the truck <em>called</em> the rule rather than copying it.</p>
+    <p class="ar">اقرأ <code>TruckCourier.record_delivery</code> مرة أخرى. فهي لا تعدّ التوصيلات ولا تعرف أن <code>MAX_DROPS</code> موجود. بل تسأل صنف الأساس عن أجرة المسافة — وهو الذي يعدّ ويحدّ ويعيد <code>0.0</code> عند بلوغ الحد — ثم تضيف التحميل فوقها، إلا في توصيلة مرفوضة فلا شيء لتحميله. اثنتا عشرة توصيلة بأربعة كيلومترات: 24 شيكلًا مسافةً زائدًا 20 تحميلًا، اثنتي عشرة مرة، تساوي 528. فالحد لا يزال قائمًا في دالة تجاوزتها الشاحنة، لأن الشاحنة <em>استدعت</em> القاعدة ولم تنسخها.</p>
+
+    <div class="warn">
+      <h4><span class="en">Forget <code>super().__init__()</code> and the object comes out half-built</span><span class="ar">انسَ <code>super().__init__()</code> فيخرج الكائن نصف مبنيّ</span></h4>
+      <p class="en">Writing <code>__init__</code> in a subclass <em>replaces</em> the base class's <code>__init__</code> entirely. It is not added to it. If you forget the <code>super()</code> call, the three shared assignments simply never happen — and Python says nothing, because an object with missing attributes is a perfectly legal object until somebody reads one.</p>
+      <p class="ar">كتابة <code>__init__</code> في صنف مشتق <em>تستبدل</em> دالة <code>__init__</code> في صنف الأساس استبدالًا كاملًا. فهي لا تُضاف إليها. فإن نسيت استدعاء <code>super()</code> لم تحدث الإسنادات الثلاثة المشتركة إطلاقًا — ولا تقول بايثون شيئًا، لأن كائنًا تنقصه خصائص كائن مشروع تمامًا إلى أن يقرأ أحد واحدة منها.</p>
+
+<pre class="code bad"><code>MAX_DROPS = 12
+
+
+class Courier:
+    fee_per_km = 0.0
+
+    def __init__(self, name, phone):
+        self.name = name
+        self.phone = phone
+        self.deliveries_today = 0
+
+    def record_delivery(self, km):
+        if self.deliveries_today &gt;= MAX_DROPS:
+            return 0.0
+        self.deliveries_today += 1
+        return round(km * self.fee_per_km, 2)
+
+
+class TruckCourier(Courier):
+    fee_per_km = 6.0
+
+    def __init__(self, name, phone, plate):
+        # super().__init__(name, phone) is MISSING
+        self.plate = plate
+
+
+truck = TruckCourier("Abu Yazan", "0599-300300", "4-21399")
+print("object created fine, plate:", truck.plate)
+print(truck.record_delivery(4))
+</code></pre>
+
+      <div class="output">object created fine, plate: 4-21399
+Traceback (most recent call last):
+  File "delivery.py", line 29, in &lt;module&gt;
+    print(truck.record_delivery(4))
+          ~~~~~~~~~~~~~~~~~~~~~^^^
+  File "delivery.py", line 13, in record_delivery
+    if self.deliveries_today &gt;= MAX_DROPS:
+       ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'TruckCourier' object has no attribute 'deliveries_today'</div>
+
+      <p class="en">The first line of output is the dangerous one: <code>TruckCourier(...)</code> succeeded, and <code>truck.plate</code> read back correctly, so the object looks fine. There is no <code>self.name</code>, no <code>self.phone</code> and no <code>self.deliveries_today</code> on it, and the traceback names only the attribute that happened to be read first. Note also that <code>fee_per_km</code> is <em>not</em> missing — class attributes are inherited through the class, not assigned in <code>__init__</code>, so they survive this mistake and make the wreckage harder to spot.</p>
+      <p class="ar">السطر الأول من الناتج هو الخَطِر: فقد نجحت <code>TruckCourier(...)</code>، وقُرئت <code>truck.plate</code> صحيحةً، فيبدو الكائن سليمًا. ولا <code>self.name</code> فيه ولا <code>self.phone</code> ولا <code>self.deliveries_today</code>، ولا يسمّي التتبّع إلا الخاصية التي حدث أن قُرئت أولًا. ولاحظ أيضًا أن <code>fee_per_km</code> <em>ليست</em> مفقودة — فخصائص الصنف تُورَّث عبر الصنف لا تُسنَد في <code>__init__</code>، فتنجو من هذا الخطأ وتجعل الخراب أصعب تبيّنًا.</p>
+      <p class="en">The habit that prevents this: in any subclass <code>__init__</code>, the <code>super().__init__(...)</code> call is the first line you write, before you think about anything else.</p>
+      <p class="ar">العادة التي تمنع هذا: في أي <code>__init__</code> في صنف مشتق، يكون استدعاء <code>super().__init__(...)</code> أول سطر تكتبه، قبل أن تفكّر في أي شيء آخر.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — the "is-a" test, and <code>isinstance()</code></span><span class="ar">الخطوة 3 — اختبار «هو نوع من»، و<code>isinstance()</code></span></span>
+    <p class="en">Inheritance was the right tool here for one reason you can say out loud: <em>a bicycle courier is a courier</em>. Everything the base class promises is true of every subclass — each one has a name, a phone, a count, a fee, and can record a delivery. That sentence is the whole justification, and <code>isinstance()</code> is Python's way of asking it.</p>
+    <p class="ar">كانت الوراثة الأداة الصحيحة هنا لسبب واحد تستطيع قوله بصوت عالٍ: <em>مندوب الدراجة مندوب</em>. فكل ما يَعِد به صنف الأساس صحيح في كل صنف مشتق — فلكل منها اسم وهاتف وعدّاد وأجرة، ويستطيع كل منها تسجيل توصيلة. وتلك الجملة هي التبرير كله، و<code>isinstance()</code> هي طريقة بايثون في سؤالها.</p>
+
+<pre class="code good"><code>class Dispatcher:                 # staff, not a courier
+    def __init__(self, name):
+        self.name = name
+
+
+samir = BicycleCourier("Samir", "0599-100100")
+abu = TruckCourier("Abu Yazan", "0599-300300", "4-21399")
+rania = Dispatcher("Rania")
+
+print(samir)
+print(abu)
+print(isinstance(samir, BicycleCourier))
+print(isinstance(samir, Courier))
+print(isinstance(samir, TruckCourier))
+print(isinstance(rania, Courier))
+
+on_shift = [samir, abu, rania]
+riders = [p for p in on_shift if isinstance(p, Courier)]
+print("couriers on shift:", [r.name for r in riders])
+</code></pre>
+
+    <div class="output">Samir (BicycleCourier)
+Abu Yazan (TruckCourier)
+True
+True
+False
+False
+couriers on shift: ['Samir', 'Abu Yazan']</div>
+
+    <p class="en">Samir is a <code>BicycleCourier</code> and he is also a <code>Courier</code> — both answers are <code>True</code>, and that is the point of a hierarchy: an object is every type above it in the chain. He is not a <code>TruckCourier</code>, and Rania is not a courier at all, so the mixed shift list filters cleanly on one word.</p>
+    <p class="ar">سمير <code>BicycleCourier</code> وهو أيضًا <code>Courier</code> — فالجوابان <code>True</code>، وهذا هو المقصود من التسلسل: فالكائن هو كل نوع يعلوه في السلسلة. وهو ليس <code>TruckCourier</code>، ورانيا ليست مندوبة إطلاقًا، فتُرشَّح قائمة الورديّة المختلطة ترشيحًا نظيفًا بكلمة واحدة.</p>
+
+    <p class="en">The first two lines of output were free. <code>__str__</code> was written once on <code>Courier</code>, and <code>print(samir)</code> and <code>print(abu)</code> each produced the right class name without either subclass defining anything — <code>type(self).__name__</code> is resolved at call time, on the actual object. Methods are inherited exactly like attributes, and that includes the dunder methods from Lesson 2.</p>
+    <p class="ar">السطران الأولان من الناتج كانا مجانيين. فقد كُتبت <code>__str__</code> مرة واحدة في <code>Courier</code>، وأنتجت <code>print(samir)</code> و<code>print(abu)</code> كل منهما اسم الصنف الصحيح دون أن يعرّف أي من الصنفين المشتقين شيئًا — فـ <code>type(self).__name__</code> تُحلّ وقت الاستدعاء على الكائن الفعلي. والدوال تُورَّث كالخصائص تمامًا، ومن ذلك دوال dunder من الدرس 2.</p>
+
+    <div class="tip">
+      <h4><span class="en">Use <code>isinstance()</code> sparingly</span><span class="ar">استخدم <code>isinstance()</code> بحساب</span></h4>
+      <p class="en">Filtering a mixed list, as above, is a fair use. Writing <code>if isinstance(c, TruckCourier): fee += 20</code> is not — that is the <code>if/elif</code> chain of Lesson 4 coming back in disguise, and it belongs in an overridden method on the truck instead. A good rule: <code>isinstance</code> to decide whether an object <em>belongs</em> in a collection, never to decide what it should <em>do</em>.</p>
+      <p class="ar">ترشيح قائمة مختلطة، كما سبق، استخدام منصف. أما كتابة <code>if isinstance(c, TruckCourier): fee += 20</code> فليست كذلك — فتلك سلسلة <code>if/elif</code> من الدرس 4 عائدةً متنكّرة، ومكانها دالة متجاوَزة في الشاحنة بدلًا من ذلك. وقاعدة جيدة: <code>isinstance</code> لتقرير ما إذا كان الكائن <em>ينتمي</em> إلى مجموعة، لا لتقرير ما ينبغي أن <em>يفعله</em>.</p>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>TruckCourier.record_delivery</code> overrides the base method, yet the twelve-delivery cap still applies to the truck. Why?</span><span class="ar">تتجاوز <code>TruckCourier.record_delivery</code> دالة الأساس، ومع ذلك لا يزال حد الاثنتي عشرة توصيلة ينطبق على الشاحنة. لماذا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because an overriding method in Python runs after the base method, so the base class's checks always happen first.</span><span class="ar">لأن الدالة المتجاوِزة في بايثون تُنفَّذ بعد دالة الأساس، فتحدث فحوص صنف الأساس أولًا دائمًا.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the override explicitly calls <code>super().record_delivery(km)</code> and builds on its result, so the counting and the cap are still executed — in the base class.</span><span class="ar">لأن التجاوز يستدعي <code>super().record_delivery(km)</code> صراحةً ويبني على نتيجتها، فلا يزال العدّ والحد يُنفَّذان — في صنف الأساس.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>MAX_DROPS</code> is a module-level constant, and module-level constants apply to every class in the file.</span><span class="ar">لأن <code>MAX_DROPS</code> ثابت على مستوى الوحدة، والثوابت على مستوى الوحدة تنطبق على كل صنف في الملف.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>deliveries_today</code> is set in the base class's <code>__init__</code>, and any attribute created there is protected from a subclass.</span><span class="ar">لأن <code>deliveries_today</code> تُضبَط في <code>__init__</code> في صنف الأساس، وأي خاصية تُنشأ هناك محميّة من الصنف المشتق.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">An override replaces the method completely; nothing of the base version runs unless you ask for it. The truck's version asks — <code>fee = super().record_delivery(km)</code> — so the increment and the cap happen inside the base method, and the truck only adds loading to whatever came back. Delete that one call and write the arithmetic by hand, and the truck does thirteen again. The tempting wrong answer is the third: <code>MAX_DROPS</code> being visible everywhere is true and completely beside the point — a constant does not enforce itself, and the first broken version of the file had the same constant in scope while <code>TruckCourier</code> ignored it.</div>
+      <div class="ar">التجاوز يستبدل الدالة استبدالًا كاملًا؛ فلا يُنفَّذ شيء من نسخة الأساس إلا أن تطلبه. ونسخة الشاحنة تطلبه — <code>fee = super().record_delivery(km)</code> — فيحدث التزايد والحد داخل دالة الأساس، ولا تضيف الشاحنة إلا التحميل إلى ما رجع. فاحذف ذلك الاستدعاء الواحد واكتب الحساب بيدك، فتؤدي الشاحنة ثلاث عشرة من جديد. والإجابة المغرية الخاطئة هي الثالثة: فكون <code>MAX_DROPS</code> مرئيًا في كل مكان صحيح ولا صلة له بالموضوع إطلاقًا — فالثابت لا يفرض نفسه، وقد كان الثابت نفسه في النطاق في النسخة المعطوبة الأولى من الملف بينما تجاهله <code>TruckCourier</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l5-s4"><span class="en">Second example — a library shelf</span><span class="ar">مثال ثانٍ — رفّ مكتبة</span></h3>
+
+  <p class="en">Different domain, the same three moves in under forty lines. Every item in a school library has a title, an ID and a loan period, and prints the same label — so that goes on <code>LibraryItem</code>. A DVD differs by one number. A reference book differs by one number and one sentence, so it overrides a method.</p>
+  <p class="ar">مجال مختلف، والحركات الثلاث نفسها في أقل من أربعين سطرًا. فلكل مادة في مكتبة مدرسية عنوان ورقم ومدة إعارة، وتطبع كلها اللافتة نفسها — فيذهب ذلك إلى <code>LibraryItem</code>. والقرص يختلف برقم واحد. والمرجع يختلف برقم واحد وجملة واحدة، فيتجاوز دالة.</p>
+
+<pre class="code good"><code>class LibraryItem:
+    loan_days = 14
+    kind = "item"
+
+    def __init__(self, title, item_id):
+        self.title = title
+        self.item_id = item_id
+
+    def due_in(self):
+        return f"{self.loan_days} days"
+
+    def label(self):
+        return (f"[{self.item_id}] {self.title:22}"
+                f" {self.kind:9} due in {self.due_in()}")
+
+
+class Book(LibraryItem):
+    kind = "book"
+
+
+class Dvd(LibraryItem):
+    kind = "dvd"
+    loan_days = 3
+
+
+class ReferenceBook(Book):
+    kind = "reference"
+    loan_days = 0
+
+    def due_in(self):
+        return "not lent out"
+
+
+shelf = [Book("Kalila wa Dimna", "B-104"),
+         Dvd("Gaza Documentary", "D-017"),
+         ReferenceBook("Arabic Dictionary", "R-002")]
+
+for item in shelf:
+    print(item.label())
+</code></pre>
+
+  <div class="output">[B-104] Kalila wa Dimna        book      due in 14 days
+[D-017] Gaza Documentary       dvd       due in 3 days
+[R-002] Arabic Dictionary      reference due in not lent out</div>
+
+  <p class="en"><code>label()</code> is written once and all three use it, including the one whose due date is not a number at all — because <code>label()</code> calls <code>self.due_in()</code> rather than formatting <code>loan_days</code> itself, so a subclass can replace the answer without touching the layout. <code>Book</code> overrides nothing but a label string. And <code>ReferenceBook</code> inherits from <code>Book</code>, not from <code>LibraryItem</code>, because a reference book really is a book — the same "is-a" sentence, asked one level deeper.</p>
+  <p class="ar">و<code>label()</code> مكتوبة مرة واحدة وتستخدمها الثلاث كلها، ومنها تلك التي لا يكون تاريخ استحقاقها رقمًا إطلاقًا — لأن <code>label()</code> تستدعي <code>self.due_in()</code> بدلًا من تنسيق <code>loan_days</code> بنفسها، فيستطيع صنف مشتق أن يستبدل الإجابة دون أن يلامس التنسيق. و<code>Book</code> لا يتجاوز إلا نص لافتة. و<code>ReferenceBook</code> يرث من <code>Book</code> لا من <code>LibraryItem</code>، لأن المرجع كتاب فعلًا — الجملة نفسها «هو نوع من» مسؤولةً مستوى أعمق.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — Three route types, one base</span><span class="ar">تمرين 1.1 — ثلاثة أنواع مسارات، وأساس واحد</span></h4>
+    <p class="en">Three route classes were copy-pasted the same way the couriers were. Refactor them onto a <code>Route</code> base that owns <code>__init__(label, km)</code>, <code>price()</code> — a base fee plus 2.00 ILS per km — and <code>line()</code>. <code>CrossTown</code> must add a 12% congestion charge on top of the base price, and <code>Express</code> must add a flat 10.00 ILS and carry an extra <code>promised_min</code>, shown at the end of its line. Both must reach the base version through <code>super()</code>, not retype the arithmetic. The output must not change.</p>
+    <p class="ar">نُسخت ثلاثة أصناف مسارات ولُصقت بالطريقة نفسها التي نُسخ بها المندوبون. أعد هيكلتها على أساس <code>Route</code> يملك <code>__init__(label, km)</code> و<code>price()</code> — أجرة أساس زائدًا 2.00 شيكل لكل كيلومتر — و<code>line()</code>. وعلى <code>CrossTown</code> أن يضيف 12% رسم ازدحام فوق سعر الأساس، وعلى <code>Express</code> أن يضيف 10.00 شواكل ثابتة ويحمل <code>promised_min</code> زائدًا يظهر في آخر سطره. وعلى كليهما أن يبلغ نسخة الأساس عبر <code>super()</code> لا أن يعيد كتابة الحساب. ويجب ألا يتغير الناتج.</p>
+
+<pre class="code bad"><code>class InCity:
+    def __init__(self, label, km):
+        self.label = label
+        self.km = km
+
+    def price(self):
+        return round(5.0 + self.km * 2.0, 2)
+
+    def line(self):
+        return (f"{self.label:12} {'in-city':9}"
+                f" {self.km:5.1f} km {self.price():7.2f}")
+
+
+class CrossTown:
+    def __init__(self, label, km):
+        self.label = label
+        self.km = km
+
+    def price(self):
+        return round((9.0 + self.km * 2.0) * 1.12, 2)
+
+    def line(self):
+        return (f"{self.label:12} {'crosstown':9}"
+                f" {self.km:5.1f} km {self.price():7.2f}")
+
+
+class Express:
+    def __init__(self, label, km, promised_min):
+        self.label = label
+        self.km = km
+        self.promised_min = promised_min
+
+    def price(self):
+        return round(15.0 + self.km * 2.0 + 10.0, 2)
+
+    def line(self):
+        return (f"{self.label:12} {'express':9}"
+                f" {self.km:5.1f} km {self.price():7.2f}"
+                f"  &lt;= {self.promised_min} min")
+
+
+orders = [InCity("Rimal-Nasr", 3.0),
+          CrossTown("Nasr-Zaytoun", 7.5),
+          Express("Clinic-Lab", 2.0, 20)]
+
+for o in orders:
+    print(o.line())
+print(f"total: {sum(o.price() for o in orders):.2f} ILS")
+</code></pre>
+
+    <div class="output">Rimal-Nasr   in-city     3.0 km   11.00
+Nasr-Zaytoun crosstown   7.5 km   26.88
+Clinic-Lab   express     2.0 km   29.00  &lt;= 20 min
+total: 66.88 ILS</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Route:
+    base_fee = 0.0
+    name = "route"
+
+    def __init__(self, label, km):
+        self.label = label
+        self.km = km
+
+    def price(self):
+        return round(self.base_fee + self.km * 2.0, 2)
+
+    def line(self):
+        return (f"{self.label:12} {self.name:9}"
+                f" {self.km:5.1f} km {self.price():7.2f}")
+
+
+class InCity(Route):
+    name = "in-city"
+    base_fee = 5.0
+
+
+class CrossTown(Route):
+    name = "crosstown"
+    base_fee = 9.0
+
+    def price(self):
+        # crosstown adds a 12% congestion charge
+        return round(super().price() * 1.12, 2)
+
+
+class Express(Route):
+    name = "express"
+    base_fee = 15.0
+
+    def __init__(self, label, km, promised_min):
+        super().__init__(label, km)
+        self.promised_min = promised_min
+
+    def price(self):
+        return round(super().price() + 10.0, 2)
+
+    def line(self):
+        return f"{super().line()}  &lt;= {self.promised_min} min"
+
+
+orders = [InCity("Rimal-Nasr", 3.0),
+          CrossTown("Nasr-Zaytoun", 7.5),
+          Express("Clinic-Lab", 2.0, 20)]
+
+for o in orders:
+    print(o.line())
+print(f"total: {sum(o.price() for o in orders):.2f} ILS")
+</code></pre>
+      <div class="output">Rimal-Nasr   in-city     3.0 km   11.00
+Nasr-Zaytoun crosstown   7.5 km   26.88
+Clinic-Lab   express     2.0 km   29.00  &lt;= 20 min
+total: 66.88 ILS</div>
+      <p class="en">Identical output from half the code. Three things are worth naming. The hard-coded strings <code>'in-city'</code>, <code>'crosstown'</code>, <code>'express'</code> became a <code>name</code> class attribute, so <code>line()</code> could be written once. <code>Express.line()</code> wraps <code>super().line()</code> instead of rebuilding the f-string, so changing the column widths tomorrow is one edit in one place. And <code>InCity</code> overrides nothing at all — it is two lines, and it is complete.</p>
+      <p class="ar">ناتج مطابق من نصف الكود. وثلاثة أمور تستحق التسمية. فالنصوص المثبتة <code>'in-city'</code> و<code>'crosstown'</code> و<code>'express'</code> صارت خاصية صنف <code>name</code>، فأمكن كتابة <code>line()</code> مرة واحدة. و<code>Express.line()</code> تلفّ <code>super().line()</code> بدلًا من إعادة بناء الـ f-string، فتغيير عروض الأعمدة غدًا تعديل واحد في موضع واحد. و<code>InCity</code> لا يتجاوز شيئًا إطلاقًا — فهو سطران، وهو تامّ.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — Two shift logs that extend, not replace</span><span class="ar">تمرين 1.2 — سجلّا ورديّة يوسّعان لا يستبدلان</span></h4>
+    <p class="en">Fill in the two subclasses. <code>NightShiftLog</code> takes a <code>torch_id</code> as well as the courier's name, and its <code>summary()</code> appends <code>"  torch &lt;id&gt;"</code> to the inherited one. <code>ColdChainLog</code> takes a <code>max_c</code>, and its <code>add_trip(km, temp_c)</code> refuses the trip with a printed message when the temperature is above <code>max_c</code> and otherwise delegates upward; have its summary report how many were refused. Neither subclass may retype anything the base already does — and run the starter first, unchanged, to see what the missing <code>super().__init__()</code> costs you.</p>
+    <p class="ar">أكمل الصنفين المشتقين. يأخذ <code>NightShiftLog</code> رقم <code>torch_id</code> إلى جانب اسم المندوب، وتُلحق <code>summary()</code> فيه <code>"  torch &lt;id&gt;"</code> بالنسخة الموروثة. ويأخذ <code>ColdChainLog</code> قيمة <code>max_c</code>، وترفض <code>add_trip(km, temp_c)</code> فيه الرحلة برسالة مطبوعة عندما تتجاوز الحرارة <code>max_c</code>، وتفوّض إلى الأعلى فيما عدا ذلك؛ واجعل ملخّصه يُبلّغ بعدد المرفوض. ولا يجوز لأي من الصنفين المشتقين أن يعيد كتابة شيء يؤدّيه الأساس أصلًا — وشغّل الكود الابتدائي أولًا بلا تغيير لترى ما يكلّفك غياب <code>super().__init__()</code>.</p>
+
+<pre class="code"><code>class ShiftLog:
+    def __init__(self, courier_name):
+        self.courier_name = courier_name
+        self.trips = []
+
+    def add_trip(self, km):
+        self.trips.append(km)
+
+    def total_km(self):
+        return round(sum(self.trips), 1)
+
+    def summary(self):
+        return (f"{self.courier_name:10}"
+                f" {len(self.trips):2} trips"
+                f" {self.total_km():6.1f} km")
+
+
+class NightShiftLog(ShiftLog):
+    # 1. add __init__(courier_name, torch_id) -- and do
+    #    not lose courier_name or trips
+    # 2. override summary() to append " torch &lt;id&gt;"
+    #    by calling the inherited one, not retyping it
+    pass
+
+
+class ColdChainLog(ShiftLog):
+    # 1. __init__(courier_name, max_c) keeping the base work
+    # 2. override add_trip(km, temp_c) -- refuse (ignore the
+    #    trip, print a refusal) when temp_c &gt; max_c,
+    #    otherwise delegate upward
+    pass
+
+
+logs = [NightShiftLog("Samir", "T-7"),
+        ColdChainLog("Rami", 6)]
+
+logs[0].add_trip(3.0)
+logs[0].add_trip(4.5)
+
+logs[1].add_trip(2.0, 4)
+logs[1].add_trip(5.0, 11)
+
+for log in logs:
+    print(log.summary())
+</code></pre>
+
+    <div class="output">Traceback (most recent call last):
+  File "shifts.py", line 34, in &lt;module&gt;
+    logs = [NightShiftLog("Samir", "T-7"),
+            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+TypeError: ShiftLog.__init__() takes 2 positional arguments but 3 were given</div>
+
+    <p class="en">That is the starter's output as written: a <code>pass</code> body inherits the base <code>__init__</code>, which accepts one argument, so the torch number has nowhere to go.</p>
+    <p class="ar">هذا ناتج الكود الابتدائي كما هو مكتوب: فجسد <code>pass</code> يرث <code>__init__</code> الأساس الذي يقبل معامِلًا واحدًا، فلا موضع لرقم المصباح.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class ShiftLog:
+    def __init__(self, courier_name):
+        self.courier_name = courier_name
+        self.trips = []
+
+    def add_trip(self, km):
+        self.trips.append(km)
+
+    def total_km(self):
+        return round(sum(self.trips), 1)
+
+    def summary(self):
+        return (f"{self.courier_name:10}"
+                f" {len(self.trips):2} trips"
+                f" {self.total_km():6.1f} km")
+
+
+class NightShiftLog(ShiftLog):
+    def __init__(self, courier_name, torch_id):
+        super().__init__(courier_name)
+        self.torch_id = torch_id
+
+    def summary(self):
+        return f"{super().summary()}  torch {self.torch_id}"
+
+
+class ColdChainLog(ShiftLog):
+    def __init__(self, courier_name, max_c):
+        super().__init__(courier_name)
+        self.max_c = max_c
+        self.refused = 0
+
+    def add_trip(self, km, temp_c):
+        if temp_c &gt; self.max_c:
+            self.refused += 1
+            print(f"refused {km} km: {temp_c}C is too warm")
+            return
+        super().add_trip(km)
+
+    def summary(self):
+        return (f"{super().summary()}"
+                f"  refused {self.refused}")
+
+
+logs = [NightShiftLog("Samir", "T-7"),
+        ColdChainLog("Rami", 6)]
+
+logs[0].add_trip(3.0)
+logs[0].add_trip(4.5)
+
+logs[1].add_trip(2.0, 4)
+logs[1].add_trip(5.0, 11)
+
+for log in logs:
+    print(log.summary())
+</code></pre>
+      <div class="output">refused 5.0 km: 11C is too warm
+Samir       2 trips    7.5 km  torch T-7
+Rami        1 trips    2.0 km  refused 1</div>
+      <p class="en">Both subclasses call <code>super()</code> twice over — once in <code>__init__</code>, once in the method they extend — and neither one touches <code>self.trips</code> or re-adds up kilometres. One thing to notice honestly: <code>ColdChainLog.add_trip</code> takes <em>two</em> arguments where the base takes one, so it is not a drop-in replacement for a <code>ShiftLog</code>. Code written against the base would break on it. That is a real cost of overriding with a different signature, and it is the first crack in the "is-a" story — hold onto it, because Concept 2 is about what to do when there are several such cracks.</p>
+      <p class="ar">يستدعي الصنفان المشتقان <code>super()</code> مرتين كلٌّ منهما — مرة في <code>__init__</code> ومرة في الدالة التي يوسّعها — ولا يلامس أي منهما <code>self.trips</code> ولا يجمع الكيلومترات من جديد. وأمر يُلاحَظ بصدق: فـ <code>ColdChainLog.add_trip</code> تأخذ معامِلين حيث يأخذ الأساس واحدًا، فهي ليست بديلًا مباشرًا لـ <code>ShiftLog</code>. وكود مكتوب وفق الأساس سينكسر عليها. وهذه كلفة حقيقية للتجاوز بصيغة مختلفة، وهي أول شقّ في حكاية «هو نوع من» — فأمسكه، لأن المفهوم 2 عمّا يُفعَل عندما تكون هناك عدة شقوق كهذه.</p>
+    </details>
+  </section>
+
+  <h2 id="l5-h2"><span class="en">Concept 2 — The day the hierarchy turns against you</span><span class="ar">المفهوم 2 — اليوم الذي يرتدّ فيه التسلسل عليك</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Inheritance worked, so the team keeps using it. The service buys two electric bicycles, which need a battery charge level, so <code>ElectricBikeCourier(BicycleCourier)</code>. The clinic signs a contract for cold medicines, so the truck gets an insulated box with a target temperature: <code>RefrigeratedTruckCourier(TruckCourier)</code>. Both are reasonable, both took ten minutes.</p>
+    <p class="ar">نجحت الوراثة، فيواصل الفريق استخدامها. تشتري الشركة دراجتين كهربائيتين تحتاجان مستوى شحن بطارية، فيكون <code>ElectricBikeCourier(BicycleCourier)</code>. وتوقّع العيادة عقدًا لأدوية باردة، فتحصل الشاحنة على صندوق معزول بحرارة مستهدفة: <code>RefrigeratedTruckCourier(TruckCourier)</code>. وكلاهما معقول، وأخذ كلاهما عشر دقائق.</p>
+    <p class="en">Then the requests start crossing. A fridge box on a bicycle, for the insulin runs in the alleys where the truck does not fit. An electric truck, now that one has been donated. And finally the one the dispatcher actually asks for: the electric truck, with the fridge box, for the clinic's Thursday round.</p>
+    <p class="ar">ثم تبدأ الطلبات بالتقاطع. صندوق تبريد على دراجة، لرحلات الإنسولين في الأزقّة التي لا تدخلها الشاحنة. وشاحنة كهربائية، بعد أن تُبرَّع بواحدة. وأخيرًا ما يطلبه المُرسِل فعلًا: الشاحنة الكهربائية بصندوق التبريد لدورة العيادة يوم الخميس.</p>
+  </div>
+
+<pre class="code bad"><code>class ElectricBikeCourier(BicycleCourier):
+    fee_per_km = 2.0
+
+    def __init__(self, name, phone, charge_pct=100):
+        super().__init__(name, phone)
+        self.charge_pct = charge_pct
+
+
+class RefrigeratedTruckCourier(TruckCourier):
+    fee_per_km = 7.5
+
+    def __init__(self, name, phone, plate, target_c=4):
+        super().__init__(name, phone, plate)
+        self.target_c = target_c
+
+
+# the fridge code is now written twice
+class RefrigeratedBicycleCourier(BicycleCourier):
+    fee_per_km = 2.5
+
+    def __init__(self, name, phone, target_c=4):
+        super().__init__(name, phone)
+        self.target_c = target_c
+
+
+# and the battery code is now written twice
+class ElectricTruckCourier(TruckCourier):
+    fee_per_km = 5.0
+
+    def __init__(self, name, phone, plate, charge_pct=100):
+        super().__init__(name, phone, plate)
+        self.charge_pct = charge_pct
+
+
+# and here both are written for the third time
+class RefrigeratedElectricTruckCourier(ElectricTruckCourier):
+    fee_per_km = 6.5
+
+    def __init__(self, name, phone, plate, charge_pct=100,
+                 target_c=4):
+        super().__init__(name, phone, plate, charge_pct)
+        self.target_c = target_c
+
+
+courier_classes = [
+    BicycleCourier, MotorbikeCourier, TruckCourier,
+    ElectricBikeCourier, RefrigeratedTruckCourier,
+    RefrigeratedBicycleCourier, ElectricTruckCourier,
+    RefrigeratedElectricTruckCourier,
+]
+print(len(courier_classes), "courier classes so far")
+
+rig = RefrigeratedElectricTruckCourier("Abu Yazan",
+                                       "0599-300300",
+                                       "4-21399")
+print(rig.name, rig.charge_pct, rig.target_c, rig.fee_per_km)
+</code></pre>
+
+  <div class="output">8 courier classes so far
+Abu Yazan 100 4 6.5</div>
+
+  <p class="en">It runs. That is not a defence. Look at the class names the service now owns:</p>
+  <p class="ar">إنه يعمل. وهذا ليس دفاعًا. انظر إلى أسماء الأصناف التي تملكها الشركة الآن:</p>
+
+  <ul>
+    <li><span class="en"><code>BicycleCourier</code>, <code>MotorbikeCourier</code>, <code>TruckCourier</code> — the three we started with</span><span class="ar"><code>BicycleCourier</code> و<code>MotorbikeCourier</code> و<code>TruckCourier</code> — الثلاثة التي بدأنا بها</span></li>
+    <li><span class="en"><code>ElectricBikeCourier</code>, <code>ElectricTruckCourier</code> — and <code>ElectricMotorbikeCourier</code> is coming</span><span class="ar"><code>ElectricBikeCourier</code> و<code>ElectricTruckCourier</code> — و<code>ElectricMotorbikeCourier</code> آتٍ</span></li>
+    <li><span class="en"><code>RefrigeratedBicycleCourier</code>, <code>RefrigeratedTruckCourier</code> — the fridge, once per vehicle</span><span class="ar"><code>RefrigeratedBicycleCourier</code> و<code>RefrigeratedTruckCourier</code> — صندوق التبريد، مرة لكل مركبة</span></li>
+    <li><span class="en"><code>RefrigeratedElectricTruckCourier</code> — and tomorrow <code>RefrigeratedElectricBikeCourier</code></span><span class="ar"><code>RefrigeratedElectricTruckCourier</code> — وغدًا <code>RefrigeratedElectricBikeCourier</code></span></li>
+  </ul>
+
+  <p class="en">Three vehicles × two power sources × two cargo boxes is twelve classes, and the <code>target_c</code> line is written in six of them. Add a "two-way radio" option next month and it is twenty-four. This is <strong>class explosion</strong>: the hierarchy has one axis to vary along, and the problem has three.</p>
+  <p class="ar">ثلاث مركبات × مصدري طاقة × صندوقي حمولة تساوي اثني عشر صنفًا، وسطر <code>target_c</code> مكتوب في ستة منها. فأضف خيار «جهاز لاسلكي» الشهر القادم فتصبح أربعة وعشرين. وهذا هو <strong>انفجار الأصناف</strong>: فللتسلسل محور واحد يتغيّر عليه، وللمشكلة ثلاثة.</p>
+
+  <h3 id="l5-s5"><span class="en">The second pain: a change in the base breaks a subclass</span><span class="ar">الوجع الثاني: تغيير في الأساس يكسر صنفًا مشتقًا</span></h3>
+
+  <p class="en">Deep hierarchies have a worse problem than size. A subclass that overrides a method is not just using the base class — it is relying on <em>what the base method does inside</em>. Here is a small, honest, two-level hierarchy that works today.</p>
+  <p class="ar">للتسلسلات العميقة مشكلة أسوأ من الحجم. فالصنف المشتق الذي يتجاوز دالة لا يستخدم صنف الأساس فقط — بل يعتمد على <em>ما تفعله دالة الأساس في داخلها</em>. وهذا تسلسل صغير صادق من مستويين يعمل اليوم.</p>
+
+<pre class="code"><code>class Courier:
+    fee_per_km = 0.0
+
+    def __init__(self, name):
+        self.name = name
+
+    def fee(self, km):
+        """Fee for one trip, in shekels."""
+        return round(km * self.fee_per_km, 2)
+
+
+class BicycleCourier(Courier):
+    fee_per_km = 1.5
+
+
+class ElectricBikeCourier(BicycleCourier):
+    fee_per_km = 2.0
+
+    def fee(self, km):
+        # battery wear: half a shekel per km on top
+        return round(super().fee(km) + 0.5 * km, 2)
+
+
+for c in [BicycleCourier("Samir"), ElectricBikeCourier("Lina")]:
+    print(f"{c.name:6} 4 km -&gt; {c.fee(4):6.2f} ILS")
+</code></pre>
+
+  <div class="output">Samir  4 km ->   6.00 ILS
+Lina   4 km ->  10.00 ILS</div>
+
+  <p class="en">Correct: 4 km at 2.00 is 8, plus 2 of battery wear, is 10. Now the dispatcher adds a second rule — nobody earns more than 100 shekels in a day — and the obvious place for it is <code>Courier.fee()</code>, the one method every fee passes through. So <code>fee()</code> starts keeping a running ledger and trims the amount when the ceiling is reached. The subclass is not touched, because why would it be?</p>
+  <p class="ar">صحيح: 4 كيلومترات بسعر 2.00 تساوي 8، زائدًا 2 تآكل بطارية، تساوي 10. والآن يضيف المُرسِل قاعدة ثانية — لا يكسب أحد أكثر من مئة شيكل في اليوم — وموضعها البيّن <code>Courier.fee()</code>، الدالة الواحدة التي تمرّ بها كل أجرة. فتبدأ <code>fee()</code> بحفظ دفتر جارٍ وتقتطع المبلغ عند بلوغ السقف. ولا يُلامَس الصنف المشتق، فلماذا يُلامَس؟</p>
+
+<pre class="code bad"><code>DAY_CAP = 100.0      # new rule: nobody earns past this
+
+
+class Courier:
+    fee_per_km = 0.0
+
+    def __init__(self, name):
+        self.name = name
+        self.earned_today = 0.0
+
+    def fee(self, km):
+        """Fee for one trip, capped by the daily ceiling."""
+        amount = km * self.fee_per_km
+        room = max(DAY_CAP - self.earned_today, 0.0)
+        amount = min(amount, room)
+        self.earned_today += amount
+        return round(amount, 2)
+
+
+class BicycleCourier(Courier):
+    fee_per_km = 1.5
+
+
+class ElectricBikeCourier(BicycleCourier):
+    fee_per_km = 2.0
+
+    def fee(self, km):
+        # NOT ONE character of this method was edited
+        return round(super().fee(km) + 0.5 * km, 2)
+
+
+for c in [BicycleCourier("Samir"), ElectricBikeCourier("Lina")]:
+    paid = sum(c.fee(8) for _ in range(10))
+    print(f"{c.name:6} paid {paid:7.2f}"
+          f"  ledger says {c.earned_today:7.2f}")
+</code></pre>
+
+  <div class="output">Samir  paid  100.00  ledger says  100.00
+Lina   paid  140.00  ledger says  100.00</div>
+
+  <div class="warn">
+    <h4><span class="en">Fragile base class</span><span class="ar">صنف أساس هشّ</span></h4>
+    <p class="en">Samir is correct. Lina was paid 140 shekels under a 100-shekel ceiling, and her own ledger says 100 — the company's books and the company's payouts now disagree by 40 shekels per electric courier per day, with no error anywhere.</p>
+    <p class="ar">سمير صحيح. ودُفع لـ لينا 140 شيكلًا تحت سقف مئة شيكل، ودفترها هو نفسه يقول 100 — فدفاتر الشركة ومدفوعاتها تتخالفان الآن بأربعين شيكلًا لكل مندوب كهربائي في اليوم، بلا أي خطأ في أي موضع.</p>
+    <p class="en">Trace it. <code>super().fee(8)</code> correctly returns <code>0.0</code> once Lina hits the ceiling — the base class does its job perfectly. Then the subclass adds <code>0.5 * 8</code> to that zero, because <code>+ 0.5 * km</code> was written in a world where <code>fee()</code> always returned a distance fee. It had an unstated assumption about the base method's behaviour, and the base method changed underneath it.</p>
+    <p class="ar">تتبّعه. فـ <code>super().fee(8)</code> تعيد <code>0.0</code> صحيحةً بمجرد بلوغ لينا السقف — فصنف الأساس يؤدي عمله على أتمّ وجه. ثم يضيف الصنف المشتق <code>0.5 * 8</code> إلى ذلك الصفر، لأن <code>+ 0.5 * km</code> كُتبت في عالم تعيد فيه <code>fee()</code> أجرة مسافة دائمًا. فقد كان لها افتراض غير معلن عن سلوك دالة الأساس، وتغيّرت دالة الأساس من تحتها.</p>
+    <p class="en">Notice what the author of the change could have done differently: nothing. The signature did not change, the docstring was updated, the base class's own tests pass, and the subclass compiles and runs. <strong>Overriding a method couples you to its insides</strong> — and the deeper the chain, the more of those invisible couplings exist, which is why a three- or four-level hierarchy becomes frightening to edit. The <code>TruckCourier</code> in Step 2 survived the same kind of change only because it explicitly checked for the <code>0.0</code> case; that check was a guess, and it happened to be the right one.</p>
+    <p class="ar">ولاحظ ما كان في وسع صاحب التغيير أن يفعله على نحو آخر: لا شيء. فالصيغة لم تتغيّر، وحُدّثت الـ docstring، واختبارات صنف الأساس نفسه تنجح، والصنف المشتق يُترجَم ويعمل. فـ <strong>تجاوز دالة يقرنك بداخلها</strong> — وكلما عمقت السلسلة كثرت تلك الاقترانات الخفيّة، ولهذا يصبح تسلسل من ثلاثة أو أربعة مستويات مخيفًا في التعديل. ولم تنجُ <code>TruckCourier</code> في الخطوة 2 من تغيير من النوع نفسه إلا لأنها فحصت حالة <code>0.0</code> صراحةً؛ وكان ذلك الفحص تخمينًا، وحدث أن كان الصحيح.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Lina was paid 140 under a 100 ceiling. Where is the defect?</span><span class="ar">دُفع لـ لينا 140 تحت سقف 100. فأين العيب؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">In <code>Courier.fee()</code> — it should not have silently returned <code>0.0</code>; raising an exception at the ceiling would have exposed the problem.</span><span class="ar">في <code>Courier.fee()</code> — ما كان ينبغي أن تعيد <code>0.0</code> في صمت؛ فرفع استثناء عند السقف كان سيكشف المشكلة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">In <code>ElectricBikeCourier.fee()</code> — it forgot to update <code>self.earned_today</code> with the battery surcharge it added.</span><span class="ar">في <code>ElectricBikeCourier.fee()</code> — فقد نسيت تحديث <code>self.earned_today</code> بزيادة البطارية التي أضافتها.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">In the relationship: the override was written assuming <code>super().fee()</code> always returns a distance fee, and nothing in the program records or checks that assumption.</span><span class="ar">في العلاقة: فقد كُتب التجاوز على افتراض أن <code>super().fee()</code> تعيد أجرة مسافة دائمًا، ولا شيء في البرنامج يسجّل ذلك الافتراض أو يفحصه.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">In the hierarchy depth — a three-level chain means <code>super()</code> resolves to the wrong class, so the cap was applied to the wrong object.</span><span class="ar">في عمق التسلسل — فسلسلة من ثلاثة مستويات تعني أن <code>super()</code> تُحلّ إلى الصنف الخاطئ، فطُبّق الحد على الكائن الخاطئ.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Neither method is wrong on its own. <code>Courier.fee()</code> caps correctly and keeps an accurate ledger; <code>ElectricBikeCourier.fee()</code> adds battery wear exactly as specified. The defect lives in the invisible contract between them — an assumption held in one place and changed in another — which is precisely what inheritance makes easy to create and impossible to see. The tempting wrong answer is the second: adding the surcharge to <code>earned_today</code> would make the two numbers agree at 140, which is not the fix, because the whole point of the rule was that 140 must never be paid. Answer four is wrong on mechanics: <code>super()</code> in <code>ElectricBikeCourier</code> correctly reaches <code>BicycleCourier</code> and then <code>Courier.fee</code>, and the cap was applied to the right object — the base class's ledger reads 100, exactly as intended.</div>
+      <div class="ar">لا إحدى الدالتين خاطئة في ذاتها. فـ <code>Courier.fee()</code> تحدّ بصحة وتحفظ دفترًا دقيقًا؛ و<code>ElectricBikeCourier.fee()</code> تضيف تآكل البطارية كما حُدِّد بالضبط. والعيب يقيم في العقد الخفيّ بينهما — افتراض محفوظ في موضع ومغيَّر في آخر — وهو بالضبط ما تجعله الوراثة سهل الإنشاء مستحيل الرؤية. والإجابة المغرية الخاطئة هي الثانية: فإضافة الزيادة إلى <code>earned_today</code> ستجعل الرقمين يتوافقان على 140، وهذا ليس الإصلاح، لأن مقصود القاعدة كله أن 140 لا يجوز أن تُدفع أبدًا. والإجابة الرابعة خاطئة في الميكانيكا: فـ <code>super()</code> في <code>ElectricBikeCourier</code> تبلغ <code>BicycleCourier</code> ثم <code>Courier.fee</code> بصحة، وطُبّق الحد على الكائن الصحيح — فدفتر صنف الأساس يقرأ 100 كما أُريد بالضبط.</div>
+    </div>
+  </div>
+
+  <h3 id="l5-s6"><span class="en">The conversion — hold the parts instead of inheriting them</span><span class="ar">التحويل — امسك الأجزاء بدلًا من أن ترثها</span></h3>
+
+  <p class="en">Say out loud what the twelve classes were actually about. A courier <em>is</em> a courier. But a courier <em>has</em> a way of moving — legs, a battery, a petrol engine, a diesel engine — and a courier <em>has</em> a box to carry things in. "Has-a" is not "is-a", and it has no business in a class name.</p>
+  <p class="ar">قُل بصوت عالٍ ما كانت الأصناف الاثنا عشر عنه فعلًا. فالمندوب <em>هو</em> مندوب. لكن المندوب <em>له</em> طريقة في التحرّك — ساقان أو بطارية أو محرك بنزين أو محرك ديزل — وللمندوب <em>صندوق</em> يحمل فيه الأشياء. و«له» ليست «هو»، ولا شأن لها باسم صنف.</p>
+
+  <p class="en">So make each part a small class with its own job, and let <code>Courier</code> <em>hold</em> one of each. That is <strong>composition</strong>: an object built from other objects it keeps in its attributes.</p>
+  <p class="ar">فاجعل كل جزء صنفًا صغيرًا له عمله الخاص، ودع <code>Courier</code> <em>يمسك</em> واحدًا من كل نوع. وهذا هو <strong>التركيب</strong>: كائن مبنيّ من كائنات أخرى يحفظها في خصائصه.</p>
+
+<pre class="code good"><code>class Legs:
+    label = "pedals"
+    fee_per_km = 1.5
+    speed_kmh = 15
+
+    def prepare(self):
+        return "stretch, clip in"
+
+
+class Battery:
+    label = "battery"
+    fee_per_km = 2.0
+    speed_kmh = 25
+
+    def __init__(self, charge_pct=100):
+        self.charge_pct = charge_pct
+
+    def prepare(self):
+        return f"charged to {self.charge_pct}%"
+
+
+class PetrolEngine:
+    label = "petrol engine"
+    fee_per_km = 3.0
+    speed_kmh = 45
+
+    def prepare(self):
+        return "tank checked"
+
+
+class DieselEngine:
+    label = "diesel engine"
+    fee_per_km = 6.0
+    speed_kmh = 30
+
+    def prepare(self):
+        return "tank checked, tyres checked"
+
+
+class PlainBox:
+    label = "open box"
+    extra_per_km = 0.0
+
+    def stow(self, item):
+        return f"{item} in the box"
+
+
+class FridgeBox:
+    label = "fridge box"
+    extra_per_km = 1.5
+
+    def __init__(self, target_c=4):
+        self.target_c = target_c
+
+    def stow(self, item):
+        return f"{item} chilled to {self.target_c}C"
+
+
+class Courier:
+    """One class. The parts are arguments, not subclasses."""
+
+    def __init__(self, name, power, cargo=None):
+        self.name = name
+        self.power = power
+        self.cargo = cargo or PlainBox()
+
+    def fee(self, km):
+        per_km = self.power.fee_per_km + self.cargo.extra_per_km
+        return round(km * per_km, 2)
+
+    def minutes_for(self, km):
+        return round(km / self.power.speed_kmh * 60)
+
+    def describe(self):
+        return (f"{self.name:10} {self.power.label:14}"
+                f" {self.cargo.label:10}")
+
+
+crew = [
+    Courier("Samir", Legs()),
+    Courier("Lina", Battery(80)),
+    Courier("Wael", PetrolEngine()),
+    Courier("Abu Yazan", DieselEngine(), FridgeBox(2)),
+    Courier("Rami", Battery(55), FridgeBox()),
+]
+
+for c in crew:
+    print(c.describe(),
+          f"6 km: {c.fee(6):6.2f} ILS",
+          f"{c.minutes_for(6):3} min")
+
+print()
+print(crew[4].power.prepare())
+print(crew[4].cargo.stow("insulin box"))
+</code></pre>
+
+  <div class="output">Samir      pedals         open box   6 km:   9.00 ILS  24 min
+Lina       battery        open box   6 km:  12.00 ILS  14 min
+Wael       petrol engine  open box   6 km:  18.00 ILS   8 min
+Abu Yazan  diesel engine  fridge box 6 km:  45.00 ILS  12 min
+Rami       battery        fridge box 6 km:  21.00 ILS  14 min
+
+charged to 55%
+insulin box chilled to 4C</div>
+
+  <p class="en">Count the courier classes: one. Five couriers, five different configurations, including two the hierarchy needed brand-new classes for — Abu Yazan's refrigerated diesel truck and Rami's refrigerated electric bike. Adding a two-way radio tomorrow adds one small class, not twelve large ones.</p>
+  <p class="ar">أحصِ أصناف المندوبين: واحد. خمسة مندوبين، وخمس تهيئات مختلفة، منها اثنتان احتاج التسلسل إلى أصناف جديدة تمامًا لأجلهما — شاحنة أبو يزن الديزل المبرّدة ودراجة رامي الكهربائية المبرّدة. وإضافة جهاز لاسلكي غدًا تضيف صنفًا صغيرًا واحدًا لا اثني عشر صنفًا كبيرًا.</p>
+
+  <p class="en">And look at the loop at the bottom: it is the <em>same calling code</em> for all five. <code>c.fee(6)</code> and <code>c.minutes_for(6)</code> never ask what kind of courier this is, because there is only one kind — the variation moved out of the type and into the attributes, where a <code>for</code> loop can walk straight past it.</p>
+  <p class="ar">وانظر إلى الحلقة في الأسفل: فهي <em>الكود المستدعي نفسه</em> للخمسة كلهم. فـ <code>c.fee(6)</code> و<code>c.minutes_for(6)</code> لا تسألان قط عن نوع هذا المندوب، لأنه لا نوع إلا واحد — فانتقل التغاير من النوع إلى الخصائص حيث تستطيع حلقة <code>for</code> أن تمرّ به مباشرة.</p>
+
+  <p class="en">Notice too that each part answers for itself. <code>Courier.fee()</code> adds two numbers it got by asking; it does not contain a single fact about batteries or fridges. When the diesel price rises, you edit <code>DieselEngine</code> — a seven-line class — and nothing else in the program can possibly be affected.</p>
+  <p class="ar">ولاحظ أيضًا أن كل جزء يجيب عن نفسه. فـ <code>Courier.fee()</code> تجمع رقمين حصلت عليهما بالسؤال؛ ولا تحتوي حقيقة واحدة عن البطاريات ولا صناديق التبريد. فحين يرتفع سعر الديزل تعدّل <code>DieselEngine</code> — صنفًا من سبعة أسطر — ولا يمكن أن يتأثر شيء آخر في البرنامج.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">In the composed version, <code>Courier.fee()</code> reads <code>self.power.fee_per_km</code>. What did that cost the program, compared with reading an inherited <code>self.fee_per_km</code>?</span><span class="ar">في النسخة المركَّبة تقرأ <code>Courier.fee()</code> القيمة <code>self.power.fee_per_km</code>. فما كلّف ذلك البرنامج بالمقارنة مع قراءة <code>self.fee_per_km</code> موروثة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Nothing at all — composition and inheritance are interchangeable, so the two versions are the same program written two ways.</span><span class="ar">لا شيء إطلاقًا — فالتركيب والوراثة متبادلان، فالنسختان البرنامج نفسه مكتوبًا بطريقتين.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">One extra hop and one extra object to create — paid in exchange for combinations that cost nothing and a part that can be swapped after construction.</span><span class="ar">قفزة زائدة واحدة وكائن زائد واحد يُنشأ — مدفوعان مقابل تركيبات لا تكلّف شيئًا وجزء يمكن استبداله بعد الإنشاء.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It broke <code>isinstance()</code>: there is no longer any way to ask whether a given courier rides a bicycle.</span><span class="ar">أعطب <code>isinstance()</code>: فلم يبقَ سبيل إلى سؤال ما إذا كان مندوب بعينه يركب دراجة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It moved the fee arithmetic into the part classes, so <code>Courier</code> no longer controls how a fee is calculated.</span><span class="ar">نقل حساب الأجرة إلى أصناف الأجزاء، فلم يعد <code>Courier</code> يتحكّم في كيفية حساب الأجرة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Composition is not free. You write a constructor argument, you create a <code>Legs()</code> or a <code>Battery()</code>, and every read goes through one more attribute. What you buy is that twelve classes became one and <code>samir.power = DieselEngine()</code> became possible. The tempting wrong answer is the third, and it is half true in an interesting way: <code>isinstance(c, BicycleCourier)</code> is indeed gone, but the question it answered is still askable as <code>isinstance(c.power, Legs)</code> — the type moved into the part rather than disappearing. Answer four misreads the code: the parts hold numbers, and <code>Courier.fee()</code> still owns the formula that combines them.</div>
+      <div class="ar">التركيب ليس مجانيًا. فتكتب معامِلًا في الباني، وتنشئ <code>Legs()</code> أو <code>Battery()</code>، وتمرّ كل قراءة بخاصية أخرى. وما تشتريه أن الاثني عشر صنفًا صاروا واحدًا وأن <code>samir.power = DieselEngine()</code> صارت ممكنة. والإجابة المغرية الخاطئة هي الثالثة، وهي نصف صحيحة على نحو طريف: فـ <code>isinstance(c, BicycleCourier)</code> زالت فعلًا، لكن السؤال الذي كانت تجيب عنه لا يزال قابلًا للطرح بصيغة <code>isinstance(c.power, Legs)</code> — فانتقل النوع إلى الجزء ولم يختفِ. والإجابة الرابعة تسيء قراءة الكود: فالأجزاء تحمل أرقامًا، و<code>Courier.fee()</code> لا تزال تملك الصيغة التي تجمعها.</div>
+    </div>
+  </div>
+
+  <h3 id="l5-s7"><span class="en">A configuration, not a class — and it can change at run time</span><span class="ar">تهيئة لا صنف — وتستطيع أن تتغيّر وقت التشغيل</span></h3>
+
+  <p class="en">Here is something the twelve-class hierarchy could not do at all. Samir's bicycle breaks at noon and he takes the truck for the afternoon. With inheritance that is a different <em>class</em>, so Samir must be destroyed and rebuilt, losing his delivery count. With composition it is one assignment.</p>
+  <p class="ar">وهذا شيء لم يكن تسلسل الاثني عشر صنفًا قادرًا عليه إطلاقًا. فدراجة سمير تنكسر ظهرًا فيأخذ الشاحنة لما بعد الظهر. وبالوراثة يكون ذلك <em>صنفًا</em> آخر، فيجب إهلاك سمير وإعادة بنائه، فيفقد عدّاد توصيلاته. وبالتركيب يكون إسنادًا واحدًا.</p>
+
+<pre class="code good"><code># the "refrigerated electric truck" nobody had to write
+rig = Courier("Abu Yazan", Battery(90), FridgeBox(2))
+print(rig.describe(), f"{rig.fee(6):6.2f} ILS")
+
+# the bike broke; he takes the truck for the afternoon
+samir = Courier("Samir", Legs())
+print(samir.describe(), f"{samir.fee(6):6.2f} ILS")
+samir.power = DieselEngine()
+print(samir.describe(), f"{samir.fee(6):6.2f} ILS")
+</code></pre>
+
+  <div class="output">Abu Yazan  battery        fridge box  21.00 ILS
+Samir      pedals         open box     9.00 ILS
+Samir      diesel engine  open box    36.00 ILS</div>
+
+  <p class="en">Same object, same name, same history — a different engine, and a fee that follows immediately. A class is fixed for the lifetime of an object; a held part is not.</p>
+  <p class="ar">الكائن نفسه والاسم نفسه والتاريخ نفسه — محرك مختلف، وأجرة تتبع فورًا. فالصنف ثابت طول عمر الكائن؛ أما الجزء الممسوك فليس كذلك.</p>
+
+  <div class="note">
+    <h4><span class="en">Composition does not mean no inheritance</span><span class="ar">التركيب لا يعني ترك الوراثة</span></h4>
+    <p class="en">Do not read Concept 2 as a retraction of Concept 1. The <code>Courier</code> base class that killed the three copies of <code>record_delivery</code> was right, and it is still right. What the explosion showed is narrower: inheritance can carry <em>one</em> axis of variation well, and the delivery service had three. The two tools are used together constantly — the second example below holds a composed part inside an inherited class, which is the ordinary case in real code.</p>
+    <p class="ar">لا تقرأ المفهوم 2 تراجعًا عن المفهوم 1. فصنف الأساس <code>Courier</code> الذي قتل النسخ الثلاث من <code>record_delivery</code> كان صحيحًا، وهو لا يزال صحيحًا. وما أظهره الانفجار أضيق: فالوراثة تستطيع حمل محور <em>واحد</em> من التغاير حملًا حسنًا، وكان لشركة التوصيل ثلاثة. والأداتان تُستخدمان معًا باستمرار — فالمثال الثاني أدناه يمسك جزءًا مركَّبًا داخل صنف موروث، وهي الحالة العادية في الكود الحقيقي.</p>
+  </div>
+
+  <h3 id="l5-s8"><span class="en">The decision rule</span><span class="ar">قاعدة القرار</span></h3>
+
+  <p class="en">Before you write <code>class X(Y)</code>, say two sentences out loud. "An X <em>is</em> a Y" — if that is false, or only sort of true, stop. "Everything Y promises is true of X" — if an X has to refuse one of Y's methods, change its signature, or ignore half of it, stop. Otherwise, inherit.</p>
+  <p class="ar">قبل أن تكتب <code>class X(Y)</code>، قل جملتين بصوت عالٍ. «الـ X <em>هو</em> Y» — فإن كان ذلك باطلًا أو صحيحًا بعض الصحة فقط فتوقّف. و«كل ما يَعِد به Y صحيح في X» — فإن كان على X أن يرفض إحدى دوال Y أو يغيّر صيغتها أو يتجاهل نصفها فتوقّف. وفيما عدا ذلك فورِّث.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Question</span><span class="ar">السؤال</span></th>
+        <th><span class="en">Inheritance</span><span class="ar">الوراثة</span></th>
+        <th><span class="en">Composition</span><span class="ar">التركيب</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="en">The sentence that fits</span><span class="ar">الجملة الملائمة</span></td>
+        <td><span class="en">"is a" — a bicycle courier is a courier</span><span class="ar">«هو نوع من» — مندوب الدراجة مندوب</span></td>
+        <td><span class="en">"has a" / "can do" — a courier has a power source</span><span class="ar">«له» / «يستطيع» — للمندوب مصدر طاقة</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">What it is good at</span><span class="ar">ما تُحسنه</span></td>
+        <td><span class="en">removing duplicated code shared by a stable family</span><span class="ar">إزالة كود مكرَّر تتشاركه عائلة مستقرة</span></td>
+        <td><span class="en">mixing and matching features along several axes</span><span class="ar">خلط السمات ومطابقتها على محاور عدة</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Cost of a new combination</span><span class="ar">كلفة تركيبة جديدة</span></td>
+        <td><span class="en">a new class per combination — 3 × 2 × 2 = 12</span><span class="ar">صنف جديد لكل تركيبة — 3 × 2 × 2 = 12</span></td>
+        <td><span class="en">a constructor argument — no new class</span><span class="ar">معامِل في الباني — ولا صنف جديد</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Can it change after creation?</span><span class="ar">هل تتغيّر بعد الإنشاء؟</span></td>
+        <td><span class="en">no — the class is fixed for the object's life</span><span class="ar">لا — فالصنف ثابت طول عمر الكائن</span></td>
+        <td><span class="en">yes — <code>samir.power = DieselEngine()</code></span><span class="ar">نعم — <code>samir.power = DieselEngine()</code></span></td>
+      </tr>
+      <tr>
+        <td><span class="en">How tightly coupled</span><span class="ar">مدى شدة الاقتران</span></td>
+        <td><span class="en">tightly — an override depends on the base method's insides</span><span class="ar">شديد — فالتجاوز يعتمد على داخل دالة الأساس</span></td>
+        <td><span class="en">loosely — only the part's public methods matter</span><span class="ar">خفيف — فلا يهمّ إلا دوال الجزء العامة</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">The warning sign</span><span class="ar">العلامة المنذرة</span></td>
+        <td><span class="en">a name with three adjectives in it; a subclass that overrides most of the base</span><span class="ar">اسم فيه ثلاث صفات؛ أو صنف مشتق يتجاوز معظم الأساس</span></td>
+        <td><span class="en">a "part" that needs to reach back into the whole to do its job</span><span class="ar">«جزء» يحتاج إلى العودة إلى الكلّ ليؤدي عمله</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">Shorthand</span><span class="ar">القاعدة الموجزة</span></td>
+        <td><span class="en">one stable axis, one shared contract</span><span class="ar">محور مستقر واحد، وعقد مشترك واحد</span></td>
+        <td><span class="en">anything you expect to mix and match</span><span class="ar">كل ما تتوقّع خلطه ومطابقته</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip">
+    <h4><span class="en">A mixin, briefly — and where to stop</span><span class="ar">الـ mixin بإيجاز — وأين تتوقّف</span></h4>
+    <p class="en">Python does allow a class to inherit from more than one base. The disciplined use is a <strong>mixin</strong>: a small class with one job, no <code>__init__</code> of its own, meant only to be combined.</p>
+    <p class="ar">تسمح بايثون فعلًا بأن يرث صنف من أكثر من أساس. والاستخدام المنضبط هو الـ <strong>mixin</strong>: صنف صغير له عمل واحد، لا <code>__init__</code> خاص به، ليس مقصودًا إلا للدمج.</p>
+
+<pre class="code"><code>class Trackable:
+    """A mixin: no __init__ of its own, one small job."""
+
+    def ping(self, where):
+        self.last_seen = where
+        return f"{self.name} seen at {where}"
+
+
+class Courier:
+    def __init__(self, name):
+        self.name = name
+        self.last_seen = "depot"
+
+
+class BikeCourier(Trackable, Courier):
+    pass
+
+
+samir = BikeCourier("Samir")
+print(samir.ping("Omar Mukhtar St"))
+print(samir.last_seen)
+print([c.__name__ for c in type(samir).__mro__])
+</code></pre>
+
+    <div class="output">Samir seen at Omar Mukhtar St
+Omar Mukhtar St
+['BikeCourier', 'Trackable', 'Courier', 'object']</div>
+
+    <p class="en">That last line is the lookup order Python will search, left to right, and it is the end of what you need now. Once several bases start defining the same method names and calling <code>super()</code> between each other, the order stops being obvious and you are deep in territory this course does not need. Notice as well what <code>Trackable.ping</code> did: it used <code>self.name</code>, which it does not define. That is the mixin's hidden requirement on whatever it is mixed into — a coupling with nothing written down, exactly the kind the fridge box avoided by being <em>held</em> rather than inherited. When a feature is this independent, prefer composition and keep your bases to one.</p>
+    <p class="ar">ذلك السطر الأخير ترتيب البحث الذي ستسلكه بايثون من اليسار إلى اليمين، وهو منتهى ما تحتاجه الآن. فبمجرد أن تبدأ عدة أسس بتعريف أسماء الدوال نفسها واستدعاء <code>super()</code> بينها يكفّ الترتيب عن البيان وتكون في أرض لا يحتاجها هذا المقرر. ولاحظ أيضًا ما فعلته <code>Trackable.ping</code>: فقد استخدمت <code>self.name</code> وهي لا تعرّفها. وذلك مطلب الـ mixin الخفيّ على ما يُدمَج فيه — اقتران بلا شيء مكتوب، وهو بالضبط النوع الذي تحاشاه صندوق التبريد بأن كان <em>ممسوكًا</em> لا موروثًا. فحين تكون السمة بهذا الاستقلال، فآثر التركيب وأبقِ أسسك واحدًا.</p>
+  </div>
+
+  <h3 id="l5-s9"><span class="en">Second example — school staff, and the timetable they hold</span><span class="ar">مثال ثانٍ — موظفو المدرسة والجدول الذي يحملونه</span></h3>
+
+  <p class="en">Different domain, both tools in one small file. A teacher <em>is</em> a staff member and so is a lab technician — same badge, same staff ID, same workload question — so <code>StaffMember</code> is a base class. But a timetable is not something a person <em>is</em>; it is a thing with its own methods that a person <em>has</em>. So it is an object held in an attribute.</p>
+  <p class="ar">مجال مختلف، والأداتان في ملف صغير واحد. فالمدرّس <em>هو</em> موظف وكذلك فنّي المختبر — بطاقة واحدة ورقم وظيفي واحد وسؤال عبء عمل واحد — فيكون <code>StaffMember</code> صنف أساس. لكن الجدول ليس شيئًا <em>يكونه</em> الشخص؛ بل شيء له دواله الخاصة <em>يملكه</em> الشخص. فهو كائن ممسوك في خاصية.</p>
+
+<pre class="code good"><code>class Timetable:
+    """A has-a part: anyone on staff may hold one."""
+
+    def __init__(self):
+        self.slots = {}
+
+    def add(self, day, period, what):
+        self.slots[(day, period)] = what
+
+    def busy_periods(self):
+        return len(self.slots)
+
+    def on(self, day):
+        return [v for (d, p), v in sorted(self.slots.items())
+                if d == day]
+
+
+class StaffMember:
+    """An is-a base: both roles really are staff."""
+
+    role = "staff"
+
+    def __init__(self, name, staff_id):
+        self.name = name
+        self.staff_id = staff_id
+        self.timetable = Timetable()      # composition
+
+    def badge(self):
+        return f"{self.name} #{self.staff_id} ({self.role})"
+
+    def workload(self):
+        return self.timetable.busy_periods()
+
+
+class Teacher(StaffMember):
+    role = "teacher"
+
+    def __init__(self, name, staff_id, subject):
+        super().__init__(name, staff_id)
+        self.subject = subject
+
+    def badge(self):
+        return f"{super().badge()} - {self.subject}"
+
+
+class LabTechnician(StaffMember):
+    role = "lab technician"
+
+    def __init__(self, name, staff_id, lab):
+        super().__init__(name, staff_id)
+        self.lab = lab
+
+    def badge(self):
+        return f"{super().badge()} - {self.lab} lab"
+
+
+hiba = Teacher("Hiba Saleh", 311, "Physics")
+hiba.timetable.add("Sun", 1, "10A Physics")
+hiba.timetable.add("Sun", 2, "10B Physics")
+hiba.timetable.add("Mon", 1, "11A Physics")
+
+jamal = LabTechnician("Jamal Odeh", 412, "Chemistry")
+jamal.timetable.add("Sun", 2, "set up titration")
+jamal.timetable.add("Mon", 4, "restock reagents")
+
+for person in [hiba, jamal]:
+    print(person.badge())
+    print(f"   periods: {person.workload()}",
+          "| Sunday:", person.timetable.on("Sun"))
+</code></pre>
+
+  <div class="output">Hiba Saleh #311 (teacher) - Physics
+   periods: 3 | Sunday: ['10A Physics', '10B Physics']
+Jamal Odeh #412 (lab technician) - Chemistry lab
+   periods: 2 | Sunday: ['set up titration']</div>
+
+  <p class="en">Both tools, each where it belongs. The inheritance earns its place: <code>workload()</code> is written once, and a <code>Librarian</code> added tomorrow gets a badge and a workload for three lines of code. The composition earns its place too — <code>Timetable</code> knows about days and periods and nothing about staff, so it could be given to a classroom or a projector without one edit. And the alternative is easy to picture: a <code>TeacherWithTimetable</code> class that inherits <code>Timetable</code> would make a teacher <em>be</em> a timetable, which means <code>hiba.add("Sun", 1, ...)</code> — a sentence nobody in the school would say.</p>
+  <p class="ar">الأداتان معًا، كل واحدة في موضعها. فالوراثة تستحق موضعها: <code>workload()</code> مكتوبة مرة واحدة، و<code>Librarian</code> يُضاف غدًا يحصل على بطاقة وعبء عمل بثلاثة أسطر من الكود. والتركيب يستحق موضعه أيضًا — فـ <code>Timetable</code> يعرف الأيام والحصص ولا يعرف عن الموظفين شيئًا، فأمكن منحه لقاعة صفّ أو لجهاز عرض دون تعديل واحد. والبديل سهل التصوّر: فصنف <code>TeacherWithTimetable</code> يرث <code>Timetable</code> سيجعل المدرّس <em>يكون</em> جدولًا، ومعنى ذلك <code>hiba.add("Sun", 1, ...)</code> — وهي جملة لا يقولها أحد في المدرسة.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — Parcel handling, before the explosion</span><span class="ar">تمرين 2.1 — معالجة الطرود قبل الانفجار</span></h4>
+    <p class="en">The parcel classes have started multiplying along two axes, and <code>HeavyParcel</code> is next — which will mean four more classes. Replace the hierarchy with one <code>Parcel</code> class that holds a list of small handling objects, each carrying its own <code>sticker</code> and <code>fee</code>. <code>surcharge()</code> sums their fees, <code>stickers()</code> collects their labels, and a parcel with no handling at all must print <code>none</code>. Then prove the design by creating a heavy fragile parcel, which the old code could not express.</p>
+    <p class="ar">بدأت أصناف الطرود تتكاثر على محورين، و<code>HeavyParcel</code> هو التالي — وسيعني أربعة أصناف أخرى. استبدل التسلسل بصنف <code>Parcel</code> واحد يمسك قائمة من كائنات معالجة صغيرة، يحمل كل منها <code>sticker</code> و<code>fee</code> خاصّين به. وتجمع <code>surcharge()</code> أجورها، وتلملم <code>stickers()</code> لافتاتها، وطرد بلا معالجة إطلاقًا يجب أن يطبع <code>none</code>. ثم أثبت التصميم بإنشاء طرد ثقيل قابل للكسر، وهو ما لم يكن الكود القديم يستطيع التعبير عنه.</p>
+
+<pre class="code bad"><code>class Parcel:
+    def __init__(self, label, weight_kg):
+        self.label = label
+        self.weight_kg = weight_kg
+
+    def surcharge(self):
+        return 0.0
+
+    def stickers(self):
+        return []
+
+    def ticket(self):
+        marks = ", ".join(self.stickers()) or "none"
+        return (f"{self.label:12} {self.weight_kg:5.1f} kg"
+                f" +{self.surcharge():5.2f}  {marks}")
+
+
+class FragileParcel(Parcel):
+    def surcharge(self):
+        return 4.0
+
+    def stickers(self):
+        return ["FRAGILE"]
+
+
+class ColdParcel(Parcel):
+    def surcharge(self):
+        return 6.0
+
+    def stickers(self):
+        return ["KEEP COLD"]
+
+
+class FragileColdParcel(Parcel):
+    def surcharge(self):
+        return 10.0
+
+    def stickers(self):
+        return ["FRAGILE", "KEEP COLD"]
+
+
+# and tomorrow: HeavyParcel, HeavyFragileParcel,
+# HeavyColdParcel, HeavyFragileColdParcel, ...
+
+batch = [FragileParcel("glass jars", 3.0),
+         ColdParcel("insulin", 0.5),
+         FragileColdParcel("vaccine vials", 1.2)]
+
+for p in batch:
+    print(p.ticket())
+</code></pre>
+
+    <div class="output">glass jars     3.0 kg + 4.00  FRAGILE
+insulin        0.5 kg + 6.00  KEEP COLD
+vaccine vials   1.2 kg +10.00  FRAGILE, KEEP COLD</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Fragile:
+    sticker = "FRAGILE"
+    fee = 4.0
+
+
+class KeepCold:
+    sticker = "KEEP COLD"
+    fee = 6.0
+
+
+class Heavy:
+    sticker = "TWO PEOPLE"
+    fee = 8.0
+
+
+class Parcel:
+    def __init__(self, label, weight_kg, handling=()):
+        self.label = label
+        self.weight_kg = weight_kg
+        self.handling = list(handling)
+
+    def surcharge(self):
+        return round(sum(h.fee for h in self.handling), 2)
+
+    def stickers(self):
+        return [h.sticker for h in self.handling]
+
+    def ticket(self):
+        marks = ", ".join(self.stickers()) or "none"
+        return (f"{self.label:12} {self.weight_kg:5.1f} kg"
+                f" +{self.surcharge():5.2f}  {marks}")
+
+
+batch = [
+    Parcel("bread", 1.0),
+    Parcel("glass jars", 3.0, [Fragile()]),
+    Parcel("insulin", 0.5, [KeepCold()]),
+    Parcel("vaccine vials", 1.2, [Fragile(), KeepCold()]),
+    Parcel("water tank", 40.0, [Heavy(), Fragile()]),
+]
+
+for p in batch:
+    print(p.ticket())
+print(f"handling total: {sum(p.surcharge() for p in batch):.2f}")
+</code></pre>
+      <div class="output">bread          1.0 kg + 0.00  none
+glass jars     3.0 kg + 4.00  FRAGILE
+insulin        0.5 kg + 6.00  KEEP COLD
+vaccine vials   1.2 kg +10.00  FRAGILE, KEEP COLD
+water tank    40.0 kg +12.00  TWO PEOPLE, FRAGILE
+handling total: 32.00</div>
+      <p class="en">Four parcel classes became one, and <code>Heavy</code> cost three lines instead of four classes. Two details. The <code>10.00</code> in <code>FragileColdParcel</code> was a hand-added number that happened to equal 4 + 6; here the total is computed, so it cannot drift when the fragile fee changes. And a <em>list</em> of parts, rather than one fixed slot, is what makes the combinations free — this is the same move as <code>power</code> and <code>cargo</code> on the courier, with the count left open.</p>
+      <p class="ar">صارت أصناف الطرود الأربعة صنفًا واحدًا، وكلّف <code>Heavy</code> ثلاثة أسطر بدلًا من أربعة أصناف. وتفصيلان. فالرقم <code>10.00</code> في <code>FragileColdParcel</code> كان رقمًا مضافًا باليد حدث أن ساوى 4 + 6؛ وهنا المجموع محسوب فلا يمكن أن يزيغ عند تغيّر أجرة القابل للكسر. و<em>قائمة</em> من الأجزاء، لا خانة واحدة ثابتة، هي ما يجعل التركيبات مجانية — وهذه هي الحركة نفسها التي في <code>power</code> و<code>cargo</code> عند المندوب، مع ترك العدد مفتوحًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — A pricing rule and a ledger, both swappable</span><span class="ar">تمرين 2.2 — قاعدة تسعير ودفتر، وكلاهما قابل للاستبدال</span></h4>
+    <p class="en">Each branch of the service charges differently and records differently, and the starter has made each variation a subclass — so the branch that wants <em>both</em> the free-above-five pricing and the printed slips has no class to be. Rewrite <code>Shop</code> as one class holding a <code>pricing</code> object (with a <code>quote(km)</code> method and a <code>label</code>) and a <code>book</code> object (with <code>record(km, price)</code>, <code>count()</code> and <code>total()</code>). Then create four branches, including that impossible combination.</p>
+    <p class="ar">كل فرع من الشركة يحاسب على نحو ويسجّل على نحو، وقد جعل الكود الابتدائي كل تغاير صنفًا مشتقًا — فالفرع الذي يريد تسعير «المجاني فوق خمسة» والإيصالات المطبوعة <em>كليهما</em> لا صنف له ليكونه. أعد كتابة <code>Shop</code> صنفًا واحدًا يمسك كائن <code>pricing</code> (فيه دالة <code>quote(km)</code> و<code>label</code>) وكائن <code>book</code> (فيه <code>record(km, price)</code> و<code>count()</code> و<code>total()</code>). ثم أنشئ أربعة فروع، ومنها تلك التركيبة المستحيلة.</p>
+
+<pre class="code bad"><code>class Shop:
+    """One shop, one hard-wired way of charging and
+    recording. Every new policy today means a subclass."""
+
+    def __init__(self, name):
+        self.name = name
+        self.sales = []
+
+    def quote(self, km):
+        return round(2.0 * km, 2)          # flat per km
+
+    def sell(self, km):
+        price = self.quote(km)
+        self.sales.append(price)           # list in memory
+        return price
+
+    def report(self):
+        return (f"{self.name:10} {len(self.sales):2} orders"
+                f" {sum(self.sales):7.2f} ILS")
+
+
+class FreeAboveFiveShop(Shop):
+    def quote(self, km):
+        return 0.0 if km &gt; 5 else round(2.0 * km, 2)
+
+
+class PrintingShop(Shop):
+    def sell(self, km):
+        price = super().sell(km)
+        print(f"  slip: {km} km -&gt; {price:.2f}")
+        return price
+
+
+# and now the shop that wants BOTH...
+# class PrintingFreeAboveFiveShop(???)
+
+for shop in [Shop("Nasr"), FreeAboveFiveShop("Rimal"),
+             PrintingShop("Zaytoun")]:
+    for km in (2.0, 6.0):
+        shop.sell(km)
+    print(shop.report())
+</code></pre>
+
+    <div class="output">Nasr        2 orders   16.00 ILS
+Rimal       2 orders    4.00 ILS
+  slip: 2.0 km -&gt; 4.00
+  slip: 6.0 km -&gt; 12.00
+Zaytoun     2 orders   16.00 ILS</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class FlatPricing:
+    label = "flat"
+
+    def __init__(self, per_km=2.0):
+        self.per_km = per_km
+
+    def quote(self, km):
+        return round(self.per_km * km, 2)
+
+
+class FreeAbovePricing:
+    label = "free-above"
+
+    def __init__(self, per_km=2.0, free_from=5.0):
+        self.per_km = per_km
+        self.free_from = free_from
+
+    def quote(self, km):
+        if km &gt; self.free_from:
+            return 0.0
+        return round(self.per_km * km, 2)
+
+
+class MemoryBook:
+    def __init__(self):
+        self.rows = []
+
+    def record(self, km, price):
+        self.rows.append(price)
+
+    def count(self):
+        return len(self.rows)
+
+    def total(self):
+        return round(sum(self.rows), 2)
+
+
+class PrintingBook(MemoryBook):
+    def record(self, km, price):
+        super().record(km, price)
+        print(f"  slip: {km} km -&gt; {price:.2f}")
+
+
+class Shop:
+    """One class. Pricing and book-keeping are parts."""
+
+    def __init__(self, name, pricing=None, book=None):
+        self.name = name
+        self.pricing = pricing or FlatPricing()
+        self.book = book or MemoryBook()
+
+    def sell(self, km):
+        price = self.pricing.quote(km)
+        self.book.record(km, price)
+        return price
+
+    def report(self):
+        return (f"{self.name:10} {self.pricing.label:11}"
+                f" {self.book.count():2} orders"
+                f" {self.book.total():7.2f} ILS")
+
+
+shops = [
+    Shop("Nasr"),
+    Shop("Rimal", FreeAbovePricing()),
+    Shop("Zaytoun", book=PrintingBook()),
+    # the combination that needed a new class before
+    Shop("Shuja", FreeAbovePricing(2.5, 4.0), PrintingBook()),
+]
+
+for shop in shops:
+    for km in (2.0, 6.0):
+        shop.sell(km)
+    print(shop.report())
+</code></pre>
+      <div class="output">Nasr       flat         2 orders   16.00 ILS
+Rimal      free-above   2 orders    4.00 ILS
+  slip: 2.0 km -&gt; 4.00
+  slip: 6.0 km -&gt; 12.00
+Zaytoun    flat         2 orders   16.00 ILS
+  slip: 2.0 km -&gt; 5.00
+  slip: 6.0 km -&gt; 0.00
+Shuja      free-above   2 orders    5.00 ILS</div>
+      <p class="en">Shuja is the branch that had no class: its own per-km rate, its own free-above threshold, and printed slips, all without one line of new code. Note the <code>2.5</code> and <code>4.0</code> — once the policy is an object, its numbers become constructor arguments too, so <code>FreeAbovePricing</code> covers every threshold the company will ever want instead of one hard-coded five.</p>
+      <p class="ar">شجاعية هي الفرع الذي لم يكن له صنف: فله سعره الخاص للكيلومتر، وحدّه الخاص للمجاني، وإيصالات مطبوعة، كل ذلك دون سطر واحد من كود جديد. ولاحظ <code>2.5</code> و<code>4.0</code> — فبمجرد أن تصبح السياسة كائنًا تصبح أرقامها معامِلات باني أيضًا، فيغطي <code>FreeAbovePricing</code> كل حدّ ستريده الشركة يومًا بدلًا من خمسة مثبتة واحدة.</p>
+      <p class="en">And notice the one place inheritance survived: <code>PrintingBook(MemoryBook)</code>. A printing book really <em>is</em> a memory book that also prints — one axis, a stable contract, three lines, <code>super()</code> called properly. The right answer was not "composition everywhere"; it was composition between the big pieces and inheritance inside a small one.</p>
+      <p class="ar">ولاحظ الموضع الوحيد الذي نجت فيه الوراثة: <code>PrintingBook(MemoryBook)</code>. فالدفتر الطابع <em>هو</em> فعلًا دفتر ذاكرة يطبع أيضًا — محور واحد، وعقد مستقر، وثلاثة أسطر، و<code>super()</code> مستدعاة كما يجب. فلم يكن الجواب الصحيح «تركيبًا في كل مكان»؛ بل تركيبًا بين القطع الكبيرة ووراثةً داخل قطعة صغيرة.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A reporting tool needs a <code>CsvReport</code> and an <code>XlsxReport</code>, each able to write to local disk, to a shared folder, or to an email attachment. Which design do you reach for?</span><span class="ar">تحتاج أداة تقارير إلى <code>CsvReport</code> و<code>XlsxReport</code>، ويستطيع كل منهما الكتابة إلى قرص محلي أو مجلد مشترك أو مرفق بريد. فأي تصميم تختار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Six classes — <code>CsvToDiskReport</code>, <code>CsvToEmailReport</code>, <code>XlsxToFolderReport</code> and so on — each inheriting from a <code>Report</code> base.</span><span class="ar">ستة أصناف — <code>CsvToDiskReport</code> و<code>CsvToEmailReport</code> و<code>XlsxToFolderReport</code> وهكذا — يرث كل منها من أساس <code>Report</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Two report classes for the two formats, each holding a destination object chosen at construction — the format is an "is-a", the destination is a "has-a".</span><span class="ar">صنفا تقرير للصيغتين، يمسك كل منهما كائن مقصد يُختار عند الإنشاء — فالصيغة «هو نوع من» والمقصد «له».</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">One <code>Report</code> class with a <code>format</code> string and a <code>destination</code> string, and <code>if/elif</code> on both inside <code>write()</code>.</span><span class="ar">صنف <code>Report</code> واحد فيه نص <code>format</code> ونص <code>destination</code>، و<code>if/elif</code> على كليهما داخل <code>write()</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Two format classes, each inheriting from all three destination classes at once, so every combination is available through multiple inheritance.</span><span class="ar">صنفا صيغة، يرث كل منهما من أصناف المقصد الثلاثة كلها في وقت واحد، فتتاح كل تركيبة عبر الوراثة المتعددة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Two axes, two tools: formats are a small stable family that really are reports, so inherit them; destinations are a thing a report <em>has</em>, and the whole point is to mix them freely, so hold one. Two classes plus three small destination classes covers all six combinations, and a fourth destination costs one class, not two. The tempting wrong answer is the first — it is exactly what the delivery service did, and six becomes twelve the moment a PDF format or an upload destination appears, with the write-to-email code copied into two places. Answer three is the Lesson 4 <code>if/elif</code> chain rebuilt with two chains instead of one, and answer four is the multiple-inheritance trap: three bases that all define <code>write()</code> means the method resolution order decides which one runs, and you are debugging the MRO instead of writing reports.</div>
+      <div class="ar">محوران وأداتان: فالصِّيَغ عائلة صغيرة مستقرة هي فعلًا تقارير فورّثها؛ والمقاصد شيء <em>للتقرير</em>، والمقصود كله خلطها بحرية فامسك واحدًا. فصنفان زائدًا ثلاثة أصناف مقصد صغيرة تغطّي التركيبات الست كلها، ويكلّف مقصد رابع صنفًا واحدًا لا صنفين. والإجابة المغرية الخاطئة هي الأولى — وهي بالضبط ما فعلته شركة التوصيل، وتصبح الستة اثني عشر لحظة ظهور صيغة PDF أو مقصد تحميل، وكود الكتابة إلى البريد منسوخًا في موضعين. والإجابة الثالثة هي سلسلة <code>if/elif</code> من الدرس 4 مُعاد بناؤها بسلسلتين بدل واحدة، والإجابة الرابعة فخّ الوراثة المتعددة: فثلاثة أسس تعرّف <code>write()</code> كلها تعني أن ترتيب حلّ الدوال هو من يقرّر أيّها يُنفَّذ، فتصير تنقّح الـ MRO بدلًا من كتابة التقارير.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l5-s10"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">Duplication is harmless the day you write it and dangerous the day somebody changes it. Three copies of <code>record_delivery()</code> cost nothing until the delivery cap arrived and was applied to two of them — twelve, twelve, thirteen, no error, and the uncapped courier on the highest rate in the company.</span><span class="ar">التكرار غير ضار في اليوم الذي تكتبه فيه وخطِر في اليوم الذي يغيّره فيه أحد. فثلاث نسخ من <code>record_delivery()</code> لم تكلّف شيئًا إلى أن جاء حد التوصيلات فطُبّق على اثنتين منها — اثنتا عشرة واثنتا عشرة وثلاث عشرة، بلا خطأ، والمندوب غير المحدود على أعلى سعر في الشركة.</span></li>
+      <li><span class="en">A base class gives shared behaviour one home. <code>class BicycleCourier(Courier)</code> starts with everything <code>Courier</code> has and writes down only its differences — here two class attributes, so each subclass is three lines and "where do I change the cap?" has one answer.</span><span class="ar">صنف الأساس يمنح السلوك المشترك موطنًا واحدًا. فـ <code>class BicycleCourier(Courier)</code> يبدأ بكل ما في <code>Courier</code> ولا يكتب إلا فروقه — وهي هنا خاصيتا صنف، فيكون كل صنف مشتق ثلاثة أسطر ويكون لسؤال «أين أغيّر الحد؟» جواب واحد.</span></li>
+      <li><span class="en">An override <em>replaces</em>; <code>super()</code> <em>extends</em>. <code>TruckCourier.record_delivery</code> calls <code>super().record_delivery(km)</code> and adds loading on top, so the cap it never mentions still applies to it.</span><span class="ar">التجاوز <em>يستبدل</em>؛ و<code>super()</code> <em>توسّع</em>. فـ <code>TruckCourier.record_delivery</code> تستدعي <code>super().record_delivery(km)</code> وتضيف التحميل فوقها، فينطبق عليها الحدُّ الذي لا تذكره قط.</span></li>
+      <li><span class="en">Forgetting <code>super().__init__()</code> in a subclass silently produces a half-built object: the creation line succeeds, the subclass's own attribute reads back fine, and you get <code>AttributeError: 'TruckCourier' object has no attribute 'deliveries_today'</code> on the first method that needs the base's work. Make that call the first line you write.</span><span class="ar">نسيان <code>super().__init__()</code> في صنف مشتق يُنتج كائنًا نصف مبنيّ في صمت: فينجح سطر الإنشاء، وتُقرأ خاصية الصنف المشتق نفسه سليمةً، وتحصل على <code>AttributeError: 'TruckCourier' object has no attribute 'deliveries_today'</code> عند أول دالة تحتاج عمل الأساس. فاجعل ذلك الاستدعاء أول سطر تكتبه.</span></li>
+      <li><span class="en">Inheritance is justified by one sentence: <em>a bicycle courier is a courier</em>, and everything the base promises is true of the subclass. <code>isinstance()</code> asks it, and an object is every type above it in the chain. Use <code>isinstance</code> to decide whether an object belongs in a collection, never to decide what it should do.</span><span class="ar">تُبرَّر الوراثة بجملة واحدة: <em>مندوب الدراجة مندوب</em>، وكل ما يَعِد به الأساس صحيح في الصنف المشتق. و<code>isinstance()</code> تسألها، والكائن هو كل نوع يعلوه في السلسلة. استخدم <code>isinstance</code> لتقرير انتماء الكائن إلى مجموعة، لا لتقرير ما ينبغي أن يفعله.</span></li>
+      <li><span class="en">Inheritance carries one axis of variation well. Give it three — vehicle, power source, cargo box — and you get <strong>class explosion</strong>: 3 × 2 × 2 = 12 classes, with <code>target_c</code> written in six of them and <code>RefrigeratedElectricTruckCourier</code> as a class name.</span><span class="ar">الوراثة تحمل محورًا واحدًا من التغاير حملًا حسنًا. فامنحها ثلاثة — مركبة ومصدر طاقة وصندوق حمولة — فتحصل على <strong>انفجار الأصناف</strong>: 3 × 2 × 2 = 12 صنفًا، و<code>target_c</code> مكتوبة في ستة منها، و<code>RefrigeratedElectricTruckCourier</code> اسمًا لصنف.</span></li>
+      <li><span class="en">Overriding a method couples you to its insides. Adding a daily ceiling to <code>Courier.fee()</code> — correct, documented, signature unchanged — paid Lina 140 shekels under a 100-shekel cap, because her override assumed <code>super().fee()</code> always returns a distance fee. That is the <strong>fragile base class</strong>, and nobody could have caught it by reading either method alone.</span><span class="ar">تجاوز دالة يقرنك بداخلها. فإضافة سقف يومي إلى <code>Courier.fee()</code> — صحيحة وموثّقة والصيغة بلا تغيير — دفعت لـ لينا 140 شيكلًا تحت حدّ مئة شيكل، لأن تجاوزها افترض أن <code>super().fee()</code> تعيد أجرة مسافة دائمًا. وهذا هو <strong>صنف الأساس الهشّ</strong>، ولم يكن أحد ليمسكه بقراءة إحدى الدالتين وحدها.</span></li>
+      <li><span class="en">Composition is building behaviour by <em>holding</em> objects: <code>Courier</code> keeps a <code>power</code> and a <code>cargo</code>, each a small class with its own job. A refrigerated electric truck became <code>Courier("Abu Yazan", Battery(90), FridgeBox(2))</code> — a configuration, not a class — and the same loop priced all five configurations without asking what any of them was.</span><span class="ar">التركيب هو بناء السلوك بـ<em>إمساك</em> الكائنات: فـ <code>Courier</code> يحفظ <code>power</code> و<code>cargo</code>، وكل منهما صنف صغير له عمله. فصارت الشاحنة الكهربائية المبرّدة <code>Courier("Abu Yazan", Battery(90), FridgeBox(2))</code> — تهيئة لا صنفًا — وسعّرت الحلقة نفسها التهيئات الخمس كلها دون أن تسأل عن ماهيّة أي منها.</span></li>
+      <li><span class="en">A class is fixed for an object's lifetime; a held part is not. <code>samir.power = DieselEngine()</code> put Samir in the truck for the afternoon with his name and his history intact — something no hierarchy can do.</span><span class="ar">الصنف ثابت طول عمر الكائن؛ أما الجزء الممسوك فليس كذلك. فـ <code>samir.power = DieselEngine()</code> أجلست سميرًا في الشاحنة لما بعد الظهر باسمه وتاريخه سليمين — وهو ما لا يستطيعه أي تسلسل.</span></li>
+      <li><span class="en">The decision rule, before you write <code>class X(Y)</code>: inheritance for <strong>"is-a"</strong> with a shared, stable contract; composition for <strong>"has-a"</strong> or <strong>"can-do"</strong>, and for anything you expect to mix and match. If an X must refuse one of Y's methods or change its signature, that is not an "is-a".</span><span class="ar">قاعدة القرار قبل أن تكتب <code>class X(Y)</code>: الوراثة لـ <strong>«هو نوع من»</strong> بعقد مشترك مستقر؛ والتركيب لـ <strong>«له»</strong> أو <strong>«يستطيع»</strong>، ولكل ما تتوقّع خلطه ومطابقته. فإن كان على X أن يرفض إحدى دوال Y أو يغيّر صيغتها، فتلك ليست «هو نوع من».</span></li>
+      <li><span class="en">The two tools work together; this was never a choice between them. <code>StaffMember</code> is an inherited base that <em>holds</em> a <code>Timetable</code>, and even the composed shop kept <code>PrintingBook(MemoryBook)</code> — composition between the big pieces, inheritance inside a small one.</span><span class="ar">الأداتان تعملان معًا؛ ولم يكن هذا اختيارًا بينهما قط. فـ <code>StaffMember</code> أساس موروث <em>يمسك</em> <code>Timetable</code>، وحتى المتجر المركَّب أبقى <code>PrintingBook(MemoryBook)</code> — تركيبًا بين القطع الكبيرة ووراثةً داخل قطعة صغيرة.</span></li>
+      <li><span class="en">Composition costs an attribute hop and an object to create; inheritance costs a coupling you cannot see. Pay the first on purpose rather than the second by accident.</span><span class="ar">التركيب يكلّف قفزة خاصية وكائنًا يُنشأ؛ والوراثة تكلّف اقترانًا لا تستطيع رؤيته. فادفع الأول بقصد لا الثاني بالعَرَض.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

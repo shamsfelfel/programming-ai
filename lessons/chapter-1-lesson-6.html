@@ -1,0 +1,1556 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Polymorphism &amp; Duck Typing · Python OOP by Example" data-ar="تعدد الأشكال · البرمجة الكائنية بلغة بايثون">Polymorphism &amp; Duck Typing · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="1" data-page="lesson-06" data-path="lessons/chapter-1-lesson-6.html">
+<main>
+<section class="page" id="lesson-06">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker">Lesson 6</span>
+  <h1><span class="en">Polymorphism &amp; Duck Typing</span><span class="ar">تعدد الأشكال وتصنيف البطة</span></h1>
+
+  <p class="lede en">By the end of this lesson you will be able to delete an <code>if/elif</code> chain by letting each object answer for itself, add a whole new kind of thing without editing one line of existing code, and teach <code>len()</code>, <code>==</code> and <code>sorted()</code> to work on classes you wrote yourself.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستكون قادرًا على حذف سلسلة <code>if/elif</code> بأن تدع كل كائن يجيب عن نفسه، وعلى إضافة نوع جديد كاملًا من الأشياء دون تعديل سطر واحد من الكود القائم، وعلى تعليم <code>len()</code> و<code>==</code> و<code>sorted()</code> أن تعمل على أصناف كتبتها بيدك.</p>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A small clinic sees four kinds of patient in a morning. Somebody who walks in off the street and pays the full fee. Somebody coming back for a check after an earlier visit, at half price. Somebody whose insurer covers most of it. And somebody carried in, who is seen first and billed for the emergency room on top. One program prints the receipts and decides the order in which names are called.</p>
+    <p class="ar">عيادة صغيرة تستقبل أربعة أنواع من المرضى في صبيحة واحدة. أحدهم يدخل من الشارع ويدفع الأجر كاملًا. وآخر يعود لمراجعة بعد زيارة سابقة بنصف الأجر. وثالث يغطّي مُؤمِّنه معظم الأجر. ورابع يُحمَل إلى الداخل فيُعايَن أولًا ويُحاسَب على غرفة الطوارئ فوق ذلك. وبرنامج واحد يطبع الإيصالات ويقرّر الترتيب الذي تُنادى به الأسماء.</p>
+    <p class="en">Lesson 4 made a base class <em>demand</em> a method. Lesson 5 made a base class <em>donate</em> one. This lesson is about what happens at the <em>call site</em> once several classes answer the same method name — and, at the end, about the fact that Python's own built-in functions have been doing exactly this to you since the day you learned <code>len()</code>.</p>
+    <p class="ar">جعل الدرس 4 صنف الأساس <em>يطالب</em> بدالة. وجعل الدرس 5 صنف الأساس <em>يتبرّع</em> بدالة. وهذا الدرس عمّا يحدث في <em>موضع الاستدعاء</em> بعد أن تجيب عدة أصناف عن اسم الدالة نفسه — وعن حقيقة، في آخره، أن دوال بايثون المضمّنة نفسها كانت تفعل بك هذا بالضبط منذ يوم تعلّمت <code>len()</code>.</p>
+  </div>
+
+  <h2 id="l6-h1"><span class="en">Concept 1 — The <code>if/elif</code> chain that grows forever</span><span class="ar">المفهوم 1 — سلسلة <code>if/elif</code> التي لا تكفّ عن النمو</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The clinic's program keeps each visit as a dictionary with a <code>"type"</code> string in it, and three functions that each start by asking what that string is. <code>calculate_fee()</code> has a four-branch chain. <code>print_receipt()</code> has the same four branches, because the receipt needs both the amount and a label to print beside it. <code>queue_priority()</code> has the same four branches again, because the emergency goes first.</p>
+    <p class="ar">يحفظ برنامج العيادة كل زيارة قاموسًا فيه نصّ <code>"type"</code>، وثلاث دوال تبدأ كل منها بسؤال ما هو ذلك النصّ. فلـ <code>calculate_fee()</code> سلسلة من أربعة فروع. ولـ <code>print_receipt()</code> الفروع الأربعة نفسها، لأن الإيصال يحتاج المبلغ ولافتةً تُطبع بجانبه. ولـ <code>queue_priority()</code> الفروع الأربعة نفسها من جديد، لأن حالة الطوارئ تتقدّم.</p>
+    <p class="en">Three chains over the same four words, in three functions, forty lines apart. They are not duplicated code in the Lesson 5 sense — the bodies differ, so no base class can absorb them. What is duplicated is the <em>list of cases</em>, and nothing in Python knows that the three lists must stay the same length.</p>
+    <p class="ar">ثلاث سلاسل على الكلمات الأربع نفسها، في ثلاث دوال، يفصل بينها أربعون سطرًا. وهي ليست كودًا مكرَّرًا بمعنى الدرس 5 — فالأجساد مختلفة، فلا صنف أساس يستطيع امتصاصها. والمكرَّر هو <em>قائمة الحالات</em>، ولا شيء في بايثون يعرف أن القوائم الثلاث يجب أن تبقى بالطول نفسه.</p>
+    <p class="en">Then the ministry announces a student discount: 35% of the full fee, with a student card. One idea, three places. Two of them get edited.</p>
+    <p class="ar">ثم تعلن الوزارة خصمًا للطلبة: 35% من الأجر الكامل ببطاقة طالب. فكرة واحدة، وثلاثة مواضع. فيُعدَّل موضعان منها.</p>
+  </div>
+
+  <h3 id="l6-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+  <p class="en">This is <code>clinic.py</code> before the discount. Read it quickly and count how many times the word <code>"walkin"</code> appears.</p>
+  <p class="ar">هذا ملف <code>clinic.py</code> قبل الخصم. اقرأه بسرعة وأحصِ كم مرة تظهر فيه كلمة <code>"walkin"</code>.</p>
+
+<pre class="code bad"><code>BASE_FEE = 60.0
+
+visits = [
+    {"patient": "Mahmoud Afana", "type": "walkin"},
+    {"patient": "Hiba Saleh", "type": "followup"},
+    {"patient": "Yousef Dahlan", "type": "insured",
+     "insurer": "UNRWA"},
+    {"patient": "Nour Kahlout", "type": "emergency"},
+]
+
+
+def calculate_fee(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        return BASE_FEE
+    elif kind == "followup":
+        return BASE_FEE * 0.5
+    elif kind == "insured":
+        return BASE_FEE * 0.2
+    elif kind == "emergency":
+        return BASE_FEE + 90.0
+    else:
+        return BASE_FEE
+
+
+def print_receipt(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        label, amount = "Walk-in", BASE_FEE
+    elif kind == "followup":
+        label, amount = "Follow-up", BASE_FEE * 0.5
+    elif kind == "insured":
+        label, amount = "Insured", BASE_FEE * 0.2
+    elif kind == "emergency":
+        label, amount = "Emergency", BASE_FEE + 90.0
+    else:
+        label, amount = "Visit", BASE_FEE
+    print(f"  {visit['patient']:16} {label:10}"
+          f" {amount:7.2f} ILS")
+
+
+def queue_priority(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        return 3
+    elif kind == "followup":
+        return 2
+    elif kind == "insured":
+        return 3
+    elif kind == "emergency":
+        return 0
+    else:
+        return 3
+
+
+print("today's receipts")
+for v in visits:
+    print_receipt(v)
+print(f"  {'TOTAL':16} {'':10}"
+      f" {sum(calculate_fee(v) for v in visits):7.2f} ILS")
+
+print("call order")
+for v in sorted(visits, key=queue_priority):
+    print(f"  {queue_priority(v)}  {v['patient']}")
+</code></pre>
+
+  <div class="output">today's receipts
+  Mahmoud Afana    Walk-in      60.00 ILS
+  Hiba Saleh       Follow-up    30.00 ILS
+  Yousef Dahlan    Insured      12.00 ILS
+  Nour Kahlout     Emergency   150.00 ILS
+  TOTAL                        252.00 ILS
+call order
+  0  Nour Kahlout
+  2  Hiba Saleh
+  3  Mahmoud Afana
+  3  Yousef Dahlan</div>
+
+  <p class="en">It is correct, and it works, and a hundred clinics run on code shaped exactly like this. Note one thing before we break it: the amount <code>BASE_FEE * 0.5</code> is written twice already — once in <code>calculate_fee</code> and once in <code>print_receipt</code> — so the receipt and the total are two independent opinions about what a follow-up costs. Today they agree.</p>
+  <p class="ar">إنه صحيح، وهو يعمل، ومئة عيادة تعمل بكود على هذه الصورة بالضبط. ولاحظ أمرًا واحدًا قبل أن نكسره: فالمبلغ <code>BASE_FEE * 0.5</code> مكتوب مرتين أصلًا — مرة في <code>calculate_fee</code> ومرة في <code>print_receipt</code> — فالإيصال والمجموع رأيان مستقلان عن كلفة المراجعة. وهما متوافقان اليوم.</p>
+
+  <h3 id="l6-s2"><span class="en">Now add the student discount — to two of the three</span><span class="ar">الآن أضف خصم الطلبة — إلى اثنتين من الثلاث</span></h3>
+
+  <p class="en">The developer searches for <code>"emergency"</code> to find where the cases live, adds a <code>student</code> branch to the hit in <code>calculate_fee</code>, adds one to the hit in <code>queue_priority</code>, and stops — two hits found, two hits fixed. The branch in <code>print_receipt</code> was found too, but it is the one where the pattern is <code>label, amount = ...</code> rather than <code>return</code>, and the eye slid over it.</p>
+  <p class="ar">يبحث المطوّر عن <code>"emergency"</code> ليجد موضع الحالات، فيضيف فرع <code>student</code> إلى النتيجة في <code>calculate_fee</code>، ويضيف واحدًا إلى النتيجة في <code>queue_priority</code>، ويتوقّف — نتيجتان وُجدتا ونتيجتان أُصلحتا. وقد وُجد الفرع في <code>print_receipt</code> أيضًا، لكنه الفرع الذي يكون نمطه <code>label, amount = ...</code> لا <code>return</code>، فانزلقت عنه العين.</p>
+
+<pre class="code bad"><code>def calculate_fee(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        return BASE_FEE
+    elif kind == "followup":
+        return BASE_FEE * 0.5
+    elif kind == "insured":
+        return BASE_FEE * 0.2
+    elif kind == "emergency":
+        return BASE_FEE + 90.0
+    elif kind == "student":          # added
+        return BASE_FEE * 0.35
+    else:
+        return BASE_FEE
+
+
+def print_receipt(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        label, amount = "Walk-in", BASE_FEE
+    elif kind == "followup":
+        label, amount = "Follow-up", BASE_FEE * 0.5
+    elif kind == "insured":
+        label, amount = "Insured", BASE_FEE * 0.2
+    elif kind == "emergency":
+        label, amount = "Emergency", BASE_FEE + 90.0
+    else:                            # NOT added here
+        label, amount = "Visit", BASE_FEE
+    print(f"  {visit['patient']:16} {label:10}"
+          f" {amount:7.2f} ILS")
+
+
+def queue_priority(visit):
+    kind = visit["type"]
+    if kind == "walkin":
+        return 3
+    elif kind == "followup":
+        return 2
+    elif kind == "insured":
+        return 3
+    elif kind == "emergency":
+        return 0
+    elif kind == "student":          # added
+        return 3
+    else:
+        return 3
+
+
+visits.append({"patient": "Lina Shurrab",
+               "type": "student"})
+
+print("today's receipts")
+for v in visits:
+    print_receipt(v)
+print(f"  {'TOTAL':16} {'':10}"
+      f" {sum(calculate_fee(v) for v in visits):7.2f} ILS")
+</code></pre>
+
+  <div class="output">today's receipts
+  Mahmoud Afana    Walk-in      60.00 ILS
+  Hiba Saleh       Follow-up    30.00 ILS
+  Yousef Dahlan    Insured      12.00 ILS
+  Nour Kahlout     Emergency   150.00 ILS
+  Lina Shurrab     Visit        60.00 ILS
+  TOTAL                        273.00 ILS</div>
+
+  <div class="warn">
+    <h4><span class="en">Lina pays 60 and the clinic books 21</span><span class="ar">لينا تدفع 60 والعيادة تسجّل 21</span></h4>
+    <p class="en">No exception, no warning, no red line anywhere. The <code>else</code> branch in <code>print_receipt</code> caught the unknown type and quietly called it a <code>Visit</code> at the full fee, so Lina is charged 60 shekels at the desk. Meanwhile <code>calculate_fee</code> knows about students and reports 21. The discount the ministry announced exists in the accounts and not in the cash drawer.</p>
+    <p class="ar">لا استثناء ولا تحذير ولا خطّ أحمر في أي موضع. فقد التقط فرع <code>else</code> في <code>print_receipt</code> النوع المجهول وسمّاه <code>Visit</code> بالأجر الكامل في صمت، فتُحاسَب لينا على ستين شيكلًا عند المكتب. وفي الوقت نفسه تعرف <code>calculate_fee</code> الطلبة فتُبلّغ عن 21. فالخصم الذي أعلنته الوزارة موجود في الدفاتر لا في صندوق النقد.</p>
+    <p class="en">Add the five printed amounts by hand: 60 + 30 + 12 + 150 + 60 is 312. The <code>TOTAL</code> line says 273. The printed receipts and the printed total, on the same page of output, disagree by 39 shekels — and that is the only visible symptom, in a report nobody adds up by hand.</p>
+    <p class="ar">اجمع المبالغ الخمسة المطبوعة بيدك: 60 + 30 + 12 + 150 + 60 تساوي 312. ويقول سطر <code>TOTAL</code> إنها 273. فالإيصالات المطبوعة والمجموع المطبوع، في صفحة الناتج نفسها، يتخالفان بتسعة وثلاثين شيكلًا — وهذا هو العَرَض الظاهر الوحيد، في تقرير لا يجمعه أحد بيده.</p>
+    <p class="en">And a worse thing is true of that <code>else</code>: it is a bug <em>generator</em>. Every future type anybody forgets will be silently priced at the full fee, for as long as the program runs.</p>
+    <p class="ar">وأمر أسوأ صحيح في ذلك <code>else</code>: فهو <em>مولِّد</em> عِلل. فكل نوع مستقبلي ينساه أحد سيُسعَّر بالأجر الكامل في صمت، ما دام البرنامج يعمل.</p>
+  </div>
+
+  <h3 id="l6-s3"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">Look at what each chain actually does in its first line: <code>kind = visit["type"]</code>. Every one of the three functions begins by re-discovering <em>what kind of thing it was handed</em>. The visit already knows — it has been carrying the answer in a string since it was created — and three separate pieces of code take that string and re-derive consequences from it.</p>
+  <p class="ar">انظر إلى ما تفعله كل سلسلة فعلًا في سطرها الأول: <code>kind = visit["type"]</code>. فكل واحدة من الدوال الثلاث تبدأ بإعادة اكتشاف <em>نوع الشيء الذي سُلِّم إليها</em>. والزيارة تعرف أصلًا — فهي تحمل الجواب في نصّ منذ أُنشئت — وثلاث قطع كود منفصلة تأخذ ذلك النصّ وتستخرج منه النتائج من جديد.</p>
+
+  <p class="en">The defect is that <strong>the knowledge about a kind of visit lives away from the visit</strong>, scattered across the functions that happen to need it. Everything a student visit is — a label, a fee, a place in the queue — is written in three different functions, and in none of them next to the other two. There is no single place you could point at and say "this is what a student visit is", so there is no single place to add one.</p>
+  <p class="ar">والعيب أن <strong>المعرفة بنوع الزيارة تقيم بعيدًا عن الزيارة</strong>، مبثوثةً في الدوال التي حدث أنها احتاجتها. فكل ما تكونه زيارة الطالب — لافتة وأجر وموضع في الطابور — مكتوب في ثلاث دوال مختلفة، ولا يجاور في أيّها الاثنين الآخرين. فلا موضع واحد تستطيع الإشارة إليه وتقول «هذا ما تكونه زيارة الطالب»، فلا موضع واحد لإضافة واحدة.</p>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 1 — one class per visit type, each with its own <code>fee()</code></span><span class="ar">الخطوة 1 — صنف لكل نوع زيارة، لكل منه <code>fee()</code> خاصّة به</span></span>
+    <p class="en">Give each branch a class, and move the branch body into a method called <code>fee()</code>. Nothing clever: the four <code>return</code> lines from <code>calculate_fee</code> end up in four classes, one line each.</p>
+    <p class="ar">امنح كل فرع صنفًا، وانقل جسد الفرع إلى دالة تسمى <code>fee()</code>. ولا شيء بارع في ذلك: فأسطر <code>return</code> الأربعة من <code>calculate_fee</code> تنتهي في أربعة أصناف، سطر في كل منها.</p>
+
+<pre class="code good"><code>BASE_FEE = 60.0
+
+
+class WalkInVisit:
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE
+
+
+class FollowUpVisit:
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE * 0.5
+
+
+class InsuredVisit:
+    def __init__(self, patient, insurer):
+        self.patient = patient
+        self.insurer = insurer
+
+    def fee(self):
+        return BASE_FEE * 0.2
+
+
+class EmergencyVisit:
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE + 90.0
+
+
+visits = [WalkInVisit("Mahmoud Afana"),
+          FollowUpVisit("Hiba Saleh"),
+          InsuredVisit("Yousef Dahlan", "UNRWA"),
+          EmergencyVisit("Nour Kahlout")]
+
+for v in visits:
+    print(f"{v.patient:16} {v.fee():7.2f} ILS")
+
+print(f"{'TOTAL':16} {sum(v.fee() for v in visits):7.2f} ILS")
+print(type(visits[1]).__name__, "answered", visits[1].fee())
+print(type(visits[3]).__name__, "answered", visits[3].fee())
+</code></pre>
+
+    <div class="output">Mahmoud Afana      60.00 ILS
+Hiba Saleh         30.00 ILS
+Yousef Dahlan      12.00 ILS
+Nour Kahlout      150.00 ILS
+TOTAL             252.00 ILS
+FollowUpVisit answered 30.0
+EmergencyVisit answered 150.0</div>
+
+    <p class="en">Now look again at the two lines near the bottom of that file — <code>for v in visits:</code> and the <code>print</code> under it that calls <code>v.fee()</code> — because that loop is the entire lesson.</p>
+    <p class="ar">انظر الآن من جديد إلى السطرين قرب أسفل ذلك الملف — <code>for v in visits:</code> وسطر <code>print</code> تحته الذي يستدعي <code>v.fee()</code> — فتلك الحلقة هي الدرس كله.</p>
+
+    <p class="en">Four different classes go through that loop. One method name is written — <code>v.fee()</code> — and four different method bodies run. The loop does not ask what <code>v</code> is. It cannot: there is no <code>type</code> string left to ask about, and the <code>if</code> that used to do the asking is gone, not moved. The decision about what kind of thing this is was made once, at the moment the object was created, and never again.</p>
+    <p class="ar">أربعة أصناف مختلفة تمرّ بتلك الحلقة. فاسم دالة واحد مكتوب — <code>v.fee()</code> — وأربعة أجساد دوال مختلفة تُنفَّذ. والحلقة لا تسأل ما هو <code>v</code>. ولا تستطيع: فلم يبقَ نصّ <code>type</code> لتسأل عنه، و<code>if</code> التي كانت تسأل زالت ولم تنتقل. فقد اتُّخذ القرار بنوع هذا الشيء مرة واحدة، لحظةَ أُنشئ الكائن، ولم يُتَّخذ بعدها قط.</p>
+
+    <p class="en">That is <strong>polymorphism</strong>: one call, written once, that reaches a different implementation depending on the object it was called on. The word means "many shapes" — the call site has one shape, the behaviour behind it has many. The two <code>print</code> lines at the bottom of the snippet are the proof, printed by the interpreter itself: the same <code>.fee()</code> text, two class names, two answers.</p>
+    <p class="ar">وهذا هو <strong>تعدد الأشكال</strong>: استدعاء واحد مكتوب مرة واحدة يبلغ تنفيذًا مختلفًا باختلاف الكائن الذي استُدعي عليه. والكلمة تعني «أشكالًا كثيرة» — فلموضع الاستدعاء شكل واحد، وللسلوك من خلفه أشكال كثيرة. وسطرا <code>print</code> في أسفل المقطع هما البرهان مطبوعًا من المفسِّر نفسه: نصّ <code>.fee()</code> نفسه، واسما صنفين، وجوابان.</p>
+
+    <p class="en">One honest note on what Step 1 has not fixed. <code>print_receipt</code> and <code>queue_priority</code> still have their chains, and the classes above are twenty-eight lines where the chain was eleven. We are mid-conversion, and this intermediate version is genuinely worse than what we started with if we stop here.</p>
+    <p class="ar">وملاحظة صادقة عمّا لم تصلحه الخطوة 1. فلا تزال لـ <code>print_receipt</code> و<code>queue_priority</code> سلاسلهما، والأصناف أعلاه ثمانية وعشرون سطرًا حيث كانت السلسلة أحد عشر. فنحن في منتصف التحويل، وهذه النسخة الوسيطة أسوأ فعلًا من حيث بدأنا إن توقّفنا هنا.</p>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 2 — move the other two chains onto the same classes</span><span class="ar">الخطوة 2 — انقل السلسلتين الأخريين إلى الأصناف نفسها</span></span>
+    <p class="en">The other two chains were asking the same question, so they get the same answer. <code>priority</code> is a single number per type — a class attribute, as in Lesson 2. <code>label</code> likewise. And <code>receipt_line()</code> can be written <em>once</em> in a base class, because it no longer needs to know the amount: it asks <code>self.fee()</code>, and polymorphism does the rest.</p>
+    <p class="ar">كانت السلسلتان الأخريان تسألان السؤال نفسه، فتحصلان على الجواب نفسه. فـ <code>priority</code> رقم واحد لكل نوع — خاصية صنف كما في الدرس 2. و<code>label</code> كذلك. وتستطيع <code>receipt_line()</code> أن تُكتب <em>مرة واحدة</em> في صنف أساس، لأنها لم تعد تحتاج معرفة المبلغ: فهي تسأل <code>self.fee()</code>، ويؤدي تعدد الأشكال ما بقي.</p>
+
+<pre class="code good"><code>BASE_FEE = 60.0
+
+
+class Visit:
+    """Shared plumbing. Each kind answers fee() itself."""
+
+    label = "Visit"
+    priority = 3
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    def receipt_line(self):
+        return (f"  {self.patient:16} {self.label:10}"
+                f" {self.fee():7.2f} ILS")
+
+
+class WalkInVisit(Visit):
+    label = "Walk-in"
+
+    def fee(self):
+        return BASE_FEE
+
+
+class FollowUpVisit(Visit):
+    label = "Follow-up"
+    priority = 2
+
+    def fee(self):
+        return BASE_FEE * 0.5
+
+
+class InsuredVisit(Visit):
+    label = "Insured"
+
+    def __init__(self, patient, insurer):
+        super().__init__(patient)
+        self.insurer = insurer
+
+    def fee(self):
+        return BASE_FEE * 0.2
+
+    def receipt_line(self):
+        return f"{super().receipt_line()}  [{self.insurer}]"
+
+
+class EmergencyVisit(Visit):
+    label = "Emergency"
+    priority = 0
+
+    def fee(self):
+        return BASE_FEE + 90.0
+
+
+# the whole "student discount" change: one new class
+class StudentVisit(Visit):
+    label = "Student"
+
+    def fee(self):
+        return BASE_FEE * 0.35
+
+
+visits = [WalkInVisit("Mahmoud Afana"),
+          FollowUpVisit("Hiba Saleh"),
+          InsuredVisit("Yousef Dahlan", "UNRWA"),
+          EmergencyVisit("Nour Kahlout"),
+          StudentVisit("Lina Shurrab")]
+
+print("today's receipts")
+for v in visits:
+    print(v.receipt_line())
+print(f"  {'TOTAL':16} {'':10}"
+      f" {sum(v.fee() for v in visits):7.2f} ILS")
+
+print("call order")
+for v in sorted(visits, key=lambda x: x.priority):
+    print(f"  {v.priority}  {v.patient:16} {v.label}")
+</code></pre>
+
+    <div class="output">today's receipts
+  Mahmoud Afana    Walk-in      60.00 ILS
+  Hiba Saleh       Follow-up    30.00 ILS
+  Yousef Dahlan    Insured      12.00 ILS  [UNRWA]
+  Nour Kahlout     Emergency   150.00 ILS
+  Lina Shurrab     Student      21.00 ILS
+  TOTAL                        273.00 ILS
+call order
+  0  Nour Kahlout     Emergency
+  2  Hiba Saleh       Follow-up
+  3  Mahmoud Afana    Walk-in
+  3  Yousef Dahlan    Insured
+  3  Lina Shurrab     Student</div>
+
+    <p class="en">Lina is charged 21 and the total says 273, and the two numbers can no longer disagree, because there is now exactly one expression in the program that knows what a student visit costs. Add up the printed column: 60 + 30 + 12 + 150 + 21 is 273. The receipt and the ledger are the same arithmetic.</p>
+    <p class="ar">تُحاسَب لينا على 21 ويقول المجموع 273، ولم يبقَ بالرقمين سبيل إلى التخالف، لأن في البرنامج الآن تعبيرًا واحدًا بالضبط يعرف كلفة زيارة الطالب. فاجمع العمود المطبوع: 60 + 30 + 12 + 150 + 21 تساوي 273. فالإيصال والدفتر هما الحساب نفسه.</p>
+
+    <p class="en">Now read <code>StudentVisit</code> again and notice what it cost. Five lines, at the bottom of the file. Not one line above it was touched — not <code>Visit</code>, not the four existing classes, not <code>receipt_line</code>, not the loop, not the <code>sorted()</code> call. The student discount arrived as <em>pure addition</em>.</p>
+    <p class="ar">اقرأ الآن <code>StudentVisit</code> من جديد ولاحظ ما كلّف. خمسة أسطر في أسفل الملف. ولم يُلامَس سطر واحد فوقه — لا <code>Visit</code> ولا الأصناف الأربعة القائمة ولا <code>receipt_line</code> ولا الحلقة ولا استدعاء <code>sorted()</code>. فوصل خصم الطلبة <em>إضافةً صافية</em>.</p>
+
+    <p class="en">That property has a name — code that is open to extension and closed to modification — and it is worth stating as a plain practical consequence rather than a principle to memorise: <strong>a change that only adds code cannot break code that already works.</strong> With the chains, "add a visit type" meant editing three working functions, and the risk was proportional to how many you found. With the classes, the risk is zero, because the existing functions were never opened.</p>
+    <p class="ar">ولتلك الخاصية اسم — كود مفتوح للتوسيع مغلق للتعديل — ويجدر بيانها نتيجةً عمليةً صريحةً لا مبدأً للحفظ: فـ <strong>التغيير الذي لا يفعل إلا إضافة كود لا يستطيع كسر كود يعمل أصلًا.</strong> فمع السلاسل كانت «أضف نوع زيارة» تعني تعديل ثلاث دوال عاملة، وكان الخطر على قدر ما وجدتَ منها. ومع الأصناف فالخطر صفر، لأن الدوال القائمة لم تُفتح قط.</p>
+
+    <div class="tip">
+      <h4><span class="en">Where did the <code>else</code> go?</span><span class="ar">إلى أين ذهب الـ <code>else</code>؟</span></h4>
+      <p class="en">The silent <code>else: amount = BASE_FEE</code> that charged Lina 60 shekels has no equivalent in the new design, and it is not that we removed it — there is nowhere to put it. A visit object either is a <code>StudentVisit</code>, with a <code>fee()</code>, or it does not exist. Whole categories of "unknown type fell through to the default" bug become unwritable, and that is usually the biggest practical gain of the conversion.</p>
+      <p class="ar">فـ <code>else: amount = BASE_FEE</code> الصامتة التي حاسبت لينا على ستين شيكلًا لا نظير لها في التصميم الجديد، وليس أننا أزلناها — بل لا موضع لوضعها. فكائن الزيارة إما أن يكون <code>StudentVisit</code> له <code>fee()</code>، وإما ألا يكون موجودًا. فتصبح أصناف كاملة من عِلّة «نوع مجهول سقط إلى الافتراضي» غير قابلة للكتابة، وهذا عادةً أكبر مكسب عملي للتحويل.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <span class="step"><span class="en">Step 3 — the base class, two ways</span><span class="ar">الخطوة 3 — صنف الأساس بطريقتين</span></span>
+    <p class="en">There is a hole in Step 2 and you may already have seen it. <code>Visit.receipt_line()</code> calls <code>self.fee()</code>, and <code>Visit</code> never defines <code>fee()</code>. Nothing in the file says a visit class must have one. Here is what happens when the physiotherapist is added by somebody in a hurry.</p>
+    <p class="ar">في الخطوة 2 ثقب ولعلّك رأيته. فـ <code>Visit.receipt_line()</code> تستدعي <code>self.fee()</code>، و<code>Visit</code> لا يعرّف <code>fee()</code> قط. ولا شيء في الملف يقول إن صنف الزيارة يجب أن تكون له واحدة. وهذا ما يحدث حين يُضيف أحد العلاج الطبيعي على عجل.</p>
+
+    <p class="en">The first way is the one you already met in Lesson 4: make the base class <em>demand</em> the method with <code>abc.ABC</code> and <code>@abstractmethod</code>. Here it is on this file, with the forgetful subclass left in.</p>
+    <p class="ar">الطريقة الأولى هي التي لقيتها في الدرس 4: اجعل صنف الأساس <em>يطالب</em> بالدالة بـ <code>abc.ABC</code> و<code>@abstractmethod</code>. وهذه هي على هذا الملف، والصنف المشتق الناسي باقٍ فيه.</p>
+
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+BASE_FEE = 60.0
+
+
+class Visit(ABC):
+    """The promise: no fee(), no object."""
+
+    label = "Visit"
+    priority = 3
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    @abstractmethod
+    def fee(self):
+        """Every visit kind must price itself."""
+
+    def receipt_line(self):
+        return (f"  {self.patient:16} {self.label:10}"
+                f" {self.fee():7.2f} ILS")
+
+
+class WalkInVisit(Visit):
+    label = "Walk-in"
+
+    def fee(self):
+        return BASE_FEE
+
+
+class StudentVisit(Visit):
+    label = "Student"
+
+    def fee(self):
+        return BASE_FEE * 0.35
+
+
+class PhysioVisit(Visit):
+    label = "Physio"
+    # somebody forgot fee()
+
+
+for kind in (WalkInVisit, StudentVisit):
+    print(kind("Mahmoud Afana").receipt_line())
+
+print(PhysioVisit("Rami Hania").receipt_line())
+</code></pre>
+
+    <div class="output">  Mahmoud Afana    Walk-in      60.00 ILS
+  Mahmoud Afana    Student      21.00 ILS
+Traceback (most recent call last):
+  File "clinic.py", line 46, in &lt;module&gt;
+    print(PhysioVisit("Rami Hania").receipt_line())
+          ~~~~~~~~~~~^^^^^^^^^^^^^^
+TypeError: Can't instantiate abstract class PhysioVisit without an implementation for abstract method 'fee'</div>
+
+    <p class="en">Read the error carefully: it fired on <code>PhysioVisit("Rami Hania")</code> — at <em>creation</em>, before <code>receipt_line()</code> was reached, before any fee was needed. The object could not come into existence, and the message names the class and the missing method. That is the value of the enforced promise: the mistake is caught at the earliest possible moment and the diagnosis is handed to you.</p>
+    <p class="ar">اقرأ الخطأ بتدقيق: فقد انطلق على <code>PhysioVisit("Rami Hania")</code> — عند <em>الإنشاء</em>، قبل أن تُبلَغ <code>receipt_line()</code>، وقبل أن يُحتاج أي أجر. فلم يستطع الكائن أن يوجد، والرسالة تسمّي الصنف والدالة المفقودة. وهذه قيمة المطلب المفروض: فتُلتقَط الغلطة في أبكر لحظة ممكنة ويُسلَّم إليك التشخيص.</p>
+
+    <p class="en">Now the second way. Take the base class away completely — no <code>Visit</code>, no <code>ABC</code>, no inheritance at all — and run the same loop.</p>
+    <p class="ar">وأما الطريقة الثانية. فانزع صنف الأساس نزعًا تامًّا — لا <code>Visit</code> ولا <code>ABC</code> ولا وراثة إطلاقًا — وشغّل الحلقة نفسها.</p>
+
+<pre class="code good"><code>BASE_FEE = 60.0
+
+
+class WalkInVisit:            # no base class at all
+    label = "Walk-in"
+    priority = 3
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE
+
+
+class EmergencyVisit:
+    label = "Emergency"
+    priority = 0
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE + 90.0
+
+
+class LabTest:
+    """Not a visit at all - the lab bills separately."""
+
+    label = "Lab test"
+    priority = 4
+
+    def __init__(self, patient, test_name, cost):
+        self.patient = patient
+        self.test_name = test_name
+        self.cost = cost
+
+    def fee(self):
+        return self.cost
+
+
+def print_day(items):
+    for item in items:
+        print(f"  {item.patient:16} {item.label:10}"
+              f" {item.fee():7.2f} ILS")
+    print(f"  {'TOTAL':16} {'':10}"
+          f" {sum(i.fee() for i in items):7.2f} ILS")
+
+
+print_day([WalkInVisit("Mahmoud Afana"),
+           EmergencyVisit("Nour Kahlout"),
+           LabTest("Yousef Dahlan", "CBC", 45.0)])
+</code></pre>
+
+    <div class="output">  Mahmoud Afana    Walk-in      60.00 ILS
+  Nour Kahlout     Emergency   150.00 ILS
+  Yousef Dahlan    Lab test     45.00 ILS
+  TOTAL                        255.00 ILS</div>
+
+    <p class="en">Polymorphism with no base class and no shared ancestor of any kind. <code>print_day</code> works on all three because each of them happens to have <code>patient</code>, <code>label</code> and <code>fee()</code>. This is <strong>duck typing</strong>: Python never checks what an object <em>is</em>, only whether it has the attribute you asked for, at the moment you ask. The name comes from "if it walks like a duck and quacks like a duck, treat it as a duck".</p>
+    <p class="ar">تعدد أشكال بلا صنف أساس وبلا سلف مشترك من أي نوع. فـ <code>print_day</code> تعمل على الثلاثة كلها لأن كلًّا منها يحدث أن له <code>patient</code> و<code>label</code> و<code>fee()</code>. وهذا هو <strong>تصنيف البطة (duck typing)</strong>: فبايثون لا تفحص قط ما <em>يكونه</em> الكائن، بل أله الخاصية التي سألت عنها لحظةَ تسأل فقط. والاسم من «إن مشى مشي البطة ونقّ نقيقها فعامله بطةً».</p>
+
+    <p class="en">And look at <code>LabTest</code>, because it is the interesting one. A lab test is not a visit; it is not a kind of visit; no sane hierarchy would put it under <code>Visit</code>. Yet it slots into the clinic's day printer for free, because it answers the three questions that printer asks. Under the <code>ABC</code> design it could not — it would have had to inherit from <code>Visit</code> and pretend to be a visit in order to be printed.</p>
+    <p class="ar">وانظر إلى <code>LabTest</code>، فهو الطريف. فتحليل المختبر ليس زيارة، ولا نوعًا من الزيارة، ولا تسلسل سليم يضعه تحت <code>Visit</code>. ومع ذلك يندرج في طابعة يوم العيادة مجانًا، لأنه يجيب عن الأسئلة الثلاثة التي تسألها تلك الطابعة. ولم يكن يستطيع ذلك في تصميم <code>ABC</code> — إذ كان عليه أن يرث من <code>Visit</code> وأن يتظاهر بأنه زيارة ليُطبَع.</p>
+
+    <p class="en">Now the bill for that freedom. Forget <code>fee()</code> with no base class, and nobody stops you.</p>
+    <p class="ar">وأما فاتورة تلك الحرية. فانسَ <code>fee()</code> بلا صنف أساس فلا أحد يوقفك.</p>
+
+<pre class="code bad"><code>BASE_FEE = 60.0
+
+
+class WalkInVisit:
+    label = "Walk-in"
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE
+
+
+class PhysioVisit:
+    """No base class, so nothing demanded fee()."""
+
+    label = "Physio"
+
+    def __init__(self, patient):
+        self.patient = patient
+
+
+day = [WalkInVisit("Mahmoud Afana"),
+       PhysioVisit("Rami Hania")]
+
+print("built", len(day), "items, no complaint")
+for item in day:
+    print(f"  {item.patient:16} {item.fee():7.2f} ILS")
+</code></pre>
+
+    <div class="output">built 2 items, no complaint
+  Mahmoud Afana      60.00 ILS
+Traceback (most recent call last):
+  File "clinic.py", line 28, in &lt;module&gt;
+    print(f"  {item.patient:16} {item.fee():7.2f} ILS")
+                                 ^^^^^^^^
+AttributeError: 'PhysioVisit' object has no attribute 'fee'</div>
+
+    <p class="en">Compare the two failures line by line, because the difference is the whole trade-off. With <code>ABC</code>, the class could not be instantiated: the program died at <code>PhysioVisit(...)</code>, which is usually startup, usually on the developer's machine, usually within seconds of writing the bug. With duck typing, the class was created happily — <code>built 2 items, no complaint</code> — the first receipt printed correctly, money was taken, and the <code>AttributeError</code> arrived only when the second item's <code>fee</code> was actually read. If <code>PhysioVisit</code> were a rare type that only appears on Thursdays, the crash would be a Thursday crash, in production, half-way through a printed page.</p>
+    <p class="ar">قارن الفشلين سطرًا سطرًا، فالفرق هو المقايضة كلها. فمع <code>ABC</code> لم يُستطع إنشاء الصنف: فمات البرنامج عند <code>PhysioVisit(...)</code>، وهو عادةً الإقلاع، وعادةً على حاسوب المطوّر، وعادةً في ثوانٍ من كتابة العلة. ومع تصنيف البطة أُنشئ الصنف راضيًا — <code>built 2 items, no complaint</code> — وطُبع الإيصال الأول صحيحًا وأُخذ المال، ولم يصل <code>AttributeError</code> إلا حين قُرئت <code>fee</code> للعنصر الثاني فعلًا. ولو كان <code>PhysioVisit</code> نوعًا نادرًا لا يظهر إلا أيام الخميس لكان الانهيار انهيار يوم خميس في الإنتاج، في منتصف صفحة مطبوعة.</p>
+
+    <div class="note">
+      <h4><span class="en">Which one to use — the honest answer</span><span class="ar">أيّهما تستخدم — الجواب الصادق</span></h4>
+      <p class="en">Both are real polymorphism and both are idiomatic Python. The choice is about <em>when</em> you want to be told about a missing method, and about who writes the classes.</p>
+      <p class="ar">كلتاهما تعدد أشكال حقيقي وكلتاهما بايثون أصيلة. والاختيار عن <em>متى</em> تريد أن تُخبَر بدالة مفقودة، وعمّن يكتب الأصناف.</p>
+      <ul>
+        <li><span class="en"><strong>Reach for <code>ABC</code></strong> when there is a real family with a name (a visit <em>is</em> a visit), when the base class also has shared code to donate — <code>receipt_line()</code> here — and when the classes will be written by other people, later, possibly in other files. The <code>@abstractmethod</code> list is then documentation that cannot go out of date.</span><span class="ar"><strong>اختر <code>ABC</code></strong> حين تكون هناك عائلة حقيقية لها اسم (فالزيارة <em>هي</em> زيارة)، وحين يكون لصنف الأساس كود مشترك يتبرّع به — <code>receipt_line()</code> هنا — وحين ستُكتب الأصناف على أيدي آخرين لاحقًا، ولعلّه في ملفات أخرى. فتكون قائمة <code>@abstractmethod</code> آنذاك توثيقًا لا يستطيع أن يبلى.</span></li>
+        <li><span class="en"><strong>Reach for plain duck typing</strong> when the things have nothing in common except the one question you ask them (a lab test and a visit), when you do not own their classes and cannot make them inherit anything, and for the small single-method parts of Lesson 5's composition — a pricing object, a printer, a destination.</span><span class="ar"><strong>اختر تصنيف البطة الصريح</strong> حين لا يشترك الأشياء في شيء إلا السؤال الواحد الذي تسألها (تحليل مختبر وزيارة)، وحين لا تملك أصنافها ولا تستطيع أن تجعلها ترث شيئًا، ولأجزاء الدالة الواحدة الصغيرة في تركيب الدرس 5 — كائن تسعير أو طابعة أو مقصد.</span></li>
+        <li><span class="en"><strong>The real cost of duck typing</strong> is that the contract exists only in your head and in the call site. Nothing lists what <code>print_day</code> requires; you find out by reading its body, or by an <code>AttributeError</code> on a Thursday. <code>ABC</code> buys you an early, named failure, and pays for it with a hierarchy that an unrelated class cannot join.</span><span class="ar"><strong>الكلفة الحقيقية لتصنيف البطة</strong> أن العقد لا يوجد إلا في رأسك وفي موضع الاستدعاء. فلا شيء يسرد ما تطلبه <code>print_day</code>؛ وإنما تعرفه بقراءة جسدها أو بـ <code>AttributeError</code> في يوم خميس. و<code>ABC</code> يشتري لك فشلًا مبكّرًا مسمّى، ويدفع ثمنه تسلسلًا لا يستطيع صنف غريب أن ينضم إليه.</span></li>
+      </ul>
+      <p class="en">A middle course exists and is worth knowing: keep duck typing, and write <code>if not hasattr(item, "fee"): raise TypeError(...)</code> once, where the list of items is built, rather than letting the failure happen deep inside a loop. That turns a late crash into an early one without a base class.</p>
+      <p class="ar">وهناك طريق وسط يجدر معرفته: أبقِ تصنيف البطة واكتب <code>if not hasattr(item, "fee"): raise TypeError(...)</code> مرة واحدة حيث تُبنى قائمة العناصر، بدلًا من أن تدع الفشل يحدث في عمق حلقة. فيحوّل ذلك انهيارًا متأخرًا إلى انهيار مبكّر بلا صنف أساس.</p>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>LabTest</code> has no base class and is not a kind of visit, yet <code>print_day</code> prints it correctly alongside two visit objects. Why does that work?</span><span class="ar">لا صنف أساس لـ <code>LabTest</code> وهو ليس نوعًا من الزيارة، ومع ذلك تطبعه <code>print_day</code> صحيحًا إلى جانب كائني زيارة. فلِمَ يعمل ذلك؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because every class in Python inherits from <code>object</code>, so all three objects do share a base class and the loop is ordinary inheritance-based polymorphism.</span><span class="ar">لأن كل صنف في بايثون يرث من <code>object</code>، فالكائنات الثلاثة تتشارك صنف أساس فعلًا والحلقة تعدد أشكال عادي قائم على الوراثة.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because <code>item.fee()</code> is resolved on the actual object at the moment it runs, and all three happen to have the attributes the loop reads — nothing checks their type.</span><span class="ar">لأن <code>item.fee()</code> تُحلّ على الكائن الفعلي لحظةَ تُنفَّذ، والثلاثة يحدث أن لها الخصائص التي تقرأها الحلقة — ولا شيء يفحص نوعها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>LabTest</code> defines the same method names as the visit classes, which makes Python register it automatically as a compatible type.</span><span class="ar">لأن <code>LabTest</code> يعرّف أسماء الدوال نفسها التي تعرّفها أصناف الزيارة، فتسجّله بايثون تلقائيًا نوعًا متوافقًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because the list passed to <code>print_day</code> is untyped, so Python converts all of its elements to a common type before the loop starts.</span><span class="ar">لأن القائمة المسلَّمة إلى <code>print_day</code> غير مُنوَّعة، فتحوّل بايثون عناصرها كلها إلى نوع مشترك قبل أن تبدأ الحلقة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Attribute lookup in Python happens at call time on the object in front of it. <code>item.fee()</code> asks that particular object for something named <code>fee</code>; if it is there, it runs, and if it is not, you get <code>AttributeError</code> at that instant. No type was ever compared, which is exactly why an unrelated <code>LabTest</code> can join the loop and why the forgetful <code>PhysioVisit</code> got through object creation. The tempting wrong answer is the first: it is a true fact — everything does inherit from <code>object</code> — but it explains nothing, because <code>object</code> does not define <code>fee</code>, <code>patient</code> or <code>label</code>. If shared ancestry were what made the loop work, the loop would work on an <code>int</code>, and it does not. Answer three invents a registration step that does not exist; Python has no idea that <code>LabTest</code> and <code>WalkInVisit</code> resemble each other.</div>
+      <div class="ar">يحدث البحث عن الخاصية في بايثون وقت الاستدعاء على الكائن الذي أمامها. فـ <code>item.fee()</code> تسأل ذلك الكائن بعينه عن شيء اسمه <code>fee</code>؛ فإن كان موجودًا نُفِّذ، وإن لم يكن حصلت على <code>AttributeError</code> في تلك اللحظة. ولم يُقارَن نوع قط، وهذا بالضبط سبب استطاعة <code>LabTest</code> الغريب الانضمام إلى الحلقة وسبب عبور <code>PhysioVisit</code> الناسي مرحلة إنشاء الكائن. والإجابة المغرية الخاطئة هي الأولى: فهي حقيقة صحيحة — فكل شيء يرث من <code>object</code> فعلًا — لكنها لا تفسّر شيئًا، لأن <code>object</code> لا يعرّف <code>fee</code> ولا <code>patient</code> ولا <code>label</code>. ولو كان السلف المشترك هو ما يجعل الحلقة تعمل لعملت الحلقة على <code>int</code>، وهي لا تعمل. والإجابة الثالثة تخترع خطوة تسجيل لا وجود لها؛ فبايثون لا تدري شيئًا عن تشابه <code>LabTest</code> و<code>WalkInVisit</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l6-s4"><span class="en">Second example — one <code>deliver()</code> call, three unrelated channels</span><span class="ar">مثال ثانٍ — استدعاء <code>deliver()</code> واحد وثلاث قنوات لا صلة بينها</span></h3>
+
+  <p class="en">Different domain, straight to the point. A school has to tell three families that the clinic day moved. One family reads SMS, one is in the class WhatsApp group, and one has no network at all and needs a printed note sent home with the child. Three completely unrelated classes, no base class, one method name.</p>
+  <p class="ar">مجال مختلف، ومباشرةً إلى المقصود. على مدرسة أن تُبلّغ ثلاث أسر بأن يوم العيادة انتقل. فأسرة تقرأ الرسائل القصيرة، وأسرة في مجموعة واتساب الصف، وأسرة لا شبكة لها إطلاقًا وتحتاج ورقة مطبوعة تُرسَل مع الطفل. ثلاثة أصناف لا صلة بينها إطلاقًا، وبلا صنف أساس، واسم دالة واحد.</p>
+
+<pre class="code good"><code>class SmsChannel:
+    def deliver(self, parent, text):
+        return f"SMS to {parent.phone}: {text[:28]}"
+
+
+class WhatsAppChannel:
+    def __init__(self, group):
+        self.group = group
+
+    def deliver(self, parent, text):
+        return f"WhatsApp [{self.group}] {parent.name}: {text}"
+
+
+class PrintedNote:
+    """Paper, for the families with no network."""
+
+    def deliver(self, parent, text):
+        return (f"PRINT 1 page for {parent.name}"
+                f" - give to {parent.child}")
+
+
+class Parent:
+    def __init__(self, name, child, phone):
+        self.name = name
+        self.child = child
+        self.phone = phone
+
+
+message = "Clinic day moved to Thursday 9am."
+
+routes = [(Parent("Um Ahmad", "Ahmad", "0599-111222"),
+           SmsChannel()),
+          (Parent("Abu Salem", "Salem", "0599-333444"),
+           WhatsAppChannel("Grade 4A")),
+          (Parent("Um Lina", "Lina", "0599-555666"),
+           PrintedNote())]
+
+for parent, channel in routes:
+    print(channel.deliver(parent, message))
+</code></pre>
+
+  <div class="output">SMS to 0599-111222: Clinic day moved to Thursday
+WhatsApp [Grade 4A] Abu Salem: Clinic day moved to Thursday 9am.
+PRINT 1 page for Um Lina - give to Lina</div>
+
+  <p class="en">The loop is two lines and it will never grow. A fourth channel — a voice call, an email, a note pinned to the school gate — is one new class with one <code>deliver()</code>, and the loop does not change. Notice that the three classes have nothing in common beyond that one method: <code>PrintedNote</code> ignores the text entirely, <code>SmsChannel</code> truncates it to 28 characters, and <code>WhatsAppChannel</code> carries state of its own that the others have no concept of. No base class could usefully hold anything they share, because they share nothing — and duck typing does not require them to.</p>
+  <p class="ar">الحلقة سطران ولن تنمو أبدًا. فقناة رابعة — مكالمة صوتية أو بريد أو ورقة تُعلَّق على بوابة المدرسة — صنف جديد واحد فيه <code>deliver()</code> واحدة، ولا تتغيّر الحلقة. ولاحظ أن الأصناف الثلاثة لا تشترك في شيء إلا تلك الدالة الواحدة: فـ <code>PrintedNote</code> يتجاهل النصّ تجاهلًا تامًّا، و<code>SmsChannel</code> يقطعه إلى ثمانية وعشرين حرفًا، و<code>WhatsAppChannel</code> يحمل حالةً خاصةً به لا تصوّر لها عند الآخرين. فلا صنف أساس يستطيع أن يحمل نافعًا شيئًا يتشاركونه، لأنهم لا يتشاركون شيئًا — وتصنيف البطة لا يطالبهم بذلك.</p>
+
+  <p class="en">This is also where Lesson 5 and Lesson 6 meet. A <code>channel</code> held in an attribute is composition; the fact that any object with <code>deliver()</code> can be the thing held is polymorphism. That is why the composed parts in Lesson 5 — <code>Battery</code>, <code>FridgeBox</code>, <code>FreeAbovePricing</code> — worked at all: each was a duck with the right quack.</p>
+  <p class="ar">وهنا أيضًا يلتقي الدرس 5 والدرس 6. فقناة <code>channel</code> ممسوكة في خاصية تركيبٌ؛ وكون أي كائن فيه <code>deliver()</code> يصلح أن يكون الشيء الممسوك تعددُ أشكال. ولهذا عملت الأجزاء المركَّبة في الدرس 5 — <code>Battery</code> و<code>FridgeBox</code> و<code>FreeAbovePricing</code> — أصلًا: فكل منها بطة بالنقيق الصحيح.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.1 — Three chains, one set of classes</span><span class="ar">تمرين 1.1 — ثلاث سلاسل ومجموعة أصناف واحدة</span></h4>
+    <p class="en">The clinic's appointment book has the same disease in a different organ: three functions, each with a chain over the same three booking kinds. Convert it. Make a <code>Booking</code> base class using <code>abc.ABC</code> that requires <code>slot_minutes()</code> and <code>room()</code>, gives <code>kit()</code> a default of <code>[]</code>, and owns the <code>line()</code> formatting once. The output must be identical to the starter's.</p>
+    <p class="ar">في دفتر مواعيد العيادة الداء نفسه في عضو آخر: ثلاث دوال، لكل منها سلسلة على أنواع المواعيد الثلاثة نفسها. فحوّله. اصنع صنف أساس <code>Booking</code> بـ <code>abc.ABC</code> يطالب بـ <code>slot_minutes()</code> و<code>room()</code>، ويمنح <code>kit()</code> قيمة افتراضية <code>[]</code>، ويملك تنسيق <code>line()</code> مرة واحدة. ويجب أن يكون الناتج مطابقًا لناتج الكود الابتدائي.</p>
+
+<pre class="code bad"><code>def slot_minutes(booking):
+    kind = booking["kind"]
+    if kind == "dressing":
+        return 10
+    elif kind == "vaccination":
+        return 15
+    elif kind == "physio":
+        return 40
+    else:
+        return 20
+
+
+def room_for(booking):
+    kind = booking["kind"]
+    if kind == "dressing":
+        return "Treatment 1"
+    elif kind == "vaccination":
+        return "Cold room"
+    elif kind == "physio":
+        return "Gym"
+    else:
+        return "Treatment 2"
+
+
+def kit_list(booking):
+    kind = booking["kind"]
+    if kind == "dressing":
+        return ["gauze", "saline"]
+    elif kind == "vaccination":
+        return ["cool box", "syringes"]
+    elif kind == "physio":
+        return ["mat", "bands"]
+    else:
+        return []
+
+
+day = [{"patient": "Rami Hania", "kind": "dressing"},
+       {"patient": "Lina Shurrab", "kind": "vaccination"},
+       {"patient": "Yasmin Qudwa", "kind": "physio"}]
+
+for b in day:
+    print(f"{b['patient']:14} {slot_minutes(b):3} min"
+          f"  {room_for(b):12} {', '.join(kit_list(b))}")
+print("total minutes:", sum(slot_minutes(b) for b in day))
+</code></pre>
+
+    <div class="output">Rami Hania      10 min  Treatment 1  gauze, saline
+Lina Shurrab    15 min  Cold room    cool box, syringes
+Yasmin Qudwa    40 min  Gym          mat, bands
+total minutes: 65</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class Booking(ABC):
+    def __init__(self, patient):
+        self.patient = patient
+
+    @abstractmethod
+    def slot_minutes(self):
+        """How long the slot lasts."""
+
+    @abstractmethod
+    def room(self):
+        """Where it happens."""
+
+    def kit(self):
+        return []
+
+    def line(self):
+        return (f"{self.patient:14} {self.slot_minutes():3} min"
+                f"  {self.room():12} {', '.join(self.kit())}")
+
+
+class Dressing(Booking):
+    def slot_minutes(self):
+        return 10
+
+    def room(self):
+        return "Treatment 1"
+
+    def kit(self):
+        return ["gauze", "saline"]
+
+
+class Vaccination(Booking):
+    def slot_minutes(self):
+        return 15
+
+    def room(self):
+        return "Cold room"
+
+    def kit(self):
+        return ["cool box", "syringes"]
+
+
+class Physio(Booking):
+    def slot_minutes(self):
+        return 40
+
+    def room(self):
+        return "Gym"
+
+    def kit(self):
+        return ["mat", "bands"]
+
+
+day = [Dressing("Rami Hania"),
+       Vaccination("Lina Shurrab"),
+       Physio("Yasmin Qudwa")]
+
+for b in day:
+    print(b.line())
+print("total minutes:",
+      sum(b.slot_minutes() for b in day))
+</code></pre>
+      <div class="output">Rami Hania      10 min  Treatment 1  gauze, saline
+Lina Shurrab    15 min  Cold room    cool box, syringes
+Yasmin Qudwa    40 min  Gym          mat, bands
+total minutes: 65</div>
+      <p class="en">Same output, and the three chains are gone. Two things worth naming. First, the knowledge is now collected: everything about a vaccination — fifteen minutes, the cold room, a cool box and syringes — sits in one eight-line class, instead of being spread across three functions forty lines apart. Second, <code>kit()</code> is <em>not</em> abstract, and that was a judgement: most bookings need no kit, so an empty list is a sensible default to inherit, while a missing <code>room()</code> is always a bug. Mixing required and optional methods in one base class is normal and the distinction is yours to make.</p>
+      <p class="ar">الناتج نفسه، والسلاسل الثلاث زالت. وأمران يستحقان التسمية. الأول أن المعرفة مجموعة الآن: فكل ما يتعلق بالتطعيم — خمس عشرة دقيقة وغرفة التبريد وصندوق مبرّد ومحاقن — يقيم في صنف من ثمانية أسطر، بدلًا من أن يكون مبثوثًا في ثلاث دوال يفصل بينها أربعون سطرًا. والثاني أن <code>kit()</code> <em>ليست</em> مجردة، وكان ذلك حكمًا: فمعظم المواعيد لا تحتاج عُدّة، فتكون قائمة فارغة قيمة افتراضية معقولة تُورَّث، أما غياب <code>room()</code> فعلّة دائمًا. وخلط الدوال المطلوبة والاختيارية في صنف أساس واحد أمر عادي، والتمييز إليك.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 1.2 — Add two visit types, edit nothing</span><span class="ar">تمرين 1.2 — أضف نوعَي زيارة ولا تعدّل شيئًا</span></h4>
+    <p class="en">Below the marked line, add <code>UNRWAStaffVisit</code> (fee <code>0.00</code>, priority 2, receipt line ending in <code>"  [staff card]"</code>) and <code>HomeCallVisit</code> (constructor takes <code>patient</code> and <code>km</code>, fee is <code>BASE_FEE</code> plus 8.00 per km, priority 1, receipt line ending in the distance like <code>"  3.5 km"</code>), then add both to <code>day</code>. The rule of the exercise: <strong>do not change one character above the marked line</strong>, and reach the base formatting through <code>super()</code> rather than retyping the f-string.</p>
+    <p class="ar">تحت السطر المعلَّم أضف <code>UNRWAStaffVisit</code> (أجره <code>0.00</code>، وأولويته 2، وينتهي سطر إيصاله بـ <code>"  [staff card]"</code>) و<code>HomeCallVisit</code> (يأخذ بانيه <code>patient</code> و<code>km</code>، وأجره <code>BASE_FEE</code> زائدًا 8.00 لكل كيلومتر، وأولويته 1، وينتهي سطر إيصاله بالمسافة نحو <code>"  3.5 km"</code>)، ثم أضف كليهما إلى <code>day</code>. وقاعدة التمرين: <strong>لا تغيّر حرفًا واحدًا فوق السطر المعلَّم</strong>، وابلغ تنسيق الأساس عبر <code>super()</code> لا بإعادة كتابة الـ f-string.</p>
+
+<pre class="code"><code>BASE_FEE = 60.0
+
+
+class Visit:
+    label = "Visit"
+    priority = 3
+
+    def __init__(self, patient):
+        self.patient = patient
+
+    def fee(self):
+        return BASE_FEE
+
+    def receipt_line(self):
+        return (f"  {self.patient:16} {self.label:10}"
+                f" {self.fee():7.2f} ILS")
+
+
+class WalkInVisit(Visit):
+    label = "Walk-in"
+
+
+class EmergencyVisit(Visit):
+    label = "Emergency"
+    priority = 0
+
+    def fee(self):
+        return BASE_FEE + 90.0
+
+
+# --- do not touch anything above this line ---
+
+# 1. UNRWAStaffVisit  - fee 0.00, priority 2, and its
+#    receipt line ends with "  [staff card]"
+# 2. HomeCallVisit    - __init__(patient, km), fee is
+#    BASE_FEE + 8.00 per km, priority 1, line ends
+#    with the distance, e.g. "  3.5 km"
+
+day = [WalkInVisit("Mahmoud Afana"),
+       EmergencyVisit("Nour Kahlout")]
+# then add:
+#   UNRWAStaffVisit("Dr Suhad"),
+#   HomeCallVisit("Hajja Fatima", 3.5)
+
+for v in sorted(day, key=lambda x: x.priority):
+    print(v.receipt_line())
+print(f"  {'TOTAL':16} {'':10}"
+      f" {sum(v.fee() for v in day):7.2f} ILS")
+</code></pre>
+
+    <div class="output">  Nour Kahlout     Emergency   150.00 ILS
+  Mahmoud Afana    Walk-in      60.00 ILS
+  TOTAL                        210.00 ILS</div>
+
+    <p class="en">That is the starter as written — two visits, in priority order. Your finished version must print four lines and a total of 298.00 ILS.</p>
+    <p class="ar">هذا هو الكود الابتدائي كما هو مكتوب — زيارتان بترتيب الأولوية. ويجب أن تطبع نسختك المنجزة أربعة أسطر ومجموعًا قدره 298.00 شيكلًا.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code># --- everything above the line is untouched ---
+
+class UNRWAStaffVisit(Visit):
+    label = "UNRWA staff"
+    priority = 2
+
+    def fee(self):
+        return 0.0
+
+    def receipt_line(self):
+        return f"{super().receipt_line()}  [staff card]"
+
+
+class HomeCallVisit(Visit):
+    label = "Home call"
+    priority = 1
+
+    def __init__(self, patient, km):
+        super().__init__(patient)
+        self.km = km
+
+    def fee(self):
+        return BASE_FEE + 8.0 * self.km
+
+    def receipt_line(self):
+        return f"{super().receipt_line()}  {self.km:.1f} km"
+
+
+day = [WalkInVisit("Mahmoud Afana"),
+       EmergencyVisit("Nour Kahlout"),
+       UNRWAStaffVisit("Dr Suhad"),
+       HomeCallVisit("Hajja Fatima", 3.5)]
+
+for v in sorted(day, key=lambda x: x.priority):
+    print(v.receipt_line())
+print(f"  {'TOTAL':16} {'':10}"
+      f" {sum(v.fee() for v in day):7.2f} ILS")
+</code></pre>
+      <div class="output">  Nour Kahlout     Emergency   150.00 ILS
+  Hajja Fatima     Home call    88.00 ILS  3.5 km
+  Dr Suhad         UNRWA staff    0.00 ILS  [staff card]
+  Mahmoud Afana    Walk-in      60.00 ILS
+  TOTAL                        298.00 ILS</div>
+      <p class="en">Thirty lines added, zero lines changed. Three details. The <code>sorted()</code> call was not touched and the two new visits slotted straight into the order, because <code>priority</code> is read off the object. <code>HomeCallVisit</code> is the interesting one: its fee depends on per-object data — 60 + 8 × 3.5 = 88 — which an <code>if/elif</code> chain over a type string could only have expressed by reaching back into the dictionary for a <code>km</code> key that other branches do not have. And both receipt lines wrap <code>super().receipt_line()</code>, so the column widths are still defined in exactly one place.</p>
+      <p class="ar">ثلاثون سطرًا مضافًا وصفر سطر مغيَّر. وثلاثة تفاصيل. فاستدعاء <code>sorted()</code> لم يُلامس واندرجت الزيارتان الجديدتان في الترتيب مباشرة، لأن <code>priority</code> تُقرأ من الكائن. و<code>HomeCallVisit</code> هو الطريف: فأجره يعتمد على بيانات خاصة بالكائن — 60 + 8 × 3.5 = 88 — وهو ما لم تكن سلسلة <code>if/elif</code> على نصّ نوع لتعبّر عنه إلا بالعودة إلى القاموس بحثًا عن مفتاح <code>km</code> لا تملكه الفروع الأخرى. ويلفّ سطرا الإيصال كلاهما <code>super().receipt_line()</code>، فلا تزال عروض الأعمدة معرَّفة في موضع واحد بالضبط.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">In Exercise 1.2, adding two visit types required no edit to any existing class or to the printing loop. Which change <em>would</em> still force you to edit existing code?</span><span class="ar">في التمرين 1.2 لم تحتج إضافة نوعَي زيارة إلى أي تعديل في صنف قائم ولا في حلقة الطباعة. فأي تغيير <em>سيضطرك</em> رغم ذلك إلى تعديل كود قائم؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Adding a fifteenth visit type, because beyond a dozen subclasses Python's attribute lookup starts to need an explicit registry.</span><span class="ar">إضافة نوع زيارة خامس عشر، لأن بحث بايثون عن الخصائص يبدأ بعد اثني عشر صنفًا مشتقًا بالحاجة إلى سجل صريح.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Changing one existing type's fee, for example making the follow-up 40% instead of 50% of the base fee.</span><span class="ar">تغيير أجر نوع قائم واحد، نحو جعل المراجعة 40% بدلًا من 50% من أجر الأساس.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Adding a new <em>question</em> asked of every visit — say <code>follow_up_days()</code> on the receipt — because every existing class must then answer it.</span><span class="ar">إضافة <em>سؤال</em> جديد يُسأل لكل زيارة — نحو <code>follow_up_days()</code> على الإيصال — لأن كل صنف قائم يجب أن يجيب عنه آنذاك.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Printing the receipts in a different order, since the sort order is decided by the class hierarchy rather than by the data.</span><span class="ar">طباعة الإيصالات بترتيب مختلف، لأن ترتيب الفرز يقرّره تسلسل الأصناف لا البيانات.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The design is open along one axis and not the other. New <em>types</em> are free: one class, no edits. A new <em>operation</em> on all types is the expensive direction — <code>follow_up_days()</code> means touching every one of the six classes, and a base-class default only hides the problem by giving a wrong answer for the types that forgot to override. (This is the honest limitation of the approach; the <code>if/elif</code> version had the mirror-image trade-off, where a new operation was one new function and a new type was three edits.) The tempting wrong answer is the second: changing the follow-up rate does edit existing code — <code>FollowUpVisit.fee</code> — but that is modifying the thing you deliberately meant to modify, in the single place that defines it, which is the opposite of the problem the chains had. Answer four has the mechanics backwards: the sort reads <code>priority</code> off each object, so reordering is a change to the <code>key</code> at the call site and touches no class.</div>
+      <div class="ar">التصميم مفتوح على محور ومغلق على آخر. فالأنواع الجديدة مجانية: صنف واحد ولا تعديلات. أما العملية الجديدة على الأنواع كلها فهي الاتجاه المكلف — فـ <code>follow_up_days()</code> تعني ملامسة كل صنف من الستة، وقيمة افتراضية في صنف الأساس لا تفعل إلا إخفاء المشكلة بإعطاء جواب خاطئ للأنواع التي نسيت التجاوز. (وهذا هو القصور الصادق للمقاربة؛ وكانت لنسخة <code>if/elif</code> المقايضة المعاكسة، حيث كانت العملية الجديدة دالة جديدة واحدة والنوع الجديد ثلاثة تعديلات.) والإجابة المغرية الخاطئة هي الثانية: فتغيير نسبة المراجعة يعدّل كودًا قائمًا فعلًا — <code>FollowUpVisit.fee</code> — لكن ذلك تعديل للشيء الذي قصدت تعديله قصدًا، في الموضع الواحد الذي يعرّفه، وهو نقيض المشكلة التي كانت للسلاسل. والإجابة الرابعة تقلب الميكانيكا: فالفرز يقرأ <code>priority</code> من كل كائن، فإعادة الترتيب تغيير في <code>key</code> عند موضع الاستدعاء ولا تلامس صنفًا.</div>
+    </div>
+  </div>
+
+  <h2 id="l6-h2"><span class="en">Concept 2 — Polymorphism you already use, and dunder methods</span><span class="ar">المفهوم 2 — تعدد أشكال تستخدمه أصلًا، ودوال dunder</span></h2>
+
+  <p class="en">Before the next problem, run four lines you could have run on your first day of Python.</p>
+  <p class="ar">قبل المشكلة التالية، شغّل أربعة أسطر كان في وسعك تشغيلها في أول يوم لك مع بايثون.</p>
+
+<pre class="code"><code>print(len("Mahmoud"), len([1, 2, 3]), len({"a": 1}))
+print("walk" + "-in", [1, 2] + [3], 60.0 + 90.0)
+print(sorted("gaza"), sorted([3, 1, 2]), sorted({2: "b", 1: "a"}))
+print(1, "one", 1.0, [1], None)
+</code></pre>
+
+  <div class="output">7 3 1
+walk-in [1, 2, 3] 150.0
+['a', 'a', 'g', 'z'] [1, 2, 3] [1, 2]
+1 one 1.0 [1] None</div>
+
+  <p class="en">Every line is polymorphic and you never noticed. <code>len()</code> counts characters in a string, elements in a list, keys in a dictionary — one name, three implementations. <code>+</code> concatenates text, joins lists, adds numbers. <code>sorted()</code> compares strings alphabetically and numbers numerically, and over a dictionary it sorts the keys. <code>print()</code> renders five unrelated types. In every case the call site is one shape and the behaviour has many, which is the definition from Concept 1 — and the mechanism is the same one, because <code>len(x)</code> is Python asking <code>x</code> to answer for itself through a method named <code>__len__</code>.</p>
+  <p class="ar">كل سطر متعدد الأشكال ولم تلحظ قط. فـ <code>len()</code> تعدّ الحروف في نصّ والعناصر في قائمة والمفاتيح في قاموس — اسم واحد وثلاثة تنفيذات. و<code>+</code> تضمّ النصّ وتصل القوائم وتجمع الأرقام. و<code>sorted()</code> تقارن النصوص أبجديًا والأرقام عدديًا، وترتّب المفاتيح على قاموس. و<code>print()</code> تصوّر خمسة أنواع لا صلة بينها. وفي كل حالة لموضع الاستدعاء شكل واحد وللسلوك أشكال كثيرة، وهو التعريف من المفهوم 1 — والآلية هي الآلية نفسها، لأن <code>len(x)</code> هي بايثون تسأل <code>x</code> أن يجيب عن نفسه بدالة اسمها <code>__len__</code>.</p>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The clinic's queue is now a <code>Queue</code> object holding <code>Visit</code> objects, and around it has grown a small family of helper functions. <code>queue_size(queue)</code>, because <code>len(queue)</code> raises <code>TypeError</code>. <code>sort_visits_by_priority(visits)</code>, because <code>sorted(visits)</code> raises <code>TypeError</code> too. <code>is_same_visit(a, b)</code>, because <code>a == b</code> returns <code>False</code> for two visits with identical contents.</p>
+    <p class="ar">طابور العيادة الآن كائن <code>Queue</code> يحمل كائنات <code>Visit</code>، ونمت حوله عائلة صغيرة من الدوال المساعدة. فـ <code>queue_size(queue)</code> لأن <code>len(queue)</code> ترفع <code>TypeError</code>. و<code>sort_visits_by_priority(visits)</code> لأن <code>sorted(visits)</code> ترفع <code>TypeError</code> أيضًا. و<code>is_same_visit(a, b)</code> لأن <code>a == b</code> تعيد <code>False</code> لزيارتين بمحتوى متطابق.</p>
+    <p class="en">Three functions that must be imported into every file that touches a queue, with names only this project knows. A new developer writes <code>len(room1)</code> because that is what Python looks like, gets a <code>TypeError</code>, and goes hunting for the helper. Worse, somebody writes <code>if a == b</code> somewhere, gets <code>False</code> for two identical visits, and does not get an error at all.</p>
+    <p class="ar">ثلاث دوال يجب استيرادها إلى كل ملف يلامس طابورًا، بأسماء لا يعرفها إلا هذا المشروع. فيكتب مطوّر جديد <code>len(room1)</code> لأن هذه صورة بايثون، فيحصل على <code>TypeError</code>، فيذهب يبحث عن الدالة المساعدة. والأسوأ أن يكتب أحد <code>if a == b</code> في موضع ما فيحصل على <code>False</code> لزيارتين متطابقتين، ولا يحصل على خطأ إطلاقًا.</p>
+  </div>
+
+<pre class="code bad"><code>class Visit:
+    def __init__(self, patient, kind, priority):
+        self.patient = patient
+        self.kind = kind
+        self.priority = priority
+
+
+class Queue:
+    def __init__(self, room):
+        self.room = room
+        self.waiting = []
+
+    def add(self, visit):
+        self.waiting.append(visit)
+
+
+# helpers that have to be imported wherever they are used
+def queue_size(queue):
+    return len(queue.waiting)
+
+
+def sort_visits_by_priority(visits):
+    return sorted(visits, key=lambda v: (v.priority,
+                                         v.patient))
+
+
+def is_same_visit(a, b):
+    return (a.patient == b.patient
+            and a.kind == b.kind)
+
+
+room1 = Queue("Room 1")
+room1.add(Visit("Mahmoud Afana", "walkin", 3))
+room1.add(Visit("Nour Kahlout", "emergency", 0))
+room1.add(Visit("Hiba Saleh", "followup", 2))
+
+print("waiting:", queue_size(room1))
+for v in sort_visits_by_priority(room1.waiting):
+    print(f"  {v.priority}  {v.patient}")
+
+walk_in = Visit("Mahmoud Afana", "walkin", 3)
+again = Visit("Mahmoud Afana", "walkin", 3)
+print("same visit?", is_same_visit(walk_in, again))
+print("== says   ", walk_in == again)
+print("len() says", end=" ")
+try:
+    print(len(room1))
+except TypeError as err:
+    print("TypeError:", err)
+</code></pre>
+
+  <div class="output">waiting: 3
+  0  Nour Kahlout
+  2  Hiba Saleh
+  3  Mahmoud Afana
+same visit? True
+== says    False
+len() says TypeError: object of type 'Queue' has no len()</div>
+
+  <p class="en">The fourth and fifth lines of output are the whole problem in two numbers. <code>is_same_visit</code> says <code>True</code> and <code>==</code> says <code>False</code>, for the same pair of objects. The project has two notions of equality, one of which is invisible: by default <code>==</code> on a custom object asks "are these the same object in memory?", which is almost never the question anybody meant.</p>
+  <p class="ar">السطران الرابع والخامس من الناتج هما المشكلة كلها في رقمين. فـ <code>is_same_visit</code> تقول <code>True</code> و<code>==</code> تقول <code>False</code> للزوج نفسه من الكائنات. فللمشروع مفهومان للتساوي أحدهما خفيّ: ففي الأصل تسأل <code>==</code> على كائن مخصّص «أهذان الكائن نفسه في الذاكرة؟»، وهو السؤال الذي لا يقصده أحد تقريبًا أبدًا.</p>
+
+  <p class="en">And <code>sorted()</code> without the helper's <code>key=</code> is not merely unsorted — it refuses:</p>
+  <p class="ar">و<code>sorted()</code> بلا <code>key=</code> المساعدة ليست غير مرتَّبة فقط — بل ترفض:</p>
+
+  <div class="output">Traceback (most recent call last):
+  File "queue.py", line 10, in &lt;module&gt;
+    print(sorted(waiting))
+          ~~~~~~^^^^^^^^^
+TypeError: '&lt;' not supported between instances of 'Visit' and 'Visit'</div>
+
+  <h3 id="l6-s5"><span class="en">Diagnosis</span><span class="ar">تشخيص العيب</span></h3>
+
+  <p class="en">The helpers exist because the built-in operations were never told how to work on these classes. Python's answer is not a registry or a decorator: it is a set of method names with two underscores on each side — <strong>dunder</strong> methods, "double underscore" — which the built-ins call on your behalf. You met <code>__init__</code> and <code>__str__</code> in Lesson 2. They are the same idea: <code>print(x)</code> calls <code>x.__str__()</code>, and <code>len(x)</code> calls <code>x.__len__()</code>, and <code>a == b</code> calls <code>a.__eq__(b)</code>.</p>
+  <p class="ar">الدوال المساعدة موجودة لأن العمليات المضمّنة لم تُخبَر قط كيف تعمل على هذه الأصناف. وجواب بايثون ليس سجلًّا ولا مزيِّنًا: بل مجموعة من أسماء الدوال بشرطتين سفليّتين على كل جانب — دوال <strong>dunder</strong>، أي «الشرطة السفلية المزدوجة» — تستدعيها المضمّنات نيابةً عنك. وقد لقيت <code>__init__</code> و<code>__str__</code> في الدرس 2. وهما الفكرة نفسها: فـ <code>print(x)</code> تستدعي <code>x.__str__()</code>، و<code>len(x)</code> تستدعي <code>x.__len__()</code>، و<code>a == b</code> تستدعي <code>a.__eq__(b)</code>.</p>
+
+  <p class="en">So the three helpers are not missing features. They are polymorphism that was written in the wrong place — in free functions next to the call site, instead of on the objects, exactly like <code>calculate_fee()</code> in Concept 1.</p>
+  <p class="ar">فالدوال المساعدة الثلاث ليست سمات مفقودة. بل هي تعدد أشكال كُتب في الموضع الخاطئ — في دوال حرة بجانب موضع الاستدعاء بدلًا من أن يكون على الكائنات، كـ <code>calculate_fee()</code> في المفهوم 1 بالضبط.</p>
+
+  <h3 id="l6-s6"><span class="en">The conversion — delete the helpers</span><span class="ar">التحويل — احذف الدوال المساعدة</span></h3>
+
+<pre class="code good"><code>class Visit:
+    def __init__(self, patient, kind, priority):
+        self.patient = patient
+        self.kind = kind
+        self.priority = priority
+
+    def __str__(self):
+        return f"{self.priority}  {self.patient} ({self.kind})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Visit):
+            return NotImplemented
+        return (self.patient == other.patient
+                and self.kind == other.kind)
+
+    def __lt__(self, other):
+        if not isinstance(other, Visit):
+            return NotImplemented
+        return ((self.priority, self.patient)
+                &lt; (other.priority, other.patient))
+
+
+class Queue:
+    def __init__(self, room):
+        self.room = room
+        self.waiting = []
+
+    def add(self, visit):
+        self.waiting.append(visit)
+
+    def __len__(self):
+        return len(self.waiting)
+
+
+room1 = Queue("Room 1")
+room1.add(Visit("Mahmoud Afana", "walkin", 3))
+room1.add(Visit("Nour Kahlout", "emergency", 0))
+room1.add(Visit("Hiba Saleh", "followup", 2))
+
+print("waiting:", len(room1))
+for v in sorted(room1.waiting):
+    print(" ", v)
+
+walk_in = Visit("Mahmoud Afana", "walkin", 3)
+again = Visit("Mahmoud Afana", "walkin", 3)
+print("same visit?", walk_in == again)
+print("is it in the queue?", walk_in in room1.waiting)
+print("earliest:", min(room1.waiting))
+print("empty queue is falsy?", not Queue("Room 2"))
+</code></pre>
+
+  <div class="output">waiting: 3
+  0  Nour Kahlout (emergency)
+  2  Hiba Saleh (followup)
+  3  Mahmoud Afana (walkin)
+same visit? True
+is it in the queue? True
+earliest: 0  Nour Kahlout (emergency)
+empty queue is falsy? True</div>
+
+  <p class="en">All three helper functions are gone and nothing was lost. <code>queue_size(room1)</code> became <code>len(room1)</code>. <code>sort_visits_by_priority(room1.waiting)</code> became <code>sorted(room1.waiting)</code>. <code>is_same_visit(a, b)</code> became <code>a == b</code>. The code at the bottom now reads like Python instead of like this project's private vocabulary, and a new developer needs no imports and no documentation to write any of it.</p>
+  <p class="ar">زالت الدوال المساعدة الثلاث ولم يُفقَد شيء. فصارت <code>queue_size(room1)</code> هي <code>len(room1)</code>. وصارت <code>sort_visits_by_priority(room1.waiting)</code> هي <code>sorted(room1.waiting)</code>. وصارت <code>is_same_visit(a, b)</code> هي <code>a == b</code>. والكود في الأسفل يُقرأ الآن بايثونَ لا مفرداتٍ خاصةً بهذا المشروع، ولا يحتاج مطوّر جديد إلى استيراد ولا توثيق ليكتب شيئًا منه.</p>
+
+  <p class="en">The last three output lines are the part worth sitting with, because <strong>nobody wrote them</strong>. Three dunder methods were defined, and five more operations started working for free:</p>
+  <p class="ar">والسطور الثلاثة الأخيرة من الناتج هي الجزء الذي يجدر الوقوف عليه، لأن <strong>لا أحد كتبها</strong>. فعُرِّفت ثلاث دوال dunder، فبدأت خمس عمليات أخرى تعمل مجانًا:</p>
+
+  <ul>
+    <li><span class="en"><code>walk_in in room1.waiting</code> — the <code>in</code> operator on a list compares with <code>==</code>, so it found a visit that is equal to <code>walk_in</code> without being the same object.</span><span class="ar"><code>walk_in in room1.waiting</code> — فمعامل <code>in</code> على قائمة يقارن بـ <code>==</code>، فوجد زيارة تساوي <code>walk_in</code> دون أن تكون الكائن نفسه.</span></li>
+    <li><span class="en"><code>min(room1.waiting)</code> — <code>min()</code> needs only <code>&lt;</code>, which <code>__lt__</code> supplies; <code>max()</code>, <code>sorted(..., reverse=True)</code> and <code>list.sort()</code> come along with it.</span><span class="ar"><code>min(room1.waiting)</code> — فـ <code>min()</code> لا تحتاج إلا <code>&lt;</code> وتوفّرها <code>__lt__</code>؛ وتأتي معها <code>max()</code> و<code>sorted(..., reverse=True)</code> و<code>list.sort()</code>.</span></li>
+    <li><span class="en"><code>not Queue("Room 2")</code> — with no <code>__bool__</code> defined, Python falls back to <code>__len__</code>, so an empty queue is falsy and <code>if queue:</code> now means "if anyone is waiting".</span><span class="ar"><code>not Queue("Room 2")</code> — فبلا <code>__bool__</code> معرَّفة ترجع بايثون إلى <code>__len__</code>، فيكون الطابور الفارغ كاذبًا وتعني <code>if queue:</code> الآن «إن كان أحد ينتظر».</span></li>
+    <li><span class="en"><code>a != b</code> works too, because Python derives <code>!=</code> from <code>__eq__</code> unless you say otherwise.</span><span class="ar"><code>a != b</code> تعمل أيضًا، لأن بايثون تستنبط <code>!=</code> من <code>__eq__</code> إلا أن تقول غير ذلك.</span></li>
+  </ul>
+
+  <p class="en">That is the line to hold onto: <strong>duck typing is what makes the built-ins polymorphic too.</strong> <code>len()</code> does not check whether its argument is a list; it asks the object for <code>__len__</code>, exactly as <code>print_day</code> asked <code>LabTest</code> for <code>fee</code>. Your classes are not second-class citizens that the built-ins tolerate — they join on precisely the same terms as <code>str</code> and <code>list</code>, by having the method the operation asks for.</p>
+  <p class="ar">وهذا هو الخطّ الذي يجدر إمساكه: <strong>تصنيف البطة هو ما يجعل المضمّنات متعددة الأشكال أيضًا.</strong> فـ <code>len()</code> لا تفحص أمعامِلها قائمة؛ بل تسأل الكائن عن <code>__len__</code>، كما سألت <code>print_day</code> كائنَ <code>LabTest</code> عن <code>fee</code> بالضبط. فأصنافك ليست مواطنين من الدرجة الثانية تتسامح معهم المضمّنات — بل تنضم بالشروط نفسها التي ينضم بها <code>str</code> و<code>list</code> بالضبط، بأن تكون لها الدالة التي تسألها العملية.</p>
+
+  <div class="tip">
+    <h4><span class="en">Why <code>return NotImplemented</code>?</span><span class="ar">لماذا <code>return NotImplemented</code>؟</span></h4>
+    <p class="en">In <code>__eq__</code> and <code>__lt__</code>, the <code>isinstance</code> check returns <code>NotImplemented</code> rather than <code>False</code>. It is a signal to Python, not an answer: "I do not know how to compare myself with that; try the other object's method." Returning <code>False</code> instead would claim that a <code>Visit</code> is definitely not equal to, say, a future <code>HomeVisit</code> that knows perfectly well how to compare itself with a <code>Visit</code> — and it would make <code>visit == 5</code> a confident <code>False</code> rather than letting Python give the right default. This is one of the few places where returning a special object beats returning a boolean.</p>
+    <p class="ar">في <code>__eq__</code> و<code>__lt__</code> يعيد فحص <code>isinstance</code> قيمة <code>NotImplemented</code> لا <code>False</code>. وهي إشارة إلى بايثون لا جواب: «لا أعرف كيف أقارن نفسي بذاك؛ فجرّب دالة الكائن الآخر». وإعادة <code>False</code> بدلًا منها كانت ستدّعي أن <code>Visit</code> لا يساوي قطعًا — مثلًا — صنفًا مستقبليًا <code>HomeVisit</code> يعرف تمام المعرفة كيف يقارن نفسه بـ <code>Visit</code> — وكانت ستجعل <code>visit == 5</code> قيمةَ <code>False</code> واثقةً بدلًا من أن تدع بايثون تعطي الافتراضي الصحيح. وهذا من المواضع القليلة التي تكون فيها إعادة كائن خاص خيرًا من إعادة قيمة منطقية.</p>
+  </div>
+
+  <div class="warn">
+    <h4><span class="en"><code>__eq__</code> without <code>__hash__</code> breaks sets and dicts</span><span class="ar"><code>__eq__</code> بلا <code>__hash__</code> تعطب المجموعات والقواميس</span></h4>
+    <p class="en">Defining <code>__eq__</code> has a consequence nobody expects the first time. Python sets <code>__hash__</code> to <code>None</code> on your class, and the object stops being usable in a <code>set</code> or as a dictionary key.</p>
+    <p class="ar">لتعريف <code>__eq__</code> نتيجة لا يتوقّعها أحد في المرة الأولى. فتضبط بايثون <code>__hash__</code> على <code>None</code> في صنفك، فيكفّ الكائن عن القابلية للاستخدام في <code>set</code> أو مفتاحًا لقاموس.</p>
+
+<pre class="code bad"><code>class Visit:
+    def __init__(self, patient, kind):
+        self.patient = patient
+        self.kind = kind
+
+    def __eq__(self, other):
+        if not isinstance(other, Visit):
+            return NotImplemented
+        return (self.patient == other.patient
+                and self.kind == other.kind)
+
+
+a = Visit("Mahmoud Afana", "walkin")
+b = Visit("Mahmoud Afana", "walkin")
+print("a == b:", a == b)
+
+seen = set()
+seen.add(a)
+print(seen)
+</code></pre>
+
+    <div class="output">a == b: True
+Traceback (most recent call last):
+  File "queue.py", line 18, in &lt;module&gt;
+    seen.add(a)
+    ~~~~~~~~^^^
+TypeError: unhashable type: 'Visit'</div>
+
+    <p class="en">This is not Python being awkward; it is Python refusing to let you build a broken set. A set finds things by hash first and only compares with <code>==</code> within a matching bucket. If two objects are equal but hash differently, they land in different buckets and the set quietly holds both — a duplicate that <code>==</code> says is not a duplicate. Rather than allow that, Python removes hashing until you say what the hash should be. The fix is one method, and it must use the same fields the equality uses:</p>
+    <p class="ar">وليس هذا تعنّتًا من بايثون؛ بل هو رفضها أن تدعك تبني مجموعة معطوبة. فالمجموعة تجد الأشياء بالتلبيد أولًا ولا تقارن بـ <code>==</code> إلا داخل السلّة المطابقة. فإن تساوى كائنان واختلف تلبيدهما وقعا في سلّتين مختلفتين وحفظت المجموعة كليهما في صمت — تكرارًا تقول <code>==</code> إنه ليس تكرارًا. فتنزع بايثون التلبيد بدلًا من السماح بذلك إلى أن تقول ما ينبغي أن يكون التلبيد. والإصلاح دالة واحدة، ويجب أن تستخدم الحقول نفسها التي يستخدمها التساوي:</p>
+
+<pre class="code good"><code>class Visit:
+    def __init__(self, patient, kind):
+        self.patient = patient
+        self.kind = kind
+
+    def __eq__(self, other):
+        if not isinstance(other, Visit):
+            return NotImplemented
+        return (self.patient == other.patient
+                and self.kind == other.kind)
+
+    def __hash__(self):                      # the fix
+        return hash((self.patient, self.kind))
+</code></pre>
+
+    <p class="en">With that one method present, the set and the dictionary both work — and they work <em>by value</em>:</p>
+    <p class="ar">وبحضور تلك الدالة الواحدة تعمل المجموعة والقاموس كلاهما — وتعملان <em>بالقيمة</em>:</p>
+
+<pre class="code good"><code>a = Visit("Mahmoud Afana", "walkin")
+b = Visit("Mahmoud Afana", "walkin")
+c = Visit("Mahmoud Afana", "followup")
+
+seen = {a, b, c}
+print("three objects, set size:", len(seen))
+
+fees = {a: 60.0}
+print("looked up by an equal object:", fees[b])
+</code></pre>
+
+    <div class="output">three objects, set size: 2
+looked up by an equal object: 60.0</div>
+
+    <p class="en">Two, not three: <code>a</code> and <code>b</code> are equal, so the set keeps one of them, while <code>c</code> differs in <code>kind</code> and stays. And <code>fees[b]</code> found the entry stored under <code>a</code> — a lookup by value rather than by identity, which is what you wanted the moment you defined <code>__eq__</code>. The rule is short: <strong>write <code>__hash__</code> whenever you write <code>__eq__</code>, over the same fields</strong>, and only on objects whose those fields do not change while they sit in a set.</p>
+    <p class="ar">اثنان لا ثلاثة: فـ <code>a</code> و<code>b</code> متساويان فتحفظ المجموعة واحدًا منهما، و<code>c</code> يختلف في <code>kind</code> فيبقى. ووجدت <code>fees[b]</code> المدخلة المحفوظة تحت <code>a</code> — بحثًا بالقيمة لا بالهوية، وهو ما أردته لحظةَ عرّفت <code>__eq__</code>. والقاعدة قصيرة: <strong>اكتب <code>__hash__</code> كلما كتبت <code>__eq__</code>، على الحقول نفسها</strong>، وعلى الكائنات التي لا تتغيّر تلك الحقول فيها ما دامت في مجموعة فقط.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You add <code>__eq__</code> to <code>Medicine</code> comparing name and strength, and a loop that used to run fine now raises <code>TypeError: unhashable type: 'Medicine'</code>. What happened?</span><span class="ar">تضيف <code>__eq__</code> إلى <code>Medicine</code> تقارن الاسم والتركيز، فترفع حلقة كانت تعمل سليمةً الآن <code>TypeError: unhashable type: 'Medicine'</code>. فما حدث؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">The <code>__eq__</code> body raises the error internally; comparing two attributes inside a dunder method needs a <code>try/except</code> guard.</span><span class="ar">جسد <code>__eq__</code> هو الذي يرفع الخطأ داخليًا؛ فمقارنة خاصيتين داخل دالة dunder تحتاج حرس <code>try/except</code>.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Defining <code>__eq__</code> makes Python set <code>__hash__</code> to <code>None</code>, so the object can no longer go in a <code>set</code> or be a dict key — somewhere that loop does exactly that.</span><span class="ar">تعريف <code>__eq__</code> يجعل بايثون تضبط <code>__hash__</code> على <code>None</code>، فلم يعد الكائن يستطيع الدخول في <code>set</code> ولا أن يكون مفتاح قاموس — وتلك الحلقة تفعل ذلك بالضبط في موضع ما.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A dunder method must return a <code>bool</code>, and <code>NotImplemented</code> is not a <code>bool</code>, so the comparison fails when the types differ.</span><span class="ar">دالة dunder يجب أن تعيد <code>bool</code>، و<code>NotImplemented</code> ليست <code>bool</code>، فتفشل المقارنة عند اختلاف الأنواع.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>__eq__</code> must be defined together with <code>__lt__</code>; the error is Python reporting the missing ordering method.</span><span class="ar">يجب تعريف <code>__eq__</code> مع <code>__lt__</code>؛ والخطأ هو بايثون تُبلّغ عن دالة الترتيب المفقودة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Equality and hashing have to agree, so Python will not let one be customised while the other stays as it was: define <code>__eq__</code> and <code>__hash__</code> becomes <code>None</code>, which is what "unhashable" means. The repair is <code>def __hash__(self): return hash((self.name, self.strength_mg))</code> — the same fields as the equality. The tempting wrong answer is the third, because <code>NotImplemented</code> genuinely is an odd thing to return from a comparison; but it is the documented signal for "not my business" and returning it is correct, and in any case the error message says <em>unhashable</em>, not <em>comparison failed</em> — the error is about sets and dicts, not about <code>==</code>. Answer four is a real pairing rule for a different situation: <code>__lt__</code> is needed for <code>sorted()</code>, and not defining it costs you ordering, not hashing.</div>
+      <div class="ar">يجب أن يتوافق التساوي والتلبيد، فلا تدع بايثون أحدهما يُخصَّص والآخر يبقى كما كان: فعرّف <code>__eq__</code> فتصبح <code>__hash__</code> قيمةَ <code>None</code>، وهو معنى «غير قابل للتلبيد». والإصلاح <code>def __hash__(self): return hash((self.name, self.strength_mg))</code> — بالحقول نفسها التي للتساوي. والإجابة المغرية الخاطئة هي الثالثة، فـ <code>NotImplemented</code> شيء غريب فعلًا أن يُعاد من مقارنة؛ لكنها الإشارة الموثَّقة لـ «ليس من شأني» وإعادتها صحيحة، وعلى أي حال فرسالة الخطأ تقول <em>غير قابل للتلبيد</em> لا <em>فشلت المقارنة</em> — فالخطأ عن المجموعات والقواميس لا عن <code>==</code>. والإجابة الرابعة قاعدة ازدواج حقيقية لحالة أخرى: فـ <code>__lt__</code> تُحتاج لـ <code>sorted()</code>، وعدم تعريفها يكلّفك الترتيب لا التلبيد.</div>
+    </div>
+  </div>
+
+
+  <h3 id="l6-s7"><span class="en">Second example — a bus route that behaves like a container</span><span class="ar">مثال ثانٍ — خط حافلات يتصرف كحاوية</span></h3>
+
+  <p class="en">Different domain, straight to the point. A city bus line has an ordered set of stops, each a given distance from the depot. Two dunder methods on the route and one on the stop, and three built-in operations start working on objects Python has never seen before.</p>
+  <p class="ar">مجال مختلف، ومباشرةً إلى المقصود. لخط حافلات في مدينة مجموعة مرتبة من المواقف، كل منها على مسافة معينة من المستودع. فدالتا dunder على الخط وواحدة على الموقف، فتبدأ ثلاث عمليات مضمّنة بالعمل على كائنات لم ترها بايثون من قبل قط.</p>
+
+<pre class="code good"><code>class Stop:
+    def __init__(self, place, km):
+        self.place = place
+        self.km = km
+
+    def __str__(self):
+        return f"{self.place} ({self.km} km)"
+
+    def __lt__(self, other):
+        return self.km &lt; other.km
+
+
+class Route:
+    def __init__(self, number, stops=()):
+        self.number = number
+        self.stops = list(stops)
+
+    def __len__(self):
+        return len(self.stops)
+
+    def __contains__(self, place):
+        return any(s.place == place for s in self.stops)
+
+
+line4 = Route(4, [Stop("Shati camp", 6.0),
+                  Stop("Omar Mukhtar St", 2.5),
+                  Stop("Nasr junction", 4.0)])
+
+print(f"route {line4.number}: {len(line4)} stops")
+for s in sorted(line4.stops):
+    print(" ", s)
+print("Nasr junction" in line4, "/", "Rimal" in line4)
+</code></pre>
+
+  <div class="output">route 4: 3 stops
+  Omar Mukhtar St (2.5 km)
+  Nasr junction (4.0 km)
+  Shati camp (6.0 km)
+True / False</div>
+
+  <p class="en">Three built-ins, none of them written for this program. <code>len(line4)</code> counts the stops because <code>__len__</code> is there. <code>sorted(line4.stops)</code> puts the stops in distance order with no <code>key=</code> argument, because <code>Stop.__lt__</code> told Python what "earlier" means for a stop — and <code>print(" ", s)</code> renders each one through <code>__str__</code>. <code>"Nasr junction" in line4</code> reads like English because <code>__contains__</code> was given a place name to match. Nothing here is a helper function with a project-specific name; it is the vocabulary every Python reader already has.</p>
+  <p class="ar">ثلاث مضمّنات، ولا واحدة منها كُتبت لأجل هذا البرنامج. فتعدّ <code>len(line4)</code> المواقف لأن <code>__len__</code> موجودة. وترتّب <code>sorted(line4.stops)</code> المواقف بترتيب المسافة بلا معامِل <code>key=</code>، لأن <code>Stop.__lt__</code> أخبرت بايثون ما معنى «أقرب» لموقف — وتصوّر <code>print(" ", s)</code> كل موقف بـ <code>__str__</code>. وتُقرأ <code>"Nasr junction" in line4</code> كأنها لغة طبيعية لأن <code>__contains__</code> مُنحت اسم مكان تطابقه. ولا شيء هنا دالة مساعدة باسم خاص بالمشروع؛ بل هي المفردات التي يملكها كل قارئ لبايثون أصلاً.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.1 — Give the pharmacy shelf its dunders</span><span class="ar">تمرين 2.1 — امنح رفّ الصيدلية دوال dunder الخاصة به</span></h4>
+    <p class="en">Four helper functions have grown around <code>Medicine</code> and <code>Shelf</code>. Delete all four and move their behaviour onto the classes: <code>__len__</code> on <code>Shelf</code>, and <code>__str__</code>, <code>__eq__</code>, <code>__hash__</code> and <code>__lt__</code> on <code>Medicine</code>, where two medicines are equal when name and strength match and sorting is by name then strength. Then prove it by asking <code>wanted in s.items</code> and by counting distinct products with a <code>set</code>.</p>
+    <p class="ar">نمت أربع دوال مساعدة حول <code>Medicine</code> و<code>Shelf</code>. فاحذف الأربع كلها وانقل سلوكها إلى الصنفين: <code>__len__</code> على <code>Shelf</code>، و<code>__str__</code> و<code>__eq__</code> و<code>__hash__</code> و<code>__lt__</code> على <code>Medicine</code>، حيث يتساوى دواءان إذا تطابق الاسم والتركيز ويكون الفرز بالاسم ثم التركيز. ثم أثبِت ذلك بسؤال <code>wanted in s.items</code> وبعدّ المنتجات المتمايزة بـ <code>set</code>.</p>
+
+<pre class="code bad"><code>class Medicine:
+    def __init__(self, name, strength_mg, boxes):
+        self.name = name
+        self.strength_mg = strength_mg
+        self.boxes = boxes
+
+
+class Shelf:
+    def __init__(self, code):
+        self.code = code
+        self.items = []
+
+    def put(self, medicine):
+        self.items.append(medicine)
+
+
+def shelf_count(shelf):
+    return len(shelf.items)
+
+
+def same_medicine(a, b):
+    return (a.name == b.name
+            and a.strength_mg == b.strength_mg)
+
+
+def sort_by_name(items):
+    return sorted(items,
+                  key=lambda m: (m.name, m.strength_mg))
+
+
+def describe(medicine):
+    return f"{medicine.name} {medicine.strength_mg}mg"
+
+
+s = Shelf("A3")
+s.put(Medicine("Amoxicillin", 500, 4))
+s.put(Medicine("Paracetamol", 500, 12))
+s.put(Medicine("Amoxicillin", 250, 2))
+
+print("items on", s.code + ":", shelf_count(s))
+for m in sort_by_name(s.items):
+    print("  " + describe(m), f"x{m.boxes}")
+print(same_medicine(s.items[0],
+                    Medicine("Amoxicillin", 500, 1)))
+</code></pre>
+
+    <div class="output">items on A3: 3
+  Amoxicillin 250mg x2
+  Amoxicillin 500mg x4
+  Paracetamol 500mg x12
+True</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Medicine:
+    def __init__(self, name, strength_mg, boxes):
+        self.name = name
+        self.strength_mg = strength_mg
+        self.boxes = boxes
+
+    def __str__(self):
+        return f"{self.name} {self.strength_mg}mg"
+
+    def __eq__(self, other):
+        if not isinstance(other, Medicine):
+            return NotImplemented
+        return (self.name == other.name
+                and self.strength_mg == other.strength_mg)
+
+    def __hash__(self):
+        return hash((self.name, self.strength_mg))
+
+    def __lt__(self, other):
+        if not isinstance(other, Medicine):
+            return NotImplemented
+        return ((self.name, self.strength_mg)
+                &lt; (other.name, other.strength_mg))
+
+
+class Shelf:
+    def __init__(self, code):
+        self.code = code
+        self.items = []
+
+    def put(self, medicine):
+        self.items.append(medicine)
+
+    def __len__(self):
+        return len(self.items)
+
+
+s = Shelf("A3")
+s.put(Medicine("Amoxicillin", 500, 4))
+s.put(Medicine("Paracetamol", 500, 12))
+s.put(Medicine("Amoxicillin", 250, 2))
+
+print("items on", s.code + ":", len(s))
+for m in sorted(s.items):
+    print(" ", m, f"x{m.boxes}")
+
+wanted = Medicine("Amoxicillin", 500, 1)
+print("already stocked?", wanted in s.items)
+print("distinct products:", len(set(s.items)))
+</code></pre>
+      <div class="output">items on A3: 3
+  Amoxicillin 250mg x2
+  Amoxicillin 500mg x4
+  Paracetamol 500mg x12
+already stocked? True
+distinct products: 3</div>
+      <p class="en">Four helpers deleted, and the last two lines are capabilities the starter did not have at all. <code>wanted in s.items</code> replaces a hand-written loop calling <code>same_medicine</code> — and note that <code>wanted</code> has <code>boxes=1</code> while the shelf's copy has <code>boxes=4</code>: they are equal anyway, because <code>__eq__</code> compares identity of product, not quantity, which is exactly the business rule. <code>len(set(s.items))</code> says three distinct products, and that number is only trustworthy because <code>__hash__</code> was written over the same two fields as <code>__eq__</code>. Note also <code>print(" ", m, ...)</code>: no <code>describe()</code> call, because <code>print</code> asks the object through <code>__str__</code>.</p>
+      <p class="ar">حُذفت أربع دوال مساعدة، والسطران الأخيران قدرتان لم تكونا للكود الابتدائي إطلاقًا. فـ <code>wanted in s.items</code> تحلّ محلّ حلقة مكتوبة باليد تستدعي <code>same_medicine</code> — ولاحظ أن <code>wanted</code> له <code>boxes=1</code> بينما لنسخة الرفّ <code>boxes=4</code>: وهما متساويان رغم ذلك، لأن <code>__eq__</code> تقارن هوية المنتج لا الكمية، وهي القاعدة التجارية بالضبط. وتقول <code>len(set(s.items))</code> ثلاثة منتجات متمايزة، وذلك الرقم لا يُؤتمَن إلا لأن <code>__hash__</code> كُتبت على الحقلين نفسيهما اللذين لـ <code>__eq__</code>. ولاحظ أيضًا <code>print(" ", m, ...)</code>: فلا استدعاء لـ <code>describe()</code>، لأن <code>print</code> تسأل الكائن بـ <code>__str__</code>.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 2.2 — A waiting room that behaves like a container</span><span class="ar">تمرين 2.2 — غرفة انتظار تتصرّف كحاوية</span></h4>
+    <p class="en">Add four dunder methods to <code>WaitingRoom</code> so that the code at the bottom runs unchanged: <code>__len__</code> (how many are waiting), <code>__iter__</code> (iterating walks the visits in priority order), <code>__contains__</code> (a patient <em>name</em> is in the room), and <code>__add__</code> (adding two rooms returns a new <code>WaitingRoom</code> called <code>"Room 1+Room 2"</code> holding both sets of visits, leaving the originals untouched).</p>
+    <p class="ar">أضف أربع دوال dunder إلى <code>WaitingRoom</code> ليعمل الكود في الأسفل بلا تغيير: <code>__len__</code> (كم ينتظر)، و<code>__iter__</code> (فالتكرار يمشي على الزيارات بترتيب الأولوية)، و<code>__contains__</code> (فـ<em>اسم</em> مريض موجود في الغرفة)، و<code>__add__</code> (فجمع غرفتين يعيد <code>WaitingRoom</code> جديدة اسمها <code>"Room 1+Room 2"</code> تحمل مجموعتي الزيارات، وتترك الأصليتين بلا مساس).</p>
+
+<pre class="code"><code>class Visit:
+    def __init__(self, patient, priority):
+        self.patient = patient
+        self.priority = priority
+
+    def __str__(self):
+        return f"{self.priority} {self.patient}"
+
+    def __lt__(self, other):
+        return self.priority &lt; other.priority
+
+
+class WaitingRoom:
+    def __init__(self, room, visits=()):
+        self.room = room
+        self.visits = list(visits)
+
+    # 1. __len__   -&gt; len(room) is how many are waiting
+    # 2. __iter__  -&gt; "for v in room" walks the visits
+    #                 in priority order
+    # 3. __contains__ -&gt; "name in room" is True when a
+    #                 patient of that name is waiting
+    # 4. __add__   -&gt; room_a + room_b gives a new
+    #                 WaitingRoom named "A+B" holding both
+
+
+a = WaitingRoom("Room 1", [Visit("Mahmoud Afana", 3),
+                           Visit("Nour Kahlout", 0)])
+b = WaitingRoom("Room 2", [Visit("Hiba Saleh", 2)])
+
+merged = a + b
+print(f"{merged.room}: {len(merged)} waiting")
+for v in merged:
+    print(" ", v)
+print("Hiba Saleh" in merged)
+print("Rami Hania" in merged)
+</code></pre>
+
+    <div class="output">Traceback (most recent call last):
+  File "waiting.py", line 31, in &lt;module&gt;
+    merged = a + b
+             ~~^~~
+TypeError: unsupported operand type(s) for +: 'WaitingRoom' and 'WaitingRoom'</div>
+
+    <p class="en">That is the starter's output as written — it fails on the first line that needs a dunder. Your finished version prints three visits in priority order, then <code>True</code> and <code>False</code>.</p>
+    <p class="ar">هذا ناتج الكود الابتدائي كما هو مكتوب — فهو يفشل في أول سطر يحتاج دالة dunder. وتطبع نسختك المنجزة ثلاث زيارات بترتيب الأولوية ثم <code>True</code> و<code>False</code>.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class WaitingRoom:
+    def __init__(self, room, visits=()):
+        self.room = room
+        self.visits = list(visits)
+
+    def __len__(self):
+        return len(self.visits)
+
+    def __iter__(self):
+        return iter(sorted(self.visits))
+
+    def __contains__(self, name):
+        return any(v.patient == name for v in self.visits)
+
+    def __add__(self, other):
+        if not isinstance(other, WaitingRoom):
+            return NotImplemented
+        return WaitingRoom(f"{self.room}+{other.room}",
+                           self.visits + other.visits)
+
+
+a = WaitingRoom("Room 1", [Visit("Mahmoud Afana", 3),
+                           Visit("Nour Kahlout", 0)])
+b = WaitingRoom("Room 2", [Visit("Hiba Saleh", 2)])
+
+merged = a + b
+print(f"{merged.room}: {len(merged)} waiting")
+for v in merged:
+    print(" ", v)
+print("Hiba Saleh" in merged)
+print("Rami Hania" in merged)
+print(f"{a.room} still has {len(a)}")
+</code></pre>
+      <div class="output">Room 1+Room 2: 3 waiting
+  0 Nour Kahlout
+  2 Hiba Saleh
+  3 Mahmoud Afana
+True
+False
+Room 1 still has 2</div>
+      <p class="en">Four methods, and <code>WaitingRoom</code> now behaves like a container the rest of Python already understands. Three points. <code>__iter__</code> sorts inside itself, which means the <em>ordering policy</em> lives in the class and every <code>for</code> loop in the codebase gets it for free — and it works only because <code>Visit.__lt__</code> exists, so one dunder is leaning on another. <code>__contains__</code> deliberately takes a <em>name</em>, not a <code>Visit</code>, which is a design choice you are allowed to make: <code>in</code> means whatever your method says it means, and here <code>"Hiba Saleh" in room</code> reads better than constructing a dummy visit to compare against. And <code>__add__</code> returns a <em>new</em> room instead of mutating <code>self</code> — the last line proves Room 1 still has its two — because that is what <code>+</code> means everywhere else in Python, and a <code>+</code> that quietly empties its left operand would be a trap.</p>
+      <p class="ar">أربع دوال، ويتصرّف <code>WaitingRoom</code> الآن حاويةً تفهمها بايثون الباقية أصلًا. وثلاث نقاط. فـ <code>__iter__</code> ترتّب في داخلها، ومعنى ذلك أن <em>سياسة الترتيب</em> تقيم في الصنف وتحصل عليها كل حلقة <code>for</code> في الكود مجانًا — وهي لا تعمل إلا لأن <code>Visit.__lt__</code> موجودة، فدالة dunder تتوكّأ على أخرى. و<code>__contains__</code> تأخذ <em>اسمًا</em> لا <code>Visit</code> قصدًا، وهو خيار تصميمي مباح لك: فـ <code>in</code> تعني ما تقوله دالتك إنها تعنيه، و<code>"Hiba Saleh" in room</code> تُقرأ هنا أحسن من بناء زيارة صوريّة للمقارنة بها. و<code>__add__</code> تعيد غرفة <em>جديدة</em> ولا تغيّر <code>self</code> — والسطر الأخير يبرهن أن الغرفة 1 لا تزال فيها اثنتاها — لأن ذلك معنى <code>+</code> في كل موضع آخر في بايثون، ولكان <code>+</code> يُفرغ معامله الأيسر في صمت فخًّا.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You wrote <code>__len__</code> on <code>WaitingRoom</code> and never wrote <code>__bool__</code>. What does <code>if room:</code> do?</span><span class="ar">كتبت <code>__len__</code> على <code>WaitingRoom</code> ولم تكتب <code>__bool__</code> قط. فماذا تفعل <code>if room:</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Raises <code>TypeError</code>, because truth-testing an object requires <code>__bool__</code> to be defined explicitly.</span><span class="ar">ترفع <code>TypeError</code>، لأن اختبار صدق كائن يقتضي تعريف <code>__bool__</code> صراحةً.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Falls back to <code>__len__</code>: the room is truthy when somebody is waiting and falsy when it is empty.</span><span class="ar">ترجع إلى <code>__len__</code>: فتكون الغرفة صادقة حين ينتظر أحد وكاذبة حين تكون فارغة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Is always <code>True</code>, since the object exists; <code>__len__</code> only affects the <code>len()</code> function.</span><span class="ar">تكون <code>True</code> دائمًا لأن الكائن موجود؛ ولا تؤثر <code>__len__</code> إلا في دالة <code>len()</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Compares the room with <code>None</code> using <code>__eq__</code>, so the result depends on how equality was defined.</span><span class="ar">تقارن الغرفة بـ <code>None</code> بـ <code>__eq__</code>، فتعتمد النتيجة على كيفية تعريف التساوي.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Python's truth test looks for <code>__bool__</code> first, then <code>__len__</code>, and only then treats the object as true. So <code>__len__</code> buys you <code>if room:</code> as well as <code>len(room)</code> — which is why an empty list, string and dict are all falsy without any of them defining <code>__bool__</code>. The tempting wrong answer is the third, and it is the correct answer for a class with <em>neither</em> method: a plain object with no <code>__bool__</code> and no <code>__len__</code> really is always truthy, which is why <code>if some_object:</code> is such a quiet source of bugs. Add <code>__len__</code> and that changes, so beware the opposite trap too — <code>if room:</code> is now <code>False</code> for a real, correctly built, empty room, and <code>if room is not None:</code> is what you want when you are checking for existence rather than contents.</div>
+      <div class="ar">يبحث اختبار الصدق في بايثون عن <code>__bool__</code> أولًا ثم <code>__len__</code>، ولا يعامل الكائن صادقًا إلا بعد ذلك. فتشتري لك <code>__len__</code> صيغةَ <code>if room:</code> كما تشتري <code>len(room)</code> — ولهذا تكون القائمة والنصّ والقاموس الفارغة كاذبة كلها دون أن يعرّف أيٌّ منها <code>__bool__</code>. والإجابة المغرية الخاطئة هي الثالثة، وهي الإجابة الصحيحة لصنف <em>لا</em> هذه الدالة ولا تلك فيه: فالكائن الصريح الذي لا <code>__bool__</code> له ولا <code>__len__</code> صادق دائمًا فعلًا، ولهذا كانت <code>if some_object:</code> مصدرًا هادئًا للعِلل. فأضف <code>__len__</code> فيتغيّر ذلك، فاحذر الفخّ المعاكس أيضًا — فـ <code>if room:</code> صارت الآن <code>False</code> لغرفة فارغة حقيقية مبنيّة بناءً صحيحًا، و<code>if room is not None:</code> هي ما تريد حين تفحص الوجود لا المحتوى.</div>
+    </div>
+  </div>
+
+  <p><span class="score"></span></p>
+
+  <div class="card takeaways">
+    <h3 id="l6-s8"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+    <ul>
+      <li><span class="en">An <code>if/elif</code> chain over a type string is one list of cases, and a program usually has three of them in three functions. The student discount reached <code>calculate_fee</code> and <code>queue_priority</code> and missed <code>print_receipt</code>: Lina was charged 60 at the desk and booked at 21, with no error anywhere and a printed page whose receipts add up to 312 under a total of 273.</span><span class="ar">سلسلة <code>if/elif</code> على نصّ نوع هي قائمة حالات واحدة، وللبرنامج عادةً ثلاث منها في ثلاث دوال. فبلغ خصم الطلبة <code>calculate_fee</code> و<code>queue_priority</code> وفات <code>print_receipt</code>: فحُوسبت لينا على 60 عند المكتب وسُجّلت بـ 21، بلا خطأ في أي موضع، وبصفحة مطبوعة تجمع إيصالاتها 312 تحت مجموع قدره 273.</span></li>
+      <li><span class="en">The defect is that the knowledge about a kind of thing lives away from the thing. Each chain's first line was <code>kind = visit["type"]</code> — three pieces of code re-deciding what they were handed, when the object already knew.</span><span class="ar">العيب أن المعرفة بنوع الشيء تقيم بعيدًا عن الشيء. فأول سطر في كل سلسلة كان <code>kind = visit["type"]</code> — ثلاث قطع كود تعيد تقرير ما سُلِّم إليها، والكائن يعرف أصلًا.</span></li>
+      <li><span class="en"><strong>Polymorphism</strong> is one call, written once, reaching a different implementation depending on the object. <code>for v in visits: print(v.fee())</code> over four classes is four method bodies and no <code>if</code> — the decision was made once, when the object was created.</span><span class="ar"><strong>تعدد الأشكال</strong> استدعاء واحد مكتوب مرة واحدة يبلغ تنفيذًا مختلفًا باختلاف الكائن. فـ <code>for v in visits: print(v.fee())</code> على أربعة أصناف أربعة أجساد دوال وبلا <code>if</code> — فقد اتُّخذ القرار مرة واحدة حين أُنشئ الكائن.</span></li>
+      <li><span class="en">Move <em>all</em> the chains onto the classes, not one. Once <code>fee()</code>, <code>receipt_line()</code> and <code>priority</code> live on the visit, the student discount is one five-line class at the bottom of the file and zero edits above it — <strong>a change that only adds code cannot break code that already works</strong>.</span><span class="ar">انقل السلاسل <em>كلها</em> إلى الأصناف لا واحدة منها. فبمجرد أن تقيم <code>fee()</code> و<code>receipt_line()</code> و<code>priority</code> في الزيارة يكون خصم الطلبة صنفًا واحدًا من خمسة أسطر في أسفل الملف وصفر تعديل فوقه — فـ<strong>التغيير الذي لا يفعل إلا إضافة كود لا يستطيع كسر كود يعمل أصلًا</strong>.</span></li>
+      <li><span class="en">The silent <code>else</code> that priced an unknown type at the full fee has no place to live in the new design. Whole categories of "forgot a case, fell through to the default" bug become unwritable.</span><span class="ar">فرع <code>else</code> الصامت الذي سعّر نوعًا مجهولًا بالأجر الكامل لا موضع له ليقيم فيه في التصميم الجديد. فتصبح أصناف كاملة من عِلّة «نسي حالة فسقط إلى الافتراضي» غير قابلة للكتابة.</span></li>
+      <li><span class="en">The design is open to new <em>types</em> and closed to new <em>operations</em>. Adding <code>HomeCallVisit</code> cost one class; adding a <code>follow_up_days()</code> question to every visit would cost an edit in all six. The <code>if/elif</code> version had the mirror-image trade-off, and knowing which direction your program grows in is how you choose.</span><span class="ar">التصميم مفتوح للأنواع الجديدة مغلق للعمليات الجديدة. فكلّفت إضافة <code>HomeCallVisit</code> صنفًا واحدًا؛ ولكلّفت إضافة سؤال <code>follow_up_days()</code> لكل زيارة تعديلًا في الستة كلها. وكانت لنسخة <code>if/elif</code> المقايضة المعاكسة، ومعرفة الاتجاه الذي ينمو فيه برنامجك هي كيف تختار.</span></li>
+      <li><span class="en">Two ways to promise a method. <code>abc.ABC</code> with <code>@abstractmethod</code> fails at <em>creation</em> — <code>TypeError: Can't instantiate abstract class PhysioVisit without an implementation for abstract method 'fee'</code> — early, named and on your machine. Plain <strong>duck typing</strong> has no base class and fails at the <em>call</em> — <code>AttributeError: 'PhysioVisit' object has no attribute 'fee'</code> — after the first receipt has already printed.</span><span class="ar">طريقتان للوعد بدالة. فـ <code>abc.ABC</code> مع <code>@abstractmethod</code> تفشل عند <em>الإنشاء</em> — <code>TypeError: Can't instantiate abstract class PhysioVisit without an implementation for abstract method 'fee'</code> — مبكّرًا ومسمّى وعلى حاسوبك. و<strong>تصنيف البطة</strong> الصريح لا صنف أساس له ويفشل عند <em>الاستدعاء</em> — <code>AttributeError: 'PhysioVisit' object has no attribute 'fee'</code> — بعد أن يكون الإيصال الأول قد طُبع.</span></li>
+      <li><span class="en">Duck typing buys reach that a hierarchy cannot. <code>LabTest</code> is not a visit and inherits nothing, yet it prints in the clinic's day loop because it has <code>patient</code>, <code>label</code> and <code>fee()</code>. Prefer <code>ABC</code> for a real named family with shared code; prefer duck typing for unrelated things that answer one question, and for classes you do not own.</span><span class="ar">تصنيف البطة يشتري مدًى لا يستطيعه تسلسل. فـ <code>LabTest</code> ليس زيارة ولا يرث شيئًا، ومع ذلك يُطبع في حلقة يوم العيادة لأن له <code>patient</code> و<code>label</code> و<code>fee()</code>. فآثر <code>ABC</code> لعائلة حقيقية مسمّاة لها كود مشترك؛ وآثر تصنيف البطة لأشياء لا صلة بينها تجيب عن سؤال واحد، ولأصناف لا تملكها.</span></li>
+      <li><span class="en"><code>len()</code>, <code>+</code>, <code>sorted()</code> and <code>print()</code> were always polymorphic — one name over strings, lists, dicts and numbers. The mechanism is duck typing on dunder names: <code>len(x)</code> asks <code>x.__len__()</code>, <code>print(x)</code> asks <code>x.__str__()</code>, <code>a == b</code> asks <code>a.__eq__(b)</code>. Your classes join on exactly the same terms as the built-in types.</span><span class="ar">كانت <code>len()</code> و<code>+</code> و<code>sorted()</code> و<code>print()</code> متعددة الأشكال دائمًا — اسم واحد على النصوص والقوائم والقواميس والأرقام. والآلية تصنيف بطة على أسماء dunder: فـ <code>len(x)</code> تسأل <code>x.__len__()</code>، و<code>print(x)</code> تسأل <code>x.__str__()</code>، و<code>a == b</code> تسأل <code>a.__eq__(b)</code>. فتنضم أصنافك بالشروط نفسها التي تنضم بها الأنواع المضمّنة بالضبط.</span></li>
+      <li><span class="en">A project's <code>queue_size()</code>, <code>sort_visits_by_priority()</code> and <code>is_same_visit()</code> are polymorphism written in the wrong place. <code>__len__</code>, <code>__lt__</code> and <code>__eq__</code> delete all three and leave <code>len(room)</code>, <code>sorted(visits)</code> and <code>a == b</code> — no imports, no private vocabulary.</span><span class="ar">دوال المشروع <code>queue_size()</code> و<code>sort_visits_by_priority()</code> و<code>is_same_visit()</code> تعدد أشكال مكتوب في الموضع الخاطئ. فـ <code>__len__</code> و<code>__lt__</code> و<code>__eq__</code> تحذف الثلاث وتُبقي <code>len(room)</code> و<code>sorted(visits)</code> و<code>a == b</code> — بلا استيراد وبلا مفردات خاصة.</span></li>
+      <li><span class="en">Dunders pay compound interest. Three definitions gave <code>in</code>, <code>min()</code>, <code>max()</code>, <code>!=</code>, <code>list.sort()</code> and truth-testing for free, because the built-ins were already written against those names.</span><span class="ar">دوال dunder تدفع فائدة مركّبة. فمنحت ثلاثة تعريفات <code>in</code> و<code>min()</code> و<code>max()</code> و<code>!=</code> و<code>list.sort()</code> واختبار الصدق مجانًا، لأن المضمّنات كانت مكتوبة وفق تلك الأسماء أصلًا.</span></li>
+      <li><span class="en">Write <code>__hash__</code> whenever you write <code>__eq__</code>, over the same fields. Defining <code>__eq__</code> alone sets <code>__hash__</code> to <code>None</code> and you get <code>TypeError: unhashable type: 'Visit'</code> the first time the object meets a <code>set</code> or a dict key. One line fixes it: <code>return hash((self.patient, self.kind))</code>.</span><span class="ar">اكتب <code>__hash__</code> كلما كتبت <code>__eq__</code>، على الحقول نفسها. فتعريف <code>__eq__</code> وحدها يضبط <code>__hash__</code> على <code>None</code> فتحصل على <code>TypeError: unhashable type: 'Visit'</code> أول مرة يلقى الكائن <code>set</code> أو مفتاح قاموس. ويصلحه سطر واحد: <code>return hash((self.patient, self.kind))</code>.</span></li>
+      <li><span class="en">Return <code>NotImplemented</code>, not <code>False</code>, when a comparison meets a type it does not understand. It tells Python to try the other object's method instead of asserting an answer you cannot justify.</span><span class="ar">أعِد <code>NotImplemented</code> لا <code>False</code> حين تلقى مقارنةٌ نوعًا لا تفهمه. فهي تقول لبايثون أن تجرّب دالة الكائن الآخر بدلًا من الجزم بجواب لا تستطيع تبريره.</span></li>
+      <li><span class="en">Polymorphism is what made Lesson 5's composition work. A <code>channel</code>, a <code>pricing</code> or a <code>cargo</code> held in an attribute can be any object with the right method — composition is the holding, polymorphism is the fact that anything which quacks will do.</span><span class="ar">تعدد الأشكال هو ما جعل تركيب الدرس 5 يعمل. فقناة <code>channel</code> أو تسعير <code>pricing</code> أو حمولة <code>cargo</code> ممسوكة في خاصية تستطيع أن تكون أي كائن فيه الدالة الصحيحة — فالتركيب هو الإمساك، وتعدد الأشكال هو أن كل ما ينقّ يفي.</span></li>
+    </ul>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>
