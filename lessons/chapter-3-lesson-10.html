@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="One Type, Many Numbers · Python OOP by Example" data-ar="نوعٌ واحد وأعداد كثيرة · البرمجة الكائنية بلغة بايثون">One Type, Many Numbers · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="3" data-page="lesson-10" data-path="lessons/chapter-3-lesson-10.html">
+<main>
+<section class="page" id="lesson-10">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 10 &middot; Week 4 &middot; Lecture 12 &middot; 90 min</span><span class="ar">الدرس 10 &middot; الأسبوع 4 &middot; المحاضرة 12 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">One Type, Many Numbers: the Array</span><span class="ar">نوعٌ واحد وأعداد كثيرة: المصفوفة</span></h1>
+
+  <p class="lede en">By the end of this lesson you will take a loop that adjusts every mark in a class, watch the obvious list version do something absurd instead, and replace the whole loop with one line. Then you will find out what an array gave up in exchange: a list holds anything, an array holds exactly one type, and that type will quietly change your numbers if you let it.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستأخذ حلقةً تعدّل كل علامة في صفّ، وسترى نسخةَ القائمة البديهية تفعل شيئًا عبثيًا بدلًا من ذلك، ثم تستبدل بالحلقة كلها سطرًا واحدًا. ثم ستكتشف ما تخلّت عنه المصفوفة في المقابل: فالقائمة تحمل أي شيء، والمصفوفة تحمل نوعًا واحدًا بالضبط، وذلك النوع سيغيّر أرقامك بصمت إن تركته.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">This is the first lesson of a new chapter and it assumes only Python lists and loops. The one thing to read first is <a href="../appendices/appendix-a4.html#appendix-a4">Appendix A4</a>, on what <code>int64</code> and <code>float64</code> actually are &mdash; this lesson puts a type on every array you make and the three lessons after it keep referring to it. The <a href="../lessons/chapter-2-lesson-8.html#lesson-08">patterns of Chapter 2</a> are not needed here, though the same <code>fit</code>/<code>transform</code> steps reappear in <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a> operating on arrays instead of lists.</p>
+    <p class="ar">هذا أول درس في فصل جديد ولا يفترض إلا قوائم بايثون وحلقاتها. والشيء الوحيد الذي تقرأه أولًا هو <a href="../appendices/appendix-a4.html#appendix-a4">الملحق A4</a>، عن ماهية <code>int64</code> و<code>float64</code> فعلًا &mdash; فهذا الدرس يضع نوعًا على كل مصفوفة تصنعها وتظل الدروس الثلاثة بعده تشير إليه. ولا تلزم <a href="../lessons/chapter-2-lesson-8.html#lesson-08">أنماطُ الفصل 2</a> هنا، وإن كانت خطوات <code>fit</code>/<code>transform</code> نفسها تعود في <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a> عاملةً على مصفوفات بدل قوائم.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">The same secondary school as Chapter 2. The leaving class sat three subjects, and the marks now have to be adjusted, summarised and compared. There are thirty students here; by <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a> the same code will be running over far more.</p>
+    <p class="ar">المدرسة الثانوية نفسها من الفصل 2. فقد امتحن صفُّ التخرج في ثلاث مواد، وعلى العلامات الآن أن تُعدَّل وتُلخَّص وتُقارَن. وثمّة ثلاثون طالبًا هنا؛ وبحلول <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a> سيعمل الكود نفسه على أكثر من ذلك بكثير.</p>
+  </div>
+
+  <h2 id="l10-h1"><span class="en">Concept 1 &mdash; An array does arithmetic; a list does not</span><span class="ar">المفهوم 1 &mdash; المصفوفة تحسب؛ والقائمة لا</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The ministry adds five marks to every paper. You have the marks in a list, and the obvious thing to write does not do the obvious thing.</p>
+    <p class="ar">تضيف الوزارة خمس علامات إلى كل ورقة. والعلامات عندك في قائمة، والشيءُ البديهي الذي تكتبه لا يفعل الشيء البديهي.</p>
+  </div>
+
+  <h3 id="l10-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code bad"><code>marks = [40, 55, 70, 85, 100]
+
+print(marks + 5)
+</code></pre>
+
+  <div class="output">TypeError: can only concatenate list (not "int") to list</div>
+
+  <p class="en">Fair enough &mdash; <code>+</code> on a list means "join another list on the end", so adding a number is meaningless. Try doubling instead, where <code>*</code> <em>is</em> defined:</p>
+  <p class="ar">لا بأس &mdash; فـ <code>+</code> على قائمة تعني «ألحِق قائمة أخرى في النهاية»، فإضافةُ عدد بلا معنى. جرّب المضاعفة بدلًا من ذلك، حيث <code>*</code> <em>معرَّفة</em>:</p>
+
+<pre class="code bad"><code>print(marks * 2)
+</code></pre>
+
+  <div class="output">[40, 55, 70, 85, 100, 40, 55, 70, 85, 100]</div>
+
+  <h3 id="l10-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">This one is worse than the error, because it worked. <code>marks * 2</code> did not double thirty marks; it produced sixty marks. A class of thirty is now a class of sixty, every student appears twice, and the average is unchanged so the mistake is invisible in a summary. The first version at least refused.</p>
+  <p class="ar">هذه أسوأ من الخطأ، لأنها نجحت. فـ <code>marks * 2</code> لم تضاعف ثلاثين علامة؛ بل أنتجت ستين علامة. فصارَ صفُّ الثلاثين صفَّ ستين، وظهر كل طالب مرتين، والمتوسط لم يتغير فصار الخطأ غير مرئي في أي ملخّص. والنسخة الأولى رفضت على الأقل.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">A list is a <strong>container</strong>, so its operators are container operations: join and repeat. You wanted <strong>arithmetic on every element</strong>, and a list has no idea that is what its contents are for. The usual answer is a loop:</p>
+    <p class="ar">القائمة <strong>حاوية</strong>، فعملياتها عمليات حاويات: الإلحاق والتكرار. وأنت أردت <strong>حسابًا على كل عنصر</strong>، والقائمةُ لا تدري أن ذلك ما محتواها له. والجواب المعتاد حلقة:</p>
+  </div>
+
+<pre class="code"><code>adjusted = []
+for m in marks:
+    adjusted.append(m + 5)
+print(adjusted)
+</code></pre>
+
+  <div class="output">[45, 60, 75, 90, 105]</div>
+
+  <p class="en">Correct, and four lines. Now do it for three subjects, then scale them, then centre them, and the file fills up with loops that all say the same thing in slightly different words.</p>
+  <p class="ar">صحيح، وأربعة أسطر. والآن افعلها لثلاث مواد، ثم قِسها، ثم مركِزها، فيمتلئ الملف بحلقات تقول الشيء نفسه بكلمات مختلفة قليلًا.</p>
+
+  <h3 id="l10-s3"><span class="en">Conversion &mdash; a container that knows it holds numbers</span><span class="ar">التحويل &mdash; حاوية تعلم أنها تحمل أعدادًا</span></h3>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([40, 55, 70, 85, 100])
+
+print(marks + 5)
+print(marks * 2)
+print(marks / 100)
+print(marks &gt; 60)
+</code></pre>
+
+  <div class="output">[ 45  60  75  90 105]
+[ 80 110 140 170 200]
+[0.4  0.55 0.7  0.85 1.  ]
+[False False  True  True  True]</div>
+
+  <p class="en">Every operator now means "do this to each element and give me an array of the answers". The loop is gone, and so is the chance of writing it wrongly. The last line is worth a second look: comparing an array to a number gives an array of <code>True</code> and <code>False</code>, one per mark, which is the basis of everything in <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a>.</p>
+  <p class="ar">صار كل معامل يعني «افعل هذا بكل عنصر وأعطني مصفوفة الأجوبة». فاختفت الحلقة، واختفت معها فرصةُ كتابتها خطأً. والسطر الأخير يستحق نظرة ثانية: فمقارنة مصفوفة بعدد تعطي مصفوفة <code>True</code> و<code>False</code>، واحدةً لكل علامة، وهي أساس كل ما في <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a>.</p>
+
+  <div class="note">
+    <h4><span class="en">Why this is also much faster</span><span class="ar">ولماذا هذا أسرع كثيرًا أيضًا</span></h4>
+    <p class="en">A Python loop over a million marks executes a million separate Python steps. <code>marks + 5</code> hands the whole array to compiled code that walks the memory once. The speed is the famous part, but it is the <em>second</em> reason to use an array; the first is that one line cannot be written wrongly in six different places.</p>
+    <p class="ar">حلقةُ بايثون على مليون علامة تنفّذ مليون خطوة بايثون منفصلة. أما <code>marks + 5</code> فتسلّم المصفوفة كلها إلى كود مترجَم يمشي في الذاكرة مرة واحدة. والسرعة هي الجزء الشهير، لكنها السبب <em>الثاني</em> لاستعمال المصفوفة؛ والأول أن سطرًا واحدًا لا يمكن كتابته خطأً في ستة مواضع مختلفة.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does this print?<br><code>a = np.array([1, 2, 3])</code><br><code>a[0] = 2.9</code><br><code>print(a)</code></span><span class="ar">ماذا يطبع هذا؟<br><code>a = np.array([1, 2, 3])</code><br><code>a[0] = 2.9</code><br><code>print(a)</code></span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[2 2 3]</code>. The array was built from integers, so its type is <code>int64</code>, and 2.9 is cut down to fit.</span><span class="ar"><code>[2 2 3]</code>. بُنيت المصفوفة من أعداد صحيحة فنوعها <code>int64</code>، فتُقتطع 2.9 لتناسب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[3 2 3]</code>, because 2.9 is nearer to 3.</span><span class="ar"><code>[3 2 3]</code>، لأن 2.9 أقرب إلى 3.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[2.9 2.  3. ]</code> &mdash; the array becomes a float array.</span><span class="ar"><code>[2.9 2.  3. ]</code> &mdash; فتصير المصفوفة عشرية.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises a <code>TypeError</code>, because 2.9 is not an integer.</span><span class="ar">يرفع <code>TypeError</code>، لأن 2.9 ليست عددًا صحيحًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Cut, not rounded: the decimal part is thrown away, so 2.9 becomes 2 and 2.99 would too. And the array does not change its mind about its type &mdash; it was decided when the array was built, which is why the second option is wrong in a more interesting way than the first. If the marks might have decimals, say so at build time: <code>np.array([1, 2, 3], dtype=float)</code>.</div>
+      <div class="ar">قطعٌ لا تقريب: فالجزء العشري يُرمى، فتصير 2.9 اثنين، وكذلك 2.99. ولا تغيّر المصفوفة رأيها في نوعها &mdash; فقد قُرِّر عند بنائها، ولذلك كان الخيار الثاني خاطئًا بوجه أطرف من الأول. فإن كانت العلامات قد تحمل عشريات فقل ذلك عند البناء: <code>np.array([1, 2, 3], dtype=float)</code>.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.1 &mdash; Reserve the table before the marks exist</span><span class="ar">تمرين 10.1 &mdash; احجز الجدول قبل وجود العلامات</span></h4>
+    <p class="en">Thirty students will sit four papers, and no mark has been entered yet. Build the empty table, print its <code>shape</code>, <code>ndim</code>, <code>size</code> and <code>dtype</code>, then enter one mark of 72.5 for the first student&rsquo;s first paper and print that student&rsquo;s row.</p>
+    <p class="ar">ثلاثون طالبًا سيقدّمون أربع أوراق، ولم تُدخَل علامةٌ بعد. ابنِ الجدول الفارغ واطبع <code>shape</code> و<code>ndim</code> و<code>size</code> و<code>dtype</code>، ثم أدخِل علامة 72.5 لأول ورقةٍ لأول طالب واطبع صفّ ذلك الطالب.</p>
+
+<pre class="code"><code>students = 30
+# build the table here
+# expected: (30, 4) 2 120 float64
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>table = np.zeros((students, 4))
+print(table.shape, table.ndim, table.size, table.dtype)
+
+table[0, 0] = 72.5
+print(table[0])
+</code></pre>
+      <div class="output">(30, 4) 2 120 float64
+[72.5  0.   0.   0. ]</div>
+      <p class="en">The shape goes in as one tuple, because the second argument of <code>np.zeros</code> is the dtype &mdash; <code>np.zeros(30, 4)</code> is an error. Now try the same thing with <code>np.zeros((30, 4), dtype=int)</code>: the 72.5 is stored as 72, with nothing to warn you. An empty table reserved with the wrong type quietly damages every value written into it afterwards, which is why this is the moment to decide.</p>
+      <p class="ar">الشكلُ يدخل صفًّا (tuple) واحدًا، لأن الوسيط الثاني لـ <code>np.zeros</code> هو النوع &mdash; فـ <code>np.zeros(30, 4)</code> خطأ. وجرّب الآن الشيء نفسه بـ <code>np.zeros((30, 4), dtype=int)</code>: فتُخزَّن 72.5 وهي 72 بلا ما يحذّرك. فالجدولُ الفارغ المحجوز بالنوع الخاطئ يُتلف بصمتٍ كل قيمة تُكتب فيه بعد ذلك، ولذلك كانت هذه لحظةَ القرار.</p>
+      <p class="en">Note that 0.0 is a real mark, not a blank. A table of zeros says every student scored nothing; a table that means &ldquo;not marked yet&rdquo; needs <code>np.nan</code>, which arrives in <a href="../lessons/chapter-3-lesson-13.html#l13-s5">Lesson 13</a>.</p>
+      <p class="ar">ولاحظ أن 0.0 علامةٌ حقيقية لا فراغ. فجدولُ الأصفار يقول إن كل طالب لم ينل شيئًا؛ وأما الجدول الذي يعني «لم يُصحَّح بعد» فيحتاج <code>np.nan</code>، وهي تصل في <a href="../lessons/chapter-3-lesson-13.html#l13-s5">الدرس 13</a>.</p>
+    </details>
+  </section>
+
+  <h2 id="l10-h2"><span class="en">Concept 2 &mdash; What an array gave up: one type for everything</span><span class="ar">المفهوم 2 &mdash; ما تخلّت عنه المصفوفة: نوعٌ واحد للجميع</span></h2>
+
+  <p class="en">The arithmetic is not free. A list can hold a number, a string and another list at once; an array decides on one type when it is built and applies it to every value, for ever.</p>
+  <p class="ar">الحساب ليس مجانًا. فالقائمة تحمل عددًا ونصًّا وقائمة أخرى معًا؛ والمصفوفة تقرّر نوعًا واحدًا عند بنائها وتطبّقه على كل قيمة إلى الأبد.</p>
+
+<pre class="code"><code>whole = np.array([40, 55, 70])
+print(whole, whole.dtype)
+
+decimal = np.array([40, 55, 70.5])
+print(decimal, decimal.dtype)
+
+mixed = np.array([1, "two", 3])
+print(mixed, mixed.dtype)
+</code></pre>
+
+  <div class="output">[40 55 70] int64
+[40.  55.  70.5] float64
+['1' 'two' '3'] &lt;U21</div>
+
+  <p class="en">Three different decisions, none of them announced. All whole numbers gives <code>int64</code>. One decimal among them promotes <strong>every</strong> value to <code>float64</code> &mdash; notice <code>40.</code> with a trailing dot. And one string turns the numbers into text: <code>&lt;U21</code> means "unicode string, up to 21 characters", and <code>mixed * 2</code> would now repeat the text rather than double anything.</p>
+  <p class="ar">ثلاثة قرارات مختلفة، لم يُعلَن أيٌّ منها. فالأعداد الصحيحة كلها تعطي <code>int64</code>. وعشريٌّ واحد بينها يرفع <strong>كل</strong> قيمة إلى <code>float64</code> &mdash; لاحظ <code>40.</code> بالنقطة اللاحقة. ونصٌّ واحد يحوّل الأعداد كتابةً: فـ <code>&lt;U21</code> تعني «نص يونيكود حتى 21 محرفًا»، وستكرّر <code>mixed * 2</code> النصَّ الآن بدل مضاعفة أي شيء.</p>
+
+  <h3 id="l10-s4"><span class="en">The trap: an integer array silently truncates</span><span class="ar">الفخ: مصفوفة الأعداد الصحيحة تبتر بصمت</span></h3>
+
+<pre class="code bad"><code>marks = np.array([40, 55, 70])
+print(marks.dtype)
+
+marks[0] = 2.9
+print(marks)
+</code></pre>
+
+  <div class="output">int64
+[ 2 55 70]</div>
+
+  <p class="en">2.9 went in and 2 came out. The array is <code>int64</code>, it has nowhere to put a fraction, and it does not consider that worth mentioning. Scale an integer array by 0.9 and assign the result back into it and every mark loses its decimal part, quietly, for every student. The fix is to decide the type when you build it:</p>
+  <p class="ar">دخلت 2.9 وخرجت 2. فالمصفوفة <code>int64</code>، ولا موضع فيها لكسر، ولا ترى ذلك جديرًا بالذكر. وقِس مصفوفةَ أعداد صحيحة بـ 0.9 وأسند النتيجة إليها يفقد كلُّ علامة جزأها العشري، بصمت، لكل طالب. والإصلاح أن تقرّر النوع عند البناء:</p>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70], dtype=float)
+marks[0] = 2.9
+print(marks, marks.dtype)
+</code></pre>
+
+  <div class="output">[ 2.9 55.  70. ] float64</div>
+
+  <div data-trace-id="t-dtype"></div>
+
+  <h3 id="l10-s5"><span class="en">Shape: the same numbers, arranged</span><span class="ar">الشكل: الأعداد نفسها، مرتّبةً</span></h3>
+
+  <p class="en">The class sat three subjects, so the natural arrangement is a table: one row per student, one column per subject.</p>
+  <p class="ar">امتحن الصفُّ في ثلاث مواد، فالترتيب الطبيعي جدول: صفٌّ لكل طالب وعمودٌ لكل مادة.</p>
+
+<pre class="code good"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+
+print(marks.shape)
+print(marks.ndim)
+print(marks.size)
+print(marks.dtype)
+</code></pre>
+
+  <div class="output">(3, 3)
+2
+9
+int64</div>
+
+  <ul>
+    <li><span class="en"><code>shape</code> is <code>(rows, columns)</code> &mdash; always that order, and it is a tuple, so a 1-D array of five marks has shape <code>(5,)</code> with the comma and nothing after it.</span><span class="ar"><code>shape</code> هو <code>(الصفوف، الأعمدة)</code> &mdash; بهذا الترتيب دائمًا، وهو صفٌّ (tuple)، فمصفوفة أحادية بخمس علامات شكلها <code>(5,)</code> بالفاصلة ولا شيء بعدها.</span></li>
+    <li><span class="en"><code>ndim</code> is how many dimensions: 1 for a row of marks, 2 for a table.</span><span class="ar"><code>ndim</code> هو عدد الأبعاد: 1 لصفّ علامات، و2 لجدول.</span></li>
+    <li><span class="en"><code>size</code> is how many numbers in total, which is every dimension multiplied together.</span><span class="ar"><code>size</code> هو عدد الأعداد كلها، وهو حاصل ضرب كل الأبعاد.</span></li>
+  </ul>
+
+  <p class="en">Arithmetic works on the table exactly as it did on the row, element by element, with no loops and no nesting:</p>
+  <p class="ar">والحساب يعمل على الجدول تمامًا كما عمل على الصفّ، عنصرًا عنصرًا، بلا حلقات ولا تعشيش:</p>
+
+<pre class="code good"><code>print(marks + 5)
+print(marks.shape, (marks + 5).shape)
+</code></pre>
+
+  <div class="output">[[ 45  60  75]
+ [ 65  70  95]
+ [ 85  80  55]]
+(3, 3) (3, 3)</div>
+
+  <h3 id="l10-s6"><span class="en">Making arrays without typing every number</span><span class="ar">صنع المصفوفات دون كتابة كل عدد</span></h3>
+
+<pre class="code good"><code>print(np.zeros(3))
+print(np.ones((2, 3)))
+print(np.full((2, 2), 7))
+print(np.arange(0, 10, 2))
+print(np.linspace(0, 1, 5))
+</code></pre>
+
+  <div class="output">[0. 0. 0.]
+[[1. 1. 1.]
+ [1. 1. 1.]]
+[[7 7]
+ [7 7]]
+[0 2 4 6 8]
+[0.   0.25 0.5  0.75 1.  ]</div>
+
+  <p class="en">Two details that catch people. <code>np.zeros</code> and <code>np.ones</code> give <strong>floats</strong>, not integers, which is usually what you want and occasionally a surprise. And the last two look similar but ask different questions: <code>arange(0, 10, 2)</code> is "from 0, in steps of 2, stopping before 10", while <code>linspace(0, 1, 5)</code> is "five values from 0 to 1, <em>including</em> 1, evenly spaced". When you know the step, use <code>arange</code>; when you know how many you want, use <code>linspace</code>.</p>
+  <p class="ar">تفصيلان يُوقعان الناس. فـ <code>np.zeros</code> و<code>np.ones</code> تعطيان <strong>أعدادًا عشرية</strong> لا صحيحة، وهو ما تريده عادةً ومفاجأةٌ أحيانًا. والأخيرتان تتشابهان لكنهما تسألان سؤالين مختلفين: فـ <code>arange(0, 10, 2)</code> تعني «من 0 بخطوة 2 ونتوقف قبل 10»، بينما <code>linspace(0, 1, 5)</code> تعني «خمس قيم من 0 إلى 1 <em>شاملةً</em> 1 بتباعد منتظم». فإذا عرفت الخطوة فاستعمل <code>arange</code>، وإذا عرفت العدد المطلوب فاستعمل <code>linspace</code>.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.2 &mdash; Percentages without a loop</span><span class="ar">تمرين 10.2 &mdash; نسب مئوية بلا حلقة</span></h4>
+    <p class="en">Each paper is out of 120. Turn the raw marks into percentages, rounded to one decimal place, in a single expression with no <code>for</code>.</p>
+    <p class="ar">كل ورقة من 120. حوّل العلامات الخام نسبًا مئوية، مقرَّبة إلى منزلة عشرية واحدة، في تعبير واحد بلا <code>for</code>.</p>
+
+<pre class="code"><code>raw = np.array([48, 66, 84, 102, 120])
+# one line here
+# expected: [40.  55.  70.  85. 100.]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>percent = np.round(raw / 120 * 100, 1)
+print(percent, percent.dtype)
+</code></pre>
+      <div class="output">[ 40.  55.  70.  85. 100.] float64</div>
+      <p class="en">Note the <code>dtype</code>: <code>raw</code> was <code>int64</code> and the result is <code>float64</code>, because dividing always produces decimals even when they happen to come out whole. If you had written <code>raw //= 120</code> to keep it integer, every percentage would have become 0.</p>
+      <p class="ar">لاحظ <code>dtype</code>: فـ <code>raw</code> كانت <code>int64</code> والنتيجة <code>float64</code>، لأن القسمة تنتج عشريات دائمًا حتى حين تخرج صحيحة اتفاقًا. ولو كتبت <code>raw //= 120</code> لإبقائها صحيحة لصارت كل نسبة 0.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.3 &mdash; Build the table three ways</span><span class="ar">تمرين 10.3 &mdash; ابنِ الجدول بثلاث طرق</span></h4>
+    <p class="en">Produce a 4&times;3 array of zeros as a <code>float64</code>, a 4&times;3 array of zeros as an <code>int64</code>, and a 1-D array holding 0.0, 0.5, 1.0, 1.5, 2.0. Print the <code>shape</code> and <code>dtype</code> of each.</p>
+    <p class="ar">أنتج مصفوفة أصفار 4&times;3 من نوع <code>float64</code>، ومصفوفة أصفار 4&times;3 من نوع <code>int64</code>، ومصفوفة أحادية تحمل 0.0 و0.5 و1.0 و1.5 و2.0. واطبع <code>shape</code> و<code>dtype</code> لكلٍّ.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>a = np.zeros((4, 3))
+b = np.zeros((4, 3), dtype=int)
+c = np.linspace(0, 2, 5)
+
+for arr in (a, b, c):
+    print(arr.shape, arr.dtype)
+</code></pre>
+      <div class="output">(4, 3) float64
+(4, 3) int64
+(5,) float64</div>
+      <p class="en">Two things to take from this. The shape goes in as a <em>tuple</em> &mdash; <code>np.zeros(4, 3)</code> is an error, because the second argument is the dtype. And <code>np.arange(0, 2.5, 0.5)</code> would also work for <code>c</code>, but <code>linspace</code> is safer with decimal steps: <a href="../appendices/appendix-a4.html#a4-h2">a step that cannot be stored exactly</a> can leave <code>arange</code> one value short or one value long.</p>
+      <p class="ar">خذ من هذا أمرين. فالشكل يدخل <em>صفًّا</em> (tuple) &mdash; فـ <code>np.zeros(4, 3)</code> خطأ، لأن الوسيط الثاني هو النوع. و<code>np.arange(0, 2.5, 0.5)</code> تنجح لـ <code>c</code> أيضًا، لكن <code>linspace</code> أسلم مع الخطوات العشرية: <a href="../appendices/appendix-a4.html#a4-h2">فخطوةٌ لا يمكن تخزينها تمامًا</a> قد تترك <code>arange</code> ناقصةً قيمةً أو زائدةً قيمة.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does <code>np.array([1, 2, 3]) * 3</code> give, and why is it different from <code>[1, 2, 3] * 3</code>?</span><span class="ar">ماذا تعطي <code>np.array([1, 2, 3]) * 3</code>، ولماذا تختلف عن <code>[1, 2, 3] * 3</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[3 6 9]</code>. For an array <code>*</code> means arithmetic on each element; for a list it means repeat the container, giving nine items.</span><span class="ar"><code>[3 6 9]</code>. فـ <code>*</code> للمصفوفة تعني حسابًا على كل عنصر؛ وللقائمة تعني تكرار الحاوية فتعطي تسعة عناصر.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both give <code>[3, 6, 9]</code>; NumPy is only faster.</span><span class="ar">كلتاهما تعطي <code>[3, 6, 9]</code>؛ ونمباي أسرع فقط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The array raises a <code>TypeError</code>, because you cannot multiply an array by a plain number.</span><span class="ar">ترفع المصفوفة <code>TypeError</code>، لأنك لا تستطيع ضرب مصفوفة بعدد عادي.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both repeat the contents; the array just prints without commas.</span><span class="ar">كلتاهما تكرّر المحتوى؛ والمصفوفة تطبع بلا فواصل فقط.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The same symbol means two different things depending on what is to its left, and both are defined, so neither errors. That is what makes the list version dangerous: <code>marks * 2</code> on a class of thirty produces a class of sixty, every student twice, and the average is unchanged &mdash; so a summary report looks completely normal.</div>
+      <div class="ar">الرمز نفسه يعني شيئين مختلفين بحسب ما على يساره، وكلاهما معرَّف، فلا تُخطئ أيٌّ منهما. وذلك ما يجعل نسخة القائمة خطيرة: فـ <code>marks * 2</code> على صفّ ثلاثين تُنتج صفَّ ستين، كلُّ طالب مرتين، والمتوسط لم يتغير &mdash; فيبدو التقرير الملخَّص طبيعيًا تمامًا.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">An array is built from <code>[1, 2, 3]</code> and then <code>a[0] = 9.7</code> is assigned. What does the array hold?</span><span class="ar">تُبنى مصفوفة من <code>[1, 2, 3]</code> ثم يُسنَد <code>a[0] = 9.7</code>. فماذا تحمل المصفوفة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en"><code>[9.7 2.  3. ]</code> &mdash; the array promotes itself to <code>float64</code> to fit the new value.</span><span class="ar"><code>[9.7 2.  3. ]</code> &mdash; فالمصفوفة ترفع نفسها إلى <code>float64</code> لتسع القيمة الجديدة.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en"><code>[9 2 3]</code> &mdash; the array is <code>int64</code>, so the fraction is discarded without a word.</span><span class="ar"><code>[9 2 3]</code> &mdash; فالمصفوفة <code>int64</code>، فيُطرح الكسر بلا كلمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>TypeError</code>, because a float cannot be stored in an integer array.</span><span class="ar"><code>TypeError</code>، لأن العدد العشري لا يُخزَّن في مصفوفة صحيحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[10 2 3]</code> &mdash; 9.7 is rounded to the nearest whole number.</span><span class="ar"><code>[10 2 3]</code> &mdash; تُقرَّب 9.7 إلى أقرب عدد صحيح.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">An array's <code>dtype</code> is fixed when it is built and assignment never changes it &mdash; the value is converted to fit, not the other way round. Note it <em>truncates</em> rather than rounding, so 9.7 becomes 9 and not 10; the fourth answer is the one most people pick. The whole category of bug is prevented by one argument at build time: <code>dtype=float</code>.</div>
+      <div class="ar">نوعُ المصفوفة يُثبَّت عند بنائها ولا يغيّره الإسناد أبدًا &mdash; فالقيمة تُحوَّل لتناسب، لا العكس. ولاحظ أنها <em>تبتر</em> ولا تقرّب، فتصير 9.7 هي 9 لا 10؛ والجواب الرابع هو ما يختاره أكثر الناس. وفصيلةُ الخلل كلها تُمنع بوسيط واحد عند البناء: <code>dtype=float</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l10-s7"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l10-s8"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>A list is a container; an array is a vector of numbers.</strong> <code>+</code> and <code>*</code> mean join and repeat on one, and arithmetic on every element on the other.</span><span class="ar"><strong>القائمة حاوية؛ والمصفوفة متجهُ أعداد.</strong> فـ <code>+</code> و<code>*</code> تعنيان الإلحاق والتكرار في الأولى، والحساب على كل عنصر في الثانية.</span></li>
+      <li><span class="en"><strong>One operation replaces a whole loop,</strong> and a comparison gives an array of <code>True</code>/<code>False</code> &mdash; which <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a> turns into a way of selecting rows.</span><span class="ar"><strong>عمليةٌ واحدة تحلّ محلّ حلقة كاملة،</strong> والمقارنة تعطي مصفوفة <code>True</code>/<code>False</code> &mdash; ويحوّلها <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a> طريقةً لاختيار الصفوف.</span></li>
+      <li><span class="en"><strong>Every array has exactly one <code>dtype</code></strong>, chosen at build time from what you gave it: all whole numbers gives <code>int64</code>, one decimal promotes everything to <code>float64</code>, one string turns it all into text.</span><span class="ar"><strong>لكل مصفوفة <code>dtype</code> واحد بالضبط</strong>، يُختار عند البناء مما أعطيتها: فالصحيحة كلها تعطي <code>int64</code>، وعشريٌّ واحد يرفع الجميع إلى <code>float64</code>، ونصٌّ واحد يحوّل الكل كتابةً.</span></li>
+      <li><span class="en"><strong>Assigning into an integer array truncates, silently.</strong> If any value will ever be fractional, say <code>dtype=float</code> when you build it.</span><span class="ar"><strong>الإسناد في مصفوفة صحيحة يبتر بصمت.</strong> فإن كانت أي قيمة ستصير كسرية يومًا فقل <code>dtype=float</code> عند البناء.</span></li>
+      <li><span class="en"><strong><code>shape</code> is <code>(rows, columns)</code>,</strong> and it is the first thing to print when an array does something you did not expect. The next three lessons are almost entirely about shapes.</span><span class="ar"><strong><code>shape</code> هو <code>(الصفوف، الأعمدة)</code>،</strong> وهو أول ما تطبعه حين تفعل مصفوفةٌ ما لم تتوقعه. والدروس الثلاثة التالية عن الأشكال كلها تقريبًا.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="../lessons/chapter-3-lesson-11.html#lesson-11">Lesson 11</a> slices an array the way you slice a list, and finds that writing to the slice changes the original.</span><span class="ar"><strong>التالي:</strong> يقطّع <a href="../lessons/chapter-3-lesson-11.html#lesson-11">الدرس 11</a> مصفوفةً كما تقطّع قائمة، فيجد أن الكتابة في القطعة تغيّر الأصل.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-03.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

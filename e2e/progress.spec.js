@@ -11,7 +11,9 @@ const { open } = require('./helpers');
 test('a first visit shows no progress at all', async ({ page }) => {
   await open(page, 'index.html');
   await expect(page.locator('#resume')).toBeHidden();
-  await expect(page.locator('.chapter-progress')).toBeHidden();
+  /* One bar per chapter card, so count the visible ones rather than
+     asking a four-way locator whether it is hidden. */
+  await expect(page.locator('.chapter-progress:not([hidden])')).toHaveCount(0);
 
   await open(page, 'chapters/chapter-1.html');
   await expect(page.locator('.state:not([hidden])')).toHaveCount(0);
@@ -32,9 +34,14 @@ test('the chapter card on the home page counts lessons read', async ({ page }) =
   await open(page, 'lessons/chapter-1-lesson-2.html');
   await open(page, 'index.html');
 
-  const bar = page.locator('.chapter-progress');
+  const bar = page.locator('[data-chapter-progress="1"]');
   await expect(bar).toBeVisible();
   await expect(bar).toContainText('2 / 7');
+
+  /* Reading Chapter 1 says nothing about the others. */
+  await expect(page.locator('[data-chapter-progress="2"]')).toBeHidden();
+  await expect(page.locator('[data-chapter-progress="3"]')).toBeHidden();
+  await expect(page.locator('[data-chapter-progress="4"]')).toBeHidden();
 });
 
 test('the home page offers to continue where you stopped', async ({ page }) => {

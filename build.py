@@ -38,6 +38,16 @@ CONTENT = [
     "src/content/home.html",
     "src/content/chapter-01.html",
     "src/content/chapter-01-tests.html",
+    "src/content/chapter-02.html",
+    "src/content/chapter-02-tests.html",
+    "src/content/chapter-03.html",
+    "src/content/chapter-03-tests.html",
+    "src/content/chapter-04.html",
+    "src/content/chapter-04-tests.html",
+    "src/content/appendix-a3.html",
+    "src/content/appendix-a4.html",
+    "src/content/appendix-a5.html",
+    "src/content/appendix-a6.html",
 ]
 
 # Written by this script; listed here so --check can diff it too.
@@ -193,10 +203,46 @@ BANK_FILE = {
     "test-07": "assets/data/questions-lesson-07.js",
     "chapter-test-a": "assets/data/questions-chapter-a.js",
     "chapter-test-b": "assets/data/questions-chapter-b.js",
+
+    "test-08": "assets/data/questions-lesson-08.js",
+    "test-09": "assets/data/questions-lesson-09.js",
+    "chapter-02-test-a": "assets/data/questions-chapter-02.js",
+    "chapter-02-test-b": "assets/data/questions-chapter-02.js",
+
+    "test-10": "assets/data/questions-lesson-10.js",
+    "test-11": "assets/data/questions-lesson-11.js",
+    "test-12": "assets/data/questions-lesson-12.js",
+    "test-13": "assets/data/questions-lesson-13.js",
+    "chapter-03-test-a": "assets/data/questions-chapter-03.js",
+    "chapter-03-test-b": "assets/data/questions-chapter-03.js",
+
+    "test-14": "assets/data/questions-lesson-14.js",
+    "test-15": "assets/data/questions-lesson-15.js",
+    "test-16": "assets/data/questions-lesson-16.js",
+    "chapter-04-test-a": "assets/data/questions-chapter-04.js",
+    "chapter-04-test-b": "assets/data/questions-chapter-04.js",
+
+    "appendix-a3": "assets/data/questions-appendix-a3.js",
+    "appendix-a4": "assets/data/questions-appendix-a4.js",
+    "appendix-a5": "assets/data/questions-appendix-a5.js",
+    "appendix-a6": "assets/data/questions-appendix-a6.js",
 }
 
 
-def page_assets(page):
+def traces_file(chapter_num):
+    """The trace registry a page in this chapter draws from.
+
+    Chapter 1 collects its traces on a lab page and keeps them in
+    traces.js; later chapters put each trace in the lesson that needs it
+    and keep them one file per chapter. One convention, so a new chapter
+    needs no entry here.
+    """
+    if chapter_num == 1:
+        return "assets/data/traces.js"
+    return "assets/data/traces-chapter-%02d.js" % chapter_num
+
+
+def page_assets(page, chapter_num, body):
     """The stylesheets and scripts this one page needs, and nothing else."""
     css = list(CSS_ALWAYS)
     js = list(JS_ALWAYS)
@@ -213,9 +259,13 @@ def page_assets(page):
         js.append(bank)
         js.append("assets/js/assess.js")
 
-    if page["kind"] == "lab":
+    # Chapter 1 has a lab page that is nothing but traces; the chapters after
+    # it mount a trace inside the lesson that needs it. Both are found the
+    # same way -- by looking at the content -- so a lesson that gains a trace
+    # needs no change here.
+    if page["kind"] == "lab" or 'data-trace-id="' in body:
         css.append("assets/css/trace.css")
-        js.append("assets/data/traces.js")
+        js.append(traces_file(chapter_num))
         js.append("assets/js/trace.js")
 
     js.append("assets/js/app.js")
@@ -293,7 +343,7 @@ def render(page, chapter_num, body, anchors):
     depth = path.count("/")
     base = "../" * depth
 
-    css, js = page_assets(page)
+    css, js = page_assets(page, chapter_num, body)
     styles = "\n".join('<link rel="stylesheet" href="%s%s">' % (base, p) for p in css)
     scripts = "\n".join('<script src="%s%s"></script>' % (base, p) for p in js)
     title_en, title_ar = title_for(page, chapter_num)

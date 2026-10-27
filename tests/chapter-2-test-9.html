@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 9 · Python OOP by Example" data-ar="اختبار 9 · البرمجة الكائنية بلغة بايثون">Test 9 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="2" data-page="test-09" data-path="tests/chapter-2-test-9.html">
+<main>
+<section class="page" id="test-09">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Test 9 &middot; Week 4 &middot; Lecture 11 &middot; last 10 minutes</span><span class="ar">اختبار 9 &middot; الأسبوع 4 &middot; المحاضرة 11 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 9 Test &mdash; Pipelines and Decorators</span><span class="ar">اختبار الدرس 9 &mdash; المسارات والمزخرِفات</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 9 alone: the order as a rule with an owner, <code>Pipeline.fit</code> walking the chain, a pipeline that is also a step, and the decorator that wraps one. Several questions turn on a single line inside <code>fit</code>.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 9 وحده: الترتيبُ قاعدةً لها مالك، و<code>Pipeline.fit</code> تمشي في السلسلة، ومسارٌ هو خطوة أيضًا، والمزخرِفُ الذي يلفّ واحدة. وعدة أسئلة تدور على سطر واحد داخل <code>fit</code>.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-2-lesson-9.html#lesson-09">Lesson 9</a>, which assumes <a href="../lessons/chapter-2-lesson-8.html#lesson-08">Lesson 8</a> in full. If <code>Pipeline.fit</code> is still not obvious, step through <a href="../lessons/chapter-2-lesson-9.html#l9-s3">its trace</a> first &mdash; four of these twelve questions depend on it.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-2-lesson-9.html#lesson-09">الدرس 9</a>، وهو يفترض <a href="../lessons/chapter-2-lesson-8.html#lesson-08">الدرس 8</a> كاملًا. وإن لم تكن <code>Pipeline.fit</code> بديهية بعد فتنقّل في <a href="../lessons/chapter-2-lesson-9.html#l9-s3">تتبّعها</a> أولًا &mdash; فأربعة من هذه الأسئلة الاثني عشر تتوقف عليها.</p>
+  </div>
+
+  <div class="assess" data-bank="test-09" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">That is the last lesson test of this chapter. Both chapter tests are next: <a href="../exams/chapter-2-exam-a.html#chapter-02-test-a">Chapter 2 Test A</a> checks that both ideas stuck, and <a href="../exams/chapter-2-exam-b.html#chapter-02-test-b">Chapter 2 Test B</a> makes you combine them with Chapter 1.</p>
+    <p class="ar">ذلك آخر اختبار درس في هذا الفصل. واختبارا الفصل هما التالي: <a href="../exams/chapter-2-exam-a.html#chapter-02-test-a">اختبار الفصل 2 أ</a> يفحص أن الفكرتين ثبتتا، و<a href="../exams/chapter-2-exam-b.html#chapter-02-test-b">اختبار الفصل 2 ب</a> يجعلك تدمجهما بالفصل 1.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-09.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

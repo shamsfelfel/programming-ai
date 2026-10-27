@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 15 · Python OOP by Example" data-ar="اختبار 15 · البرمجة الكائنية بلغة بايثون">Test 15 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="4" data-page="test-15" data-path="tests/chapter-4-test-15.html">
+<main>
+<section class="page" id="test-15">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Test 15 &middot; Week 6 &middot; Lecture 17 &middot; last 10 minutes</span><span class="ar">اختبار 15 &middot; الأسبوع 6 &middot; المحاضرة 17 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 15 Test &mdash; Matrices and the Shape Rule</span><span class="ar">اختبار الدرس 15 &mdash; المصفوفات وقاعدة الأشكال</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 15 alone. Several questions give you two shapes and ask what comes out, or whether anything comes out at all &mdash; answer those on paper before you reach for a keyboard, because that is the skill being tested.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 15 وحده. وعدة أسئلة تعطيك شكلين وتسأل ماذا يخرج، أو هل يخرج شيء أصلًا &mdash; أجبها على ورقة قبل أن تمدّ يدك إلى لوحة المفاتيح، فتلك هي المهارة المفحوصة.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-4-lesson-15.html#lesson-15">Lesson 15</a>, which assumes <a href="../lessons/chapter-4-lesson-14.html#lesson-14">Lesson 14</a>. If <code>(m, n) @ (n, p) &rarr; (m, p)</code> is not yet something you can apply without thinking, re-read <a href="../lessons/chapter-4-lesson-15.html#l15-s3">the shape rule</a> and <a href="../lessons/chapter-4-lesson-15.html#l15fig1">its figure</a> first &mdash; half of these twelve questions turn on it.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-4-lesson-15.html#lesson-15">الدرس 15</a>، وهو يفترض <a href="../lessons/chapter-4-lesson-14.html#lesson-14">الدرس 14</a>. وإن لم تكن <code>(m, n) @ (n, p) &rarr; (m, p)</code> شيئًا تطبّقه بلا تفكير فأعد قراءة <a href="../lessons/chapter-4-lesson-15.html#l15-s3">قاعدة الأشكال</a> و<a href="../lessons/chapter-4-lesson-15.html#l15fig1">شكلها</a> أولًا &mdash; فنصفُ هذه الأسئلة الاثني عشر يدور عليها.</p>
+  </div>
+
+  <div class="assess" data-bank="test-15" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">Next is <a href="../lessons/chapter-4-lesson-16.html#lesson-16">Lesson 16</a>, the last of the chapter: what removing a loop is actually worth, which loops to leave alone, and how to make a random split that gives the same answer tomorrow.</p>
+    <p class="ar">التالي هو <a href="../lessons/chapter-4-lesson-16.html#lesson-16">الدرس 16</a>، آخر الفصل: كم تساوي إزالةُ الحلقة فعلًا، وأي الحلقات تُترك، وكيف تصنع قسمةً عشوائية تعطي غدًا الجواب نفسه.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-15.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

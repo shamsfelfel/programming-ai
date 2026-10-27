@@ -232,8 +232,8 @@ window.OOPBanks["chapter-test-b"] = {
           ar: "الأصناف تُنتج دائمًا أسطرًا أقل من سلسلة <code>if/elif</code> المكافئة." }
       ],
       answer: [0, 1, 2, 3],
-      explain: { en: "This is the chapter's central trade and the fifth option is the measure it explicitly rejects: three small classes are usually <em>more</em> lines than one chain. The saving is in the next change, which is why the comparison table counts edits rather than lines.",
-                 ar: "هذه هي المقايضة المركزية في الفصل، والخيار الخامس هو المعيار الذي يرفضه صريحًا: فثلاثة أصناف صغيرة أسطرها <em>أكثر</em> من سلسلة واحدة عادةً. والوفر في التغيير القادم، ولهذا يُحصي جدول المقارنة التعديلات لا الأسطر." }
+      explain: { en: "This is the chapter's central trade and the answer that counts lines is the measure it explicitly rejects: three small classes are usually <em>more</em> lines than one chain. The saving is in the next change, which is why the comparison table counts edits rather than lines.",
+                 ar: "هذه هي المقايضة المركزية في الفصل، والجوابُ الذي يعدّ الأسطر هو المعيار الذي يرفضه صريحًا: فثلاثة أصناف صغيرة أسطرها <em>أكثر</em> من سلسلة واحدة عادةً. والوفر في التغيير القادم، ولهذا يُحصي جدول المقارنة التعديلات لا الأسطر." }
     },
     {
       id: "bq19", type: "mcq", level: "hard", topics: ["is-a-has-a", "design-cost", "capstone"],
@@ -316,8 +316,8 @@ window.OOPBanks["chapter-test-b"] = {
           ar: "متكافئتان، إذ تحتاج كلتاهما العدد نفسه من الحروف المكتوبة." }
       ],
       answer: 0,
-      explain: { en: "Only the first option states both sides. The silent <code>else</code> is the real cost of A, and the readability of all cases side by side is a real cost of B &mdash; after the refactor you can no longer see every fee rule on one screen. Option 2 overstates the case for classes, which is the mistake this chapter works hardest to avoid: there are changes for which the chain is the better shape, and the way to settle it is to name the change and count the edits.",
-                 ar: "الخيار الأول وحده يقرّ بالجانبين. فـ <code>else</code> الصامتة هي الكلفة الحقيقية لأ، وقابليةُ قراءة كل الحالات جنبًا إلى جنب كلفةٌ حقيقية لب &mdash; فبعد إعادة الهيكلة لم تبقَ ترى كل قواعد الأجر في شاشة واحدة. والخيار 2 يغالي في الحجة للأصناف، وهو الخطأ الذي يجتهد هذا الفصل أكثر ما يجتهد في تجنّبه: فثمّة تغييرات تكون السلسلة فيها الشكل الأفضل، والسبيل إلى الحكم أن تسمّي التغيير وتُحصي التعديلات." }
+      explain: { en: "Only one answer states both sides. The silent <code>else</code> is the real cost of A, and the readability of all cases side by side is a real cost of B &mdash; after the refactor you can no longer see every fee rule on one screen. Option 2 overstates the case for classes, which is the mistake this chapter works hardest to avoid: there are changes for which the chain is the better shape, and the way to settle it is to name the change and count the edits.",
+                 ar: "وجوابٌ واحد وحده يقرّ بالجانبين. فـ <code>else</code> الصامتة هي الكلفة الحقيقية لأ، وقابليةُ قراءة كل الحالات جنبًا إلى جنب كلفةٌ حقيقية لب &mdash; فبعد إعادة الهيكلة لم تبقَ ترى كل قواعد الأجر في شاشة واحدة. والخيار 2 يغالي في الحجة للأصناف، وهو الخطأ الذي يجتهد هذا الفصل أكثر ما يجتهد في تجنّبه: فثمّة تغييرات تكون السلسلة فيها الشكل الأفضل، والسبيل إلى الحكم أن تسمّي التغيير وتُحصي التعديلات." }
     },
     {
       id: "bq25", type: "error", level: "hard", topics: ["computed", "init"],

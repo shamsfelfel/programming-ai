@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter Test B — Advanced · Python OOP by Example" data-ar="اختبار الفصل ب — المتقدم · البرمجة الكائنية بلغة بايثون">Chapter Test B — Advanced · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="2" data-page="chapter-02-test-b" data-path="exams/chapter-2-exam-b.html">
+<main>
+<section class="page" id="chapter-02-test-b">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Chapter 2 Test B &middot; Week 4 &middot; revision</span><span class="ar">اختبار الفصل 2 ب &middot; الأسبوع 4 &middot; مراجعة</span></span>
+  <h1><span class="en">Chapter 2 Test B &mdash; Advanced</span><span class="ar">اختبار الفصل 2 ب &mdash; المتقدم</span></h1>
+
+  <p class="lede en">Sixteen harder questions that cross both lessons and reach back into Chapter 1: a decorator that forgets to delegate, a <code>fit</code> that does not chain, a scaler that is correct and out of date at the same time. Most of these cannot be answered from one lesson alone.</p>
+  <p class="lede ar">ستة عشر سؤالًا أصعب تعبر الدرسين وتمتد إلى الفصل 1: مزخرِفٌ ينسى التفويض، و<code>fit</code> لا تسلسل، ومُقيِّسٌ صحيحٌ ومتقادمٌ في آن. وأكثرها لا يمكن الجواب عنه من درس واحد.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Pass <a href="../exams/chapter-2-exam-a.html#chapter-02-test-a">Chapter 2 Test A</a> first. Several questions here assume Chapter 1 as well &mdash; particularly <a href="../lessons/chapter-1-lesson-6.html#l6-s4">duck typing</a> and <a href="../lessons/chapter-1-lesson-5.html#l5-s8">the is-a versus has-a decision</a> &mdash; and several require you to trace code by hand.</p>
+    <p class="ar">انجح في <a href="../exams/chapter-2-exam-a.html#chapter-02-test-a">اختبار الفصل 2 أ</a> أولًا. فعدة أسئلة هنا تفترض الفصل 1 كذلك &mdash; وبخاصة <a href="../lessons/chapter-1-lesson-6.html#l6-s4">تصنيف البطة</a> و<a href="../lessons/chapter-1-lesson-5.html#l5-s8">قرار «هو» مقابل «له»</a> &mdash; وعدة أسئلة تطلب منك تتبّع الكود يدويًا.</p>
+  </div>
+
+  <div class="assess" data-bank="chapter-02-test-b" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">This is the end of Chapter 2</span><span class="ar">هذه نهاية الفصل 2</span></h4>
+    <p class="en">Next is <a href="../lessons/chapter-3-lesson-10.html#lesson-10">NumPy</a>, in Week 4 Lecture 12, where the data these steps operate on stops being a Python list and becomes an array. The patterns stay; the thing inside them changes. Before Week 5, read <a href="../appendices/appendix-a4.html#appendix-a4">Appendix A4</a> on how numbers actually work in a computer.</p>
+    <p class="ar">التالي هو <a href="../lessons/chapter-3-lesson-10.html#lesson-10">نمباي</a>، في الأسبوع 4 المحاضرة 12، حيث تكفّ البيانات التي تعمل عليها هذه الخطوات عن كونها قائمة بايثون وتصير مصفوفة. وتبقى الأنماط؛ ويتغير ما بداخلها. وقبل الأسبوع 5 اقرأ <a href="../appendices/appendix-a4.html#appendix-a4">الملحق A4</a> عن كيف تعمل الأعداد في الحاسوب فعلًا.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-chapter-02.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

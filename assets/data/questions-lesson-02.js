@@ -175,8 +175,8 @@ window.OOPBanks["test-02"] = {
         { code: "return litres / capacity * 100" }
       ],
       answer: 0,
-      explain: { en: "Compute from the attributes that are the source of truth, every time it is asked. The third option is the trap worth understanding: it returns the right number <em>and</em> leaves a copy on the object, and that copy is a second source of truth that goes stale the moment someone reads <code>t.percent</code> after a <code>fill</code>. The second option reads an attribute that was never created (<code>AttributeError</code>), and the fourth forgets <code>self</code> (<code>NameError</code>).",
-                 ar: "احسب من الخصائص التي هي مصدر الحقيقة، في كل مرة يُسأل. والخيار الثالث هو الفخ الذي يستحق الفهم: فهو يُعيد الرقم الصحيح <em>ويترك</em> نسخة على الكائن، وتلك النسخة مصدر حقيقة ثانٍ يتقادم لحظةَ يقرأ أحد <code>t.percent</code> بعد <code>fill</code>. والخيار الثاني يقرأ خاصية لم تُنشأ أبدًا (<code>AttributeError</code>)، والرابع ينسى <code>self</code> (<code>NameError</code>)." }
+      explain: { en: "Compute from the attributes that are the source of truth, every time it is asked. The version that stores <code>self.percent</code> is the trap worth understanding: it returns the right number <em>and</em> leaves a copy on the object, and that copy is a second source of truth that goes stale the moment someone reads <code>t.percent</code> after a <code>fill</code>. The bare <code>return self.percent</code> reads an attribute that was never created (<code>AttributeError</code>), and the version without <code>self</code> forgets it (<code>NameError</code>).",
+                 ar: "احسب من الخصائص التي هي مصدر الحقيقة، في كل مرة يُسأل. والنسخةُ التي تخزّن <code>self.percent</code> هي الفخ الذي يستحق الفهم: فهو يُعيد الرقم الصحيح <em>ويترك</em> نسخة على الكائن، وتلك النسخة مصدر حقيقة ثانٍ يتقادم لحظةَ يقرأ أحد <code>t.percent</code> بعد <code>fill</code>. و<code>return self.percent</code> المجردة تقرأ خاصية لم تُنشأ أبدًا (<code>AttributeError</code>)، والنسخةُ بلا <code>self</code> تنساها (<code>NameError</code>)." }
     },
     {
       id: "t2q12", type: "multi", level: "hard",

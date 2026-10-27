@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Removing the Loop · Python OOP by Example" data-ar="إزالةُ الحلقة · البرمجة الكائنية بلغة بايثون">Removing the Loop · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="4" data-page="lesson-16" data-path="lessons/chapter-4-lesson-16.html">
+<main>
+<section class="page" id="lesson-16">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 16 &middot; Week 6 &middot; Lecture 18 &middot; 90 min</span><span class="ar">الدرس 16 &middot; الأسبوع 6 &middot; المحاضرة 18 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Removing the Loop, and Random Numbers You Can Repeat</span><span class="ar">إزالةُ الحلقة، وأعدادٌ عشوائية يمكن تكرارها</span></h1>
+
+  <p class="lede en">By the end of this lesson you will put a stopwatch on a loop over a million rows and on the three lines that replace it, learn a recipe for converting any loop you meet &mdash; including the ones with an <code>if</code> inside &mdash; find out which loops should be left alone, and make a random split of a dataset that gives the same answer tomorrow as it does today.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستضع ساعة إيقاف على حلقةٍ تمرّ بمليون صفّ وعلى الأسطر الثلاثة التي تحلّ محلها، وستتعلّم وصفةً لتحويل أي حلقة تلقاها &mdash; بما فيها ما بداخله <code>if</code> &mdash; وستعرف أي الحلقات يُترك وشأنه، وستصنع قسمةً عشوائية لمجموعة بيانات تعطي غدًا الجوابَ نفسه الذي تعطيه اليوم.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-4-lesson-15.html#lesson-15">Lesson 15</a>. The first half of this lesson is almost entirely <a href="../lessons/chapter-3-lesson-13.html#l13-h2">masks</a> and <a href="../lessons/chapter-3-lesson-13.html#l13-s4"><code>np.where</code></a> from Chapter 3, used for a new purpose, so re-read those two sections if they are hazy. No appendix is needed: there is no mathematics in this lesson at all.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-4-lesson-15.html#lesson-15">الدرس 15</a>. فالنصفُ الأول من هذا الدرس كلُّه تقريبًا <a href="../lessons/chapter-3-lesson-13.html#l13-h2">أقنعةٌ</a> و<a href="../lessons/chapter-3-lesson-13.html#l13-s4"><code>np.where</code></a> من الفصل 3 مستعملةً لغرضٍ جديد، فأعد قراءة ذينك القسمين إن كانا ضبابيين. ولا يلزم ملحق: فلا رياضيات في هذا الدرس إطلاقًا.</p>
+  </div>
+
+  <h2 id="l16-h1"><span class="en">Concept 1 &mdash; A loop you can see is a loop you can remove</span><span class="ar">المفهوم 1 &mdash; الحلقةُ التي تراها حلقةٌ تستطيع إزالتها</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The courier company charges a late fee: half a shekel for every minute a delivery ran more than ten minutes over its predicted time, and nothing otherwise. There are a million deliveries in the file. The loop is the obvious thing to write and it has an <code>if</code> in it, which is the part people believe cannot be vectorised.</p>
+    <p class="ar">تفرض شركة التوصيل رسمَ تأخير: نصفَ شيكل عن كل دقيقة تأخّرتها التوصيلة فوق عشر دقائق من وقتها المتوقع، ولا شيء فيما عدا ذلك. وفي الملف مليونُ توصيلة. والحلقةُ هي الشيء البديهي الذي يُكتب وفيها <code>if</code>، وذلك هو الجزء الذي يظن الناس أنه لا يقبل التحويل إلى مصفوفات.</p>
+  </div>
+
+  <h3 id="l16-s1"><span class="en">The starting code, with a stopwatch on it</span><span class="ar">الكود الابتدائي وعليه ساعة إيقاف</span></h3>
+
+<pre class="code"><code>import numpy as np
+import time
+
+rng = np.random.default_rng(7)
+n = 1_000_000
+
+parcels = rng.integers(1, 20, size=n)
+km = rng.normal(80, 25, size=n).round(1)
+minutes = (1.5 * parcels + 1.2 * km + rng.normal(0, 8, size=n)).round(1)
+
+p, k, m = parcels.tolist(), km.tolist(), minutes.tolist()
+
+start = time.perf_counter()
+fees = []
+for i in range(n):
+    over = m[i] - (1.5 * p[i] + 1.2 * k[i])
+    fees.append(over * 0.5 if over &gt; 10 else 0.0)
+loop_time = time.perf_counter() - start
+</code></pre>
+
+  <h3 id="l16-s2"><span class="en">The same thing, with no loop</span><span class="ar">الشيء نفسه بلا حلقة</span></h3>
+
+<pre class="code good"><code>start = time.perf_counter()
+over = minutes - (1.5 * parcels + 1.2 * km)
+fees_v = np.where(over &gt; 10, over * 0.5, 0.0)
+vector_time = time.perf_counter() - start
+
+print("loop   %.3f s" % loop_time)
+print("vector %.3f s" % vector_time)
+print("same answer:", np.allclose(fees, fees_v))
+print("late:", (over &gt; 10).sum(), " total fees:", round(fees_v.sum(), 2))
+</code></pre>
+
+  <div class="output">loop   0.351 s
+vector 0.015 s
+same answer: True
+late: 105488  total fees: 730966.7</div>
+
+  <p class="en">Three lines replaced nine, and the same million answers came back about twenty times faster. Be careful what you take from the exact numbers: a second run of the identical program on the identical machine gave 0.423 and 0.058, a ratio of seven rather than twenty-three. Timings move with what else the machine is doing. What does not move is the order of magnitude, and the reason for it: the loop runs a million times through the Python interpreter, while the vectorised version hands the whole array to compiled code once.</p>
+  <p class="ar">حلّت ثلاثةُ أسطر محلّ تسعة، وعادت المليون جواب نفسها أسرع بنحو عشرين ضعفًا. وتنبّه لما تأخذه من الأرقام بالضبط: فتشغيلٌ ثانٍ للبرنامج نفسه على الجهاز نفسه أعطى 0.423 و0.058، أي نسبة سبعة لا ثلاثة وعشرين. فالتوقيتاتُ تتحرك بما يفعله الجهاز غير ذلك. والذي لا يتحرك هو رتبةُ المقدار وسببُها: فالحلقةُ تمرّ مليون مرة عبر مفسّر بايثون، بينما تسلّم النسخةُ المتجهة المصفوفةَ كلها إلى كودٍ مترجَم مرة واحدة.</p>
+
+  <h3 id="l16-s3"><span class="en">The recipe</span><span class="ar">الوصفة</span></h3>
+
+  <p class="en">Every loop of this kind is made of a few recognisable moves, and each one has an array equivalent. Convert them one at a time and the loop disappears underneath you.</p>
+  <p class="ar">كلُّ حلقة من هذا النوع مركّبةٌ من حركاتٍ قليلة معروفة، ولكل واحدة مقابلٌ في المصفوفات. حوّلها واحدةً واحدة فتختفي الحلقة من تحتك.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">In the loop</span><span class="ar">في الحلقة</span></th>
+        <th><span class="en">In array code</span><span class="ar">في كود المصفوفات</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="en">arithmetic on one element</span><span class="ar">حسابٌ على عنصر</span></td>
+        <td><span class="en">the same arithmetic on the whole array</span><span class="ar">الحسابُ نفسه على المصفوفة كلها</span></td>
+      </tr>
+      <tr>
+        <td><code>if … else …</code></td>
+        <td><code>np.where(mask, a, b)</code></td>
+      </tr>
+      <tr>
+        <td><span class="en"><code>if</code> with no <code>else</code></span><span class="ar"><code>if</code> بلا <code>else</code></span></td>
+        <td><span class="en">a <a href="../lessons/chapter-3-lesson-13.html#l13-h2">mask</a> on the left: <code>x[mask] = value</code></span><span class="ar"><a href="../lessons/chapter-3-lesson-13.html#l13-h2">قناعٌ</a> يسارًا: <code>x[mask] = value</code></span></td>
+      </tr>
+      <tr>
+        <td><span class="en">a counter that increments</span><span class="ar">عدّادٌ يتزايد</span></td>
+        <td><code>mask.sum()</code></td>
+      </tr>
+      <tr>
+        <td><span class="en">a total that accumulates</span><span class="ar">مجموعٌ يتراكم</span></td>
+        <td><code>values.sum()</code></td>
+      </tr>
+      <tr>
+        <td><span class="en">a list you append to</span><span class="ar">قائمةٌ تُلحق بها</span></td>
+        <td><span class="en">the result array itself &mdash; there is nothing to append to</span><span class="ar">مصفوفةُ النتيجة نفسها &mdash; فلا شيء يُلحق به</span></td>
+      </tr>
+      <tr>
+        <td><span class="en">a running total kept as you go</span><span class="ar">مجموعٌ جارٍ يُحفظ أثناء المرور</span></td>
+        <td><code>values.cumsum()</code></td>
+      </tr>
+      <tr>
+        <td><span class="en">&ldquo;the best so far&rdquo;</span><span class="ar">«الأفضل حتى الآن»</span></td>
+        <td><code>values.max()</code>, <code>values.argmax()</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="en">The running total is the one that looks impossible and is not:</p>
+  <p class="ar">المجموعُ الجاري هو ما يبدو مستحيلًا وليس كذلك:</p>
+
+<pre class="code good"><code>balance = np.array([100., -30., 50., -20., 10.])
+print(balance.cumsum())
+</code></pre>
+
+  <div class="output">[100.  70. 120. 100. 110.]</div>
+
+  <h3 id="l16-s4"><span class="en">When the loop is the right answer</span><span class="ar">متى تكون الحلقة هي الجواب الصحيح</span></h3>
+
+  <p class="en">This lesson would be dishonest if it stopped there. Three cases where the loop stays:</p>
+  <p class="ar">سيكون هذا الدرس غير أمين لو وقف هناك. وثلاثُ حالات تبقى فيها الحلقة:</p>
+
+  <ul>
+    <li><span class="en"><strong>Small data.</strong> Twenty rows do not need this. A loop that reads clearly and runs in a microsecond is better code than a clever one-liner, and the person who maintains it will thank you.</span><span class="ar"><strong>البيانات الصغيرة.</strong> فعشرون صفًّا لا تحتاج هذا. والحلقةُ التي تُقرأ بوضوح وتعمل في جزء من المليون من الثانية كودٌ أفضل من سطرٍ ذكي، وسيشكرك من يصونه.</span></li>
+    <li><span class="en"><strong>Each step depends on the last in a way no reduction covers.</strong> <code>cumsum</code> and friends handle the common cases; a simulation where tomorrow's state is computed from today's, with a rule that changes along the way, genuinely needs the loop.</span><span class="ar"><strong>كلُّ خطوة تعتمد على سابقتها بوجهٍ لا يغطيه تخفيض.</strong> فـ <code>cumsum</code> وأخواتها تعالج الحالات الشائعة؛ أما محاكاةٌ تُحسب فيها حالُ الغد من حال اليوم بقاعدةٍ تتغيّر في الطريق فتحتاج الحلقة فعلًا.</span></li>
+    <li><span class="en"><strong>Memory.</strong> The vectorised version builds whole intermediate arrays: <code>1.5 * parcels + 1.2 * km</code> creates two million-element arrays before <code>np.where</code> ever runs. The loop holds three numbers at a time. On a million rows that is nothing; on a dataset that barely fits in memory, chunking it or looping is the sane choice.</span><span class="ar"><strong>الذاكرة.</strong> فالنسخةُ المتجهة تبني مصفوفاتٍ وسيطة كاملة: إذ تُنشئ <code>1.5 * parcels + 1.2 * km</code> مصفوفتين بمليون عنصر قبل أن تعمل <code>np.where</code> أصلًا. والحلقةُ تمسك ثلاثة أعداد في المرة. وعلى مليون صفّ لا شيء في ذلك؛ أما على بياناتٍ تكاد لا تسع الذاكرة فتقطيعُها أو استعمالُ حلقة هو العاقل.</span></li>
+  </ul>
+
+  <p class="en">And one more, which matters more than all three: <strong>vectorise for clarity first and speed second.</strong> <code>fees = np.where(over &gt; 10, over * 0.5, 0.0)</code> says what the business rule is in one line. That is the reason to write it, and the speed is a bonus you get anyway.</p>
+  <p class="ar">وواحدةٌ أخرى تهمّ أكثر من الثلاث: <strong>حوّل إلى مصفوفات للوضوح أولًا وللسرعة ثانيًا.</strong> فـ <code>fees = np.where(over &gt; 10, over * 0.5, 0.0)</code> تقول ما قاعدةُ العمل في سطر. وذلك سببُ كتابتها، والسرعةُ مكافأةٌ تنالها على كل حال.</p>
+
+  <div data-trace-id="t-vector"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which loop below cannot be replaced by a single array expression?</span><span class="ar">أيُّ الحلقات الآتية لا يمكن استبدال تعبير مصفوفةٍ واحد بها؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">A simulation where each day's stock level is computed from the previous day's and an order is placed only when it drops below a threshold that itself changes.</span><span class="ar">محاكاةٌ يُحسب فيها مخزونُ كل يوم من اليوم السابق ولا يُطلب طلبٌ إلا حين يهبط تحت عتبةٍ تتغيّر هي نفسها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A loop that adds up every delivery over 10 minutes late.</span><span class="ar">حلقةٌ تجمع كل توصيلة تأخّرت فوق 10 دقائق.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A loop that builds a running balance, one entry at a time.</span><span class="ar">حلقةٌ تبني رصيدًا جاريًا مدخلًا مدخلًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A loop that sets every negative value to zero.</span><span class="ar">حلقةٌ تجعل كل قيمة سالبة صفرًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The third is the trap: a running balance <em>looks</em> like the dependent case and is exactly what <code>cumsum</code> is for. The first is genuinely dependent &mdash; the threshold changes according to what happened earlier, so there is no fixed rule to apply to the whole array at once. The other two are <code>mask.sum()</code> and <code>x[x &lt; 0] = 0</code>. The useful habit is to ask what each iteration needs from the one before it: nothing at all means it vectorises; a plain running total means a <code>cum</code> function exists; anything more means write the loop and stop feeling guilty about it.</div>
+      <div class="ar">الثالثة هي الفخّ: فالرصيدُ الجاري <em>يبدو</em> الحالةَ التابعة وهو بالضبط ما وُجدت له <code>cumsum</code>. والأولى تابعةٌ فعلًا &mdash; إذ تتغير العتبة بحسب ما جرى سابقًا، فلا قاعدة ثابتة تُطبَّق على المصفوفة كلها دفعة. والأخريان <code>mask.sum()</code> و<code>x[x &lt; 0] = 0</code>. والعادةُ المفيدة أن تسأل ماذا تحتاج كل دورة من سابقتها: فلا شيء إطلاقًا يعني أنها تقبل التحويل؛ ومجموعٌ جارٍ بسيط يعني أن دالة <code>cum</code> موجودة؛ وما زاد يعني اكتب الحلقة وكفّ عن الشعور بالذنب.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 16.1 &mdash; Convert this loop</span><span class="ar">تمرين 16.1 &mdash; حوّل هذه الحلقة</span></h4>
+    <p class="en">Rewrite this with no <code>for</code> and no <code>if</code>, in three lines, producing the same three values.</p>
+    <p class="ar">أعد كتابة هذا بلا <code>for</code> ولا <code>if</code> في ثلاثة أسطر، مُنتجًا القيم الثلاث نفسها.</p>
+
+<pre class="code"><code>marks = np.array([40., 55., 70., 85., 100., 32., 61.])
+
+passes = 0
+total = 0.0
+best = marks[0]
+for mark in marks:
+    if mark &gt;= 60:
+        passes += 1
+        total += mark
+    if mark &gt; best:
+        best = mark
+
+print(passes, total, best)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>passed = marks &gt;= 60
+
+print(passed.sum(), marks[passed].sum(), marks.max())
+</code></pre>
+      <div class="output">4 316.0 100.0</div>
+      <p class="en">The mask is built once and used twice &mdash; counting with <code>.sum()</code> and selecting with it &mdash; which is the move worth taking away. Note what disappeared: the <code>best = marks[0]</code> initialisation, which is where this kind of loop goes wrong on an empty array or an array of negatives. <code>marks.max()</code> has no such starting value to get wrong, and on an empty array it raises instead of quietly returning whatever you initialised with.</p>
+      <p class="ar">يُبنى القناع مرة ويُستعمل مرتين &mdash; للعدّ بـ <code>.sum()</code> وللاختيار به &mdash; وتلك هي الحركة الجديرة بالأخذ. ولاحظ ما اختفى: تهيئةُ <code>best = marks[0]</code>، وهي حيث تخطئ هذه الحلقة على مصفوفة فارغة أو مصفوفة سوالب. و<code>marks.max()</code> لا قيمةَ بدءٍ فيها لتُخطئ، وعلى المصفوفة الفارغة ترفع خطأً بدل أن تُعيد بصمت ما هيّأت به.</p>
+    </details>
+  </section>
+
+  <h2 id="l16-h2"><span class="en">Concept 2 &mdash; Random numbers you can repeat</span><span class="ar">المفهوم 2 &mdash; أعدادٌ عشوائية يمكن تكرارها</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">You hold back a fifth of the deliveries to test a rule on later, chosen at random. You try one rule, then a second, and the second scores better. Then you notice that each run picked a different fifth, so you have not compared two rules at all &mdash; you have compared two rules on two different datasets, which tells you nothing.</p>
+    <p class="ar">تحجز خُمس التوصيلات لتختبر قاعدةً عليها لاحقًا، مختارةً عشوائيًّا. فتجرّب قاعدةً ثم ثانية، فتسجّل الثانيةُ أفضل. ثم تنتبه أن كل تشغيل انتقى خُمسًا مختلفًا، فلم تقارن قاعدتين إطلاقًا &mdash; بل قارنت قاعدتين على مجموعتَي بيانات مختلفتين، وذلك لا يخبرك بشيء.</p>
+  </div>
+
+  <h3 id="l16-s5"><span class="en">A generator, and the seed that fixes it</span><span class="ar">مولِّدٌ والبذرةُ التي تُثبّته</span></h3>
+
+  <p class="en">NumPy's random numbers come from a <strong>generator</strong> object that you create yourself. Give it a <strong>seed</strong> &mdash; any number you like &mdash; and the sequence it produces is fixed for ever.</p>
+  <p class="ar">تأتي أعدادُ نمباي العشوائية من كائن <strong>مولِّد</strong> تُنشئه أنت. أعطِه <strong>بذرة</strong> &mdash; أيَّ عدد شئت &mdash; فتثبت المتتالية التي ينتجها إلى الأبد.</p>
+
+<pre class="code good"><code>rng = np.random.default_rng(42)
+print(rng.integers(1, 7, size=5))
+
+print(np.random.default_rng(42).integers(1, 7, size=5))
+</code></pre>
+
+  <div class="output">[1 5 4 3 3]
+[1 5 4 3 3]</div>
+
+  <p class="en">Two separate generators, the same seed, the same five dice. Run it on another machine next year and it is still those five. That is the point: the numbers are unpredictable to you, and entirely repeatable for anyone with the seed.</p>
+  <p class="ar">مولّدان منفصلان وبذرةٌ واحدة والخمسةُ أحجار نفسها. شغّله على جهازٍ آخر العام القادم فهي تلك الخمسة نفسها. وذلك هو المقصود: فالأعدادُ لا يمكنك توقّعها، وهي قابلة للتكرار تمامًا لمن عنده البذرة.</p>
+
+  <p class="en">Asking the <em>same</em> generator twice is a different matter &mdash; it moves forward, as it must:</p>
+  <p class="ar">وسؤالُ المولّد <em>نفسه</em> مرتين أمرٌ آخر &mdash; فهو يتقدّم كما ينبغي:</p>
+
+<pre class="code"><code>rng = np.random.default_rng(42)
+print(rng.integers(1, 7, size=5))
+print(rng.integers(1, 7, size=5))
+</code></pre>
+
+  <div class="output">[1 5 4 3 3]
+[6 1 5 2 1]</div>
+
+  <h3 id="l16-s6"><span class="en">The four draws you will actually use</span><span class="ar">السحبات الأربع التي ستستعملها فعلًا</span></h3>
+
+<pre class="code good"><code>rng = np.random.default_rng(42)
+print(rng.random(3).round(4))
+
+rng = np.random.default_rng(42)
+print(rng.integers(1, 7, size=5))
+
+rng = np.random.default_rng(42)
+print(rng.normal(70, 10, size=5).round(1))
+
+rng = np.random.default_rng(42)
+print(rng.permutation(10))
+</code></pre>
+
+  <div class="output">[0.774  0.4389 0.8586]
+[1 5 4 3 3]
+[73.  59.6 77.5 79.4 50.5]
+[5 6 0 7 3 2 4 9 1 8]</div>
+
+  <p class="en"><code>random</code> gives decimals between 0 and 1. <code>integers(1, 7)</code> gives whole numbers from 1 up to but <em>not including</em> 7 &mdash; the same half-open convention as <code>range</code> and <code>arange</code>. <code>normal(70, 10)</code> gives marks scattered around 70, most within ten of it; the distribution behind that word gets an appendix of its own later in the course, and you do not need it to use the function. <code>permutation(10)</code> shuffles the whole numbers below 10, which is the one that matters next.</p>
+  <p class="ar"><code>random</code> تعطي عشريات بين 0 و1. و<code>integers(1, 7)</code> تعطي أعدادًا صحيحة من 1 إلى 7 <em>غير شاملة</em> &mdash; وهو عُرف نصف المفتوح نفسه في <code>range</code> و<code>arange</code>. و<code>normal(70, 10)</code> تعطي علاماتٍ متناثرة حول 70، أكثرها في حدود عشرة منها؛ وللتوزيعِ خلف تلك الكلمة ملحقٌ خاص يأتي لاحقًا في المقرر، ولا تحتاجه لاستعمال الدالة. و<code>permutation(10)</code> تخلط الأعداد الصحيحة دون 10، وهي التي تهمّ تاليًا.</p>
+
+  <h3 id="l16-s7"><span class="en">A split you can defend</span><span class="ar">قسمةٌ تستطيع الدفاع عنها</span></h3>
+
+  <p class="en">Holding back part of your data to test a rule on later is called a <strong>train/test split</strong>: the rows you keep are the ones you are allowed to learn from, and the rows you hold back are the only honest way to find out whether what you learnt was real. Shuffle the row numbers, cut the shuffled list in two, and index with each half:</p>
+  <p class="ar">حجزُ جزءٍ من بياناتك لتختبر عليه قاعدةً لاحقًا يُسمّى <strong>قسمةَ تدريب واختبار</strong>: فالصفوفُ التي تُبقيها هي التي يُسمح لك بالتعلّم منها، والصفوفُ المحجوزة هي السبيل الأمين الوحيد لتعرف هل كان ما تعلّمته حقيقيًّا. اخلط أرقام الصفوف واقطع القائمة المخلوطة نصفين وافهرس بكل نصف:</p>
+
+<pre class="code good"><code>rows = np.arange(10) * 10          # stand-ins for ten deliveries
+
+rng = np.random.default_rng(42)
+order = rng.permutation(10)
+cut = int(0.8 * 10)
+
+train, test = order[:cut], order[cut:]
+
+print(order)
+print(train, test)
+print(rows[train], rows[test])
+</code></pre>
+
+  <div class="output">[5 6 0 7 3 2 4 9 1 8]
+[5 6 0 7 3 2 4 9] [1 8]
+[50 60  0 70 30 20 40 90] [10 80]</div>
+
+  <p class="en">Three things are worth saying about those ten lines. The shuffle happens to the <em>row numbers</em>, not to the data, so several tables can be split the same way by reusing <code>train</code> and <code>test</code> &mdash; which is exactly what you need when the answers live in a second array. Indexing with an array of positions is <a href="../lessons/chapter-3-lesson-11.html#l11-s3">fancy indexing</a> from Lesson 11, so both halves are copies and nothing you do to them touches the original. And because the seed is written down, tomorrow's run splits the data identically, so two rules really are compared on the same test rows.</p>
+  <p class="ar">ثلاثةُ أمور جديرةٌ بالقول عن تلك الأسطر العشرة. فالخلطُ يقع على <em>أرقام الصفوف</em> لا على البيانات، فتُقسم عدةُ جداول القسمة نفسها بإعادة استعمال <code>train</code> و<code>test</code> &mdash; وذلك بالضبط ما تحتاجه حين تكون الأجوبة في مصفوفة ثانية. والفهرسةُ بمصفوفة مواضع <a href="../lessons/chapter-3-lesson-11.html#l11-s3">فهرسةٌ انتقائية</a> من الدرس 11، فالنصفان نسختان ولا شيء تفعله بهما يمسّ الأصل. ولأن البذرة مكتوبة فإن تشغيل الغد يقسم البيانات بالطريقة نفسها، فتُقارَن قاعدتان على صفوف الاختبار نفسها حقًّا.</p>
+
+  <h3 id="l16-s8"><span class="en">The old way, and why not to use it</span><span class="ar">الطريقة القديمة ولماذا لا تُستعمل</span></h3>
+
+<pre class="code bad"><code>np.random.seed(0)
+print(np.random.randint(1, 7, 3))
+</code></pre>
+
+  <div class="output">[5 6 1]</div>
+
+  <p class="en">You will see this in older code and it still works. The objection is not that it is wrong but that there is only one of it: <code>np.random.seed</code> sets a single generator shared by your whole program, so any library you call can draw from it, move it on, and change what your next line produces &mdash; and nothing records that it happened. A generator you made yourself, passed explicitly to the function that needs it, cannot be disturbed by anyone else. Prefer <code>default_rng</code> in anything new.</p>
+  <p class="ar">سترى هذا في كودٍ أقدم ولا يزال يعمل. والاعتراضُ ليس أنه خطأ بل أنه واحدٌ لا غير: فـ <code>np.random.seed</code> تضبط مولّدًا واحدًا يتشاركه برنامجك كله، فأيُّ مكتبةٍ تناديها تستطيع السحب منه وتحريكه وتغيير ما يُنتجه سطرُك التالي &mdash; ولا شيء يسجّل أن ذلك حدث. أما مولّدٌ صنعته بنفسك ومرّرته صراحةً إلى الدالة التي تحتاجه فلا يستطيع أحدٌ أن يُقلقه. ففضّل <code>default_rng</code> في كل جديد.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does a seeded split make a comparison between two rules meaningful?</span><span class="ar">لماذا تجعل القسمةُ المبذورة المقارنةَ بين قاعدتين ذاتَ معنى؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because both rules are then tested on exactly the same held-back rows, so the difference in their scores is about the rules and not about which rows each happened to get.</span><span class="ar">لأن القاعدتين تُختبران حينئذ على الصفوف المحجوزة نفسها بالضبط، فيكون فرقُ الدرجتين عن القاعدتين لا عن الصفوف التي صادف أن نالتها كلٌّ منهما.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because a seeded split is more random than an unseeded one.</span><span class="ar">لأن القسمة المبذورة أعشى من غير المبذورة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because the seed makes the test set representative of the whole dataset.</span><span class="ar">لأن البذرة تجعل مجموعة الاختبار ممثِّلة للبيانات كلها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because without a seed NumPy would always pick the first rows.</span><span class="ar">لأن نمباي بلا بذرة تنتقي الصفوف الأولى دائمًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The third option is the one worth refuting carefully, because it is a real and separate worry: a seed guarantees the <em>same</em> split, not a <em>good</em> one. Seed 42 might hand you a test set of ten deliveries that are all from the same street. Repeatability and representativeness are two different problems, and fixing one does nothing for the other &mdash; which is why serious work checks a result against several seeds rather than trusting the one it started with.</div>
+      <div class="ar">الخيار الثالث جديرٌ بالدحض بعناية، فهو همٌّ حقيقي منفصل: فالبذرةُ تضمن القسمة <em>نفسها</em> لا القسمةَ <em>الجيدة</em>. فقد تسلّمك البذرة 42 مجموعةَ اختبار من عشر توصيلات كلُّها من شارع واحد. فالتكرارُ والتمثيل مشكلتان مختلفتان، وإصلاحُ إحداهما لا يفعل للأخرى شيئًا &mdash; ولذلك يفحص العملُ الجادّ نتيجةً على عدة بذور بدل الثقة بالتي بدأ بها.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 16.2 &mdash; Split two arrays the same way</span><span class="ar">تمرين 16.2 &mdash; اقسم مصفوفتين القسمة نفسها</span></h4>
+    <p class="en">You have a table of features and a separate array holding the answer for each row. Split both into four fifths and one fifth, reproducibly, so that row <em>i</em> of the features still matches entry <em>i</em> of the answers in each half. Print the shapes to prove it.</p>
+    <p class="ar">عندك جدولُ سماتٍ ومصفوفةٌ منفصلة تحمل جواب كل صفّ. اقسم الاثنين إلى أربعة أخماس وخُمس، بقابلية التكرار، بحيث يظل الصفّ <em>i</em> من السمات مطابقًا للمدخل <em>i</em> من الأجوبة في كل نصف. واطبع الأشكال لتُثبت ذلك.</p>
+
+<pre class="code"><code>rng = np.random.default_rng(0)
+X = rng.normal(50, 15, size=(20, 3)).round(1)
+y = rng.integers(0, 2, size=20)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>order = np.random.default_rng(1).permutation(len(X))
+cut = int(0.8 * len(X))
+train, test = order[:cut], order[cut:]
+
+X_train, X_test = X[train], X[test]
+y_train, y_test = y[train], y[test]
+
+print(X_train.shape, X_test.shape)
+print(y_train.shape, y_test.shape)
+print(test)
+</code></pre>
+      <div class="output">(16, 3) (4, 3)
+(16,) (4,)
+[ 4 19  7 14]</div>
+      <p class="en">One shuffle, used four times. The temptation is to shuffle <code>X</code> and <code>y</code> separately, which destroys the pairing silently: both halves would have the right shapes, every later line would run, and every answer would belong to a different row from the one it was describing. Shuffling positions rather than data is what makes that mistake impossible.</p>
+      <p class="ar">خلطةٌ واحدة تُستعمل أربع مرات. والإغراءُ أن تخلط <code>X</code> و<code>y</code> منفصلتين، وذلك يُتلف الاقتران بصمت: فالنصفان سيكونان بالأشكال الصحيحة، وسيعمل كل سطر لاحق، وسينتمي كل جواب إلى صفٍّ غير الذي كان يصفه. وخلطُ المواضع لا البيانات هو ما يجعل ذلك الخطأ مستحيلًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 16.3 &mdash; Show that the seed, not the luck, decides</span><span class="ar">تمرين 16.3 &mdash; أثبت أن البذرة لا الحظّ هي التي تقرّر</span></h4>
+    <p class="en">Write a function that returns the test half for a given seed, and use it to show two things: the same seed gives the same four rows twice, and a different seed gives four different rows.</p>
+    <p class="ar">اكتب دالةً تُعيد نصف الاختبار لبذرةٍ معطاة، واستعملها لتُظهر أمرين: البذرةُ نفسها تعطي الصفوف الأربعة نفسها مرتين، وبذرةٌ أخرى تعطي أربعة صفوف مختلفة.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def test_rows(seed, n=20, frac=0.8):
+    order = np.random.default_rng(seed).permutation(n)
+    return order[int(frac * n):]
+
+print(test_rows(1))
+print(test_rows(1))
+print(test_rows(2))
+</code></pre>
+      <div class="output">[ 4 19  7 14]
+[ 4 19  7 14]
+[16  9  4  1]</div>
+      <p class="en">Notice where the generator is created: inside the function, from the seed, every time. A generator made once outside and reused would advance between calls, so the two calls with seed 1 would disagree &mdash; the function would be reproducible in principle and not in practice. If a function's result must depend only on its arguments, the generator has to be one of them, or be built from one.</p>
+      <p class="ar">لاحظ أين يُنشأ المولّد: داخل الدالة من البذرة في كل مرة. فمولّدٌ يُصنع مرة في الخارج ويُعاد استعماله سيتقدّم بين النداءين، فيختلف نداءا البذرة 1 &mdash; وتكون الدالة قابلةً للتكرار مبدأً لا عملًا. فإن وجب أن تتوقف نتيجةُ دالةٍ على وسائطها وحدها فالمولّد يجب أن يكون أحدها أو أن يُبنى من أحدها.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A function creates <code>rng = np.random.default_rng(42)</code> at the top of the file and uses it in two places. What is the risk?</span><span class="ar">دالةٌ تُنشئ <code>rng = np.random.default_rng(42)</code> في رأس الملف وتستعمله في موضعين. فما الخطر؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The two places share one moving generator, so what the second one draws depends on how many numbers the first one took &mdash; and adding a line anywhere in between changes it.</span><span class="ar">يتشارك الموضعان مولّدًا واحدًا متحركًا، فما يسحبه الثاني يتوقف على كم عددًا أخذ الأول &mdash; وإضافةُ سطر بينهما تغيّره.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">None: the seed is fixed, so everything downstream is fixed.</span><span class="ar">لا خطر: فالبذرة ثابتة فكلُّ ما بعدها ثابت.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both places will draw exactly the same numbers, which is rarely what you want.</span><span class="ar">سيسحب الموضعان الأعداد نفسها تمامًا، وقلّما يكون ذلك مرادك.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The generator will eventually run out of numbers.</span><span class="ar">سينفد المولّدُ من الأعداد في النهاية.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is true of the <em>program as a whole</em> and false of either half of it, which is exactly the distinction that bites: run the whole file and you get the same output every time, but insert one extra draw near the top and every result below it changes, for no reason a reader can see. The third is the opposite mistake &mdash; a generator moves on, so the two places get different numbers, not identical ones. Build the generator where the randomness is used, from a seed you passed in.</div>
+      <div class="ar">الخيار الثاني صادقٌ عن <em>البرنامج كله</em> وكاذبٌ عن أي نصف منه، وذلك بالضبط هو التمييز الذي يلدغ: فشغّل الملف كله تحصل على المخرج نفسه كل مرة، لكن أدخِل سحبةً إضافية قرب الرأس يتغير كل نتيجة تحتها بلا سببٍ يراه قارئ. والثالث هو الخطأ المقابل &mdash; فالمولّد يتقدّم، فينال الموضعان أعدادًا مختلفة لا متطابقة. ابنِ المولّد حيث تُستعمل العشوائية من بذرةٍ مرّرتها.</div>
+    </div>
+  </div>
+
+  <h3 id="l16-s9"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l16-s10"><span class="en">What to carry out of this chapter</span><span class="ar">ما تحمله من هذا الفصل</span></h3>
+    <ul>
+      <li><span class="en">Arithmetic becomes array arithmetic, <code>if/else</code> becomes <code>np.where</code>, a counter becomes <code>mask.sum()</code>, a running total becomes <code>cumsum</code>. Most loops are one of those four.</span><span class="ar">الحسابُ يصير حسابَ مصفوفات، و<code>if/else</code> تصير <code>np.where</code>، والعدّادُ يصير <code>mask.sum()</code>، والمجموعُ الجاري يصير <code>cumsum</code>. وأكثرُ الحلقات واحدةٌ من هذه الأربع.</span></li>
+      <li><span class="en">Vectorise for clarity first. The ten-to-a-hundredfold speed-up is real and it is the second reason, not the first.</span><span class="ar">حوّل إلى مصفوفات للوضوح أولًا. فالتسريعُ عشرة أضعاف إلى مئة حقيقي وهو السبب الثاني لا الأول.</span></li>
+      <li><span class="en">Leave the loop alone for small data, for genuinely step-by-step simulations, and when the intermediate arrays will not fit.</span><span class="ar">اترك الحلقةَ وشأنها في البيانات الصغيرة وفي المحاكاة الخطوية فعلًا وحين لا تسع المصفوفاتُ الوسيطة.</span></li>
+      <li><span class="en"><code>rng = np.random.default_rng(seed)</code>, built where it is used. Never <code>np.random.seed</code> in new code.</span><span class="ar"><code>rng = np.random.default_rng(seed)</code> مبنيًّا حيث يُستعمل. ولا <code>np.random.seed</code> أبدًا في كودٍ جديد.</span></li>
+      <li><span class="en">Shuffle positions, not data, and reuse the same positions for every array that has to stay aligned.</span><span class="ar">اخلط المواضع لا البيانات، وأعد استعمال المواضع نفسها لكل مصفوفة يجب أن تبقى محاذية.</span></li>
+      <li><span class="en">A seed buys repeatability, not representativeness. They are different problems.</span><span class="ar">البذرةُ تشتري التكرار لا التمثيل. وهما مشكلتان مختلفتان.</span></li>
+    </ul>
+  </div>
+
+  <h3 id="l16-s10"><span class="en">What comes next</span><span class="ar">ما التالي</span></h3>
+
+  <p class="en">That is the end of Chapter 4. <a href="../tests/chapter-4-test-16.html#test-16">Test 16</a> covers this lesson, and then <a href="../exams/chapter-4-exam-a.html#chapter-04-test-a">Chapter 4 Test A</a> and <a href="../exams/chapter-4-exam-b.html#chapter-04-test-b">Test B</a> cover the three together. Chapter 5 is <code>np.linalg</code>: the same <code>@</code>, the same shape rule, pointed at the question &ldquo;what weights would have produced these answers?&rdquo; &mdash; which is where <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> stops being optional reading and starts being the thing the chapter assumes.</p>
+  <p class="ar">تلك نهاية الفصل 4. و<a href="../tests/chapter-4-test-16.html#test-16">الاختبار 16</a> يغطي هذا الدرس، ثم <a href="../exams/chapter-4-exam-a.html#chapter-04-test-a">اختبار الفصل 4 أ</a> و<a href="../exams/chapter-4-exam-b.html#chapter-04-test-b">ب</a> يغطيان الثلاثة معًا. والفصل 5 هو <code>np.linalg</code>: <code>@</code> نفسها وقاعدةُ الأشكال نفسها مصوَّبتين إلى سؤال «أيُّ أوزانٍ كانت ستُنتج هذه الأجوبة؟» &mdash; وهناك يكفّ <a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> عن كونه قراءةً اختيارية ويصير ما يفترضه الفصل.</p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-04.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

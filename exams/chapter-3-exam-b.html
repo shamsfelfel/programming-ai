@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter Test B — Advanced · Python OOP by Example" data-ar="اختبار الفصل ب — المتقدم · البرمجة الكائنية بلغة بايثون">Chapter Test B — Advanced · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="3" data-page="chapter-03-test-b" data-path="exams/chapter-3-exam-b.html">
+<main>
+<section class="page" id="chapter-03-test-b">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Chapter 3 Test B &middot; Week 5 &middot; revision</span><span class="ar">اختبار الفصل 3 ب &middot; الأسبوع 5 &middot; مراجعة</span></span>
+  <h1><span class="en">Chapter 3 Test B &mdash; Advanced</span><span class="ar">اختبار الفصل 3 ب &mdash; المتقدم</span></h1>
+
+  <p class="lede en">Twenty hard questions, every one of which crosses at least two lessons: a float divided into an integer column, a mask written through a view, an axis that meets a missing value. Almost nothing here raises an error, which is the point &mdash; these are the mistakes that ship.</p>
+  <p class="lede ar">عشرون سؤالًا صعبًا، كلٌّ منها يعبر درسين على الأقل: عشريٌّ يُقسَم في عمود صحيح، وقناعٌ يُكتب عبر نافذة، ومحورٌ يلاقي قيمةً مفقودة. ولا يكاد شيءٌ هنا يرفع خطأً، وذلك هو المقصود &mdash; فهذه هي الأخطاء التي تُشحَن.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Pass <a href="../exams/chapter-3-exam-a.html#chapter-03-test-a">Chapter 3 Test A</a> first. Several questions here need two rules at once &mdash; particularly <a href="../lessons/chapter-3-lesson-11.html#l11-s3">which indexing copies</a> together with <a href="../lessons/chapter-3-lesson-12.html#l12-h2">the shape that fits wrongly</a> &mdash; and several ask you to predict a shape before a value.</p>
+    <p class="ar">انجح في <a href="../exams/chapter-3-exam-a.html#chapter-03-test-a">اختبار الفصل 3 أ</a> أولًا. فعدة أسئلة هنا تحتاج قاعدتين معًا &mdash; وبخاصة <a href="../lessons/chapter-3-lesson-11.html#l11-s3">أي فهرسة تنسخ</a> مع <a href="../lessons/chapter-3-lesson-12.html#l12-h2">الشكل الذي ينطبق خطأً</a> &mdash; وعدة أسئلة تطلب توقّع الشكل قبل القيمة.</p>
+  </div>
+
+  <div class="assess" data-bank="chapter-03-test-b" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">This is the end of Chapter 3</span><span class="ar">هذه نهاية الفصل 3</span></h4>
+    <p class="en">Next is <a href="../lessons/chapter-4-lesson-14.html#lesson-14">Chapter 4</a>, NumPy for ML Math, in Week 6: the same arrays used for the operations a model actually performs &mdash; weighted totals, distances, and one operator that marks a whole class at once. Before it, read <a href="../appendices/appendix-a4.html#appendix-a4">Appendix A4</a> if you have not, and note that <a href="../appendices/appendix-a5.html#appendix-a5">Appendix A5</a> on mathematical notation and <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> on vectors and matrices are self-study material you can start whenever you like &mdash; no lecture or test depends on either.</p>
+    <p class="ar">التالي هو <a href="../lessons/chapter-4-lesson-14.html#lesson-14">الفصل 4</a>، نمباي لرياضيات تعلّم الآلة، في الأسبوع 6: المصفوفاتُ نفسها مستعملةً للعمليات التي يؤديها النموذج فعلًا &mdash; مجاميعُ موزونة ومسافات ومُعاملٌ واحد يُصحّح صفًّا كاملًا دفعةً. وقبله اقرأ <a href="../appendices/appendix-a4.html#appendix-a4">الملحق A4</a> إن لم تكن، واعلم أن <a href="../appendices/appendix-a5.html#appendix-a5">الملحق A5</a> عن الرموز الرياضية و<a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> عن المتجهات والمصفوفات مادةٌ للتعلّم الذاتي تبدؤها متى شئت &mdash; فلا محاضرة ولا اختبار يتوقف على أيٍّ منهما.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-chapter-03.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

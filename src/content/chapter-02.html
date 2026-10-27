@@ -1,0 +1,989 @@
+<section class="page" id="chapter-2">
+
+  <span class="kicker"><span class="en">Chapter 2 &middot; Week 4 &middot; Lectures 10&ndash;11</span><span class="ar">الفصل 2 &middot; الأسبوع 4 &middot; المحاضرتان 10&ndash;11</span></span>
+  <h1><span class="en">Design Patterns, Where Machine Learning Needs Them</span><span class="ar">أنماط التصميم، حيث يحتاجها تعلّم الآلة</span></h1>
+
+  <p class="lede en">Two lessons, two patterns each, and every one of them arrives because a plain function has just failed in a way that raises nothing. A step that forgets what it learned gives the same mark two different answers depending on who else sat the exam. Four steps applied by hand in two files drift out of order until the model is handed data it was never trained on. Each lesson rebuilds the broken thing as an object, and the pattern is what the rebuilt thing is called.</p>
+  <p class="lede ar">درسان، وفي كل درس نمطان، وكلٌّ منها يأتي لأنّ دالةً عادية فشلت فشلًا لا يرفع خطأً. خطوةٌ تنسى ما تعلّمته تمنح العلامةَ نفسها جوابين مختلفين تبعًا لمن جلس الامتحان معها. وأربع خطوات تُطبَّق يدويًا في ملفين يختلف ترتيبهما حتى يُسلَّم النموذجُ بياناتٍ لم يُدرَّب عليها قطّ. كل درس يعيد بناء المكسور كائنًا، والنمط هو اسم ما بُني.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need Chapter 1: classes, <code>__init__</code>, encapsulation, inheritance against composition, and polymorphism. No NumPy and no mathematics &mdash; this chapter is plain Python. No machine-learning background either; <a href="#appendix-a3">Appendix A3</a> gives you the vocabulary without the equations, and you can read it in twenty minutes.</p>
+    <p class="ar">تحتاج الفصل الأول: الأصناف، و<code>__init__</code>، والتغليف، والوراثة في مقابل التركيب، وتعدد الأشكال. لا NumPy ولا رياضيات &mdash; هذا الفصل بايثون خالصة. ولا تحتاج خلفية في تعلّم الآلة؛ فـ<a href="#appendix-a3">الملحق A3</a> يعطيك المفردات بلا معادلات، وتقرأه في عشرين دقيقة.</p>
+  </div>
+
+  <h2 id="ch2-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="#lesson-08">
+      <span class="n">08</span><span class="state" data-page-state="lesson-08" hidden></span>
+      <h3 id="ch2-s1"><span class="en">Steps That Remember: Strategy &amp; Factory</span><span class="ar">خطواتٌ تتذكّر: الاستراتيجية والمصنع</span></h3>
+      <p class="en">A function that scales marks gives the same mark two answers, depending on who else is in the list. Give the step a memory &mdash; then a family of them, and one place that builds them.</p>
+      <p class="ar">دالةٌ تُوحّد العلامات تمنح العلامةَ نفسها جوابين، تبعًا لمن معها في القائمة. امنح الخطوةَ ذاكرة &mdash; ثم عائلةً منها، ومكانًا واحدًا يبنيها.</p>
+    </a>
+
+    <a class="lesson-card" href="#lesson-09">
+      <span class="n">09</span><span class="state" data-page-state="lesson-09" hidden></span>
+      <h3 id="ch2-s2"><span class="en">A Thing That Holds Things Like Itself: Pipelines &amp; Decorators</span><span class="ar">شيءٌ يمسك بأشياء مثله: المسارات والمزخرِفات</span></h3>
+      <p class="en">Four preparation steps, applied by hand in two different files. The two orders drift apart. Build one object that <em>is</em> a step and <em>holds</em> steps, and the order stops being something to remember.</p>
+      <p class="ar">أربع خطوات تهيئة، تُطبَّق يدويًا في ملفين مختلفين. ينفصل الترتيبان. ابنِ كائنًا واحدًا <em>هو</em> خطوة و<em>يمسك</em> بخطوات، فيكفّ الترتيب عن كونه شيئًا يُتذكَّر.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch2-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">Each lesson has a test of its own, sat after that lesson and assuming nothing later. The two chapter tests cover both lessons &mdash; A for the core ideas, B for the harder corners. The execution traces are not on a page of their own in this chapter: each sits in the lesson at the moment you need to watch it happen.</p>
+  <p class="ar">لكل درس اختباره الخاص، يُؤدَّى بعده ولا يفترض شيئًا بعده. ويغطّي اختبارا الفصل الدرسين كليهما &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب. أمّا آثار التنفيذ فليست في صفحة مستقلة في هذا الفصل: كلٌّ منها في درسه عند اللحظة التي تحتاج أن تشاهدها فيها.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="#test-08">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 8 &mdash; Strategy &amp; Factory</span><span class="ar">اختبار 8 &mdash; الاستراتيجية والمصنع</span></span>
+      <span class="state" data-page-state="test-08" hidden></span>
+    </a>
+
+    <a class="side-card test" href="#test-09">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 9 &mdash; Pipelines &amp; Decorators</span><span class="ar">اختبار 9 &mdash; المسارات والمزخرِفات</span></span>
+      <span class="state" data-page-state="test-09" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-02-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-02-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-02-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-02-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="#appendix-a3">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A3 &mdash; the vocabulary, without the mathematics</span><span class="ar">الملحق A3 &mdash; المفردات، بلا رياضيات</span></span>
+      <span class="state" data-page-state="appendix-a3" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch2-s3"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">Every pattern here is the same move: when a function has to remember something between two calls, that something and the function belong in one object.</p>
+    <p class="ar">كل نمط هنا هو الحركة نفسها: إذا كان على الدالة أن تتذكّر شيئًا بين نداءين، فذلك الشيء والدالة ينتميان إلى كائن واحد.</p>
+  </div>
+
+</section>
+
+
+<!-- ===== Chapter 2 — OOP Design Patterns for ML ===== -->
+
+<section class="page" id="lesson-08">
+
+
+  <span class="kicker"><span class="en">Lesson 8 &middot; Week 4 &middot; Lecture 10 &middot; 90 min</span><span class="ar">الدرس 8 &middot; الأسبوع 4 &middot; المحاضرة 10 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Steps That Remember: Strategy and Factory</span><span class="ar">خطواتٌ تتذكّر: الاستراتيجية والمصنع</span></h1>
+
+  <p class="lede en">By the end of this lesson you will take a function that prepares exam marks, watch it give a different answer to the same mark depending on who else is in the list, and rebuild it as an object that remembers what it learned. Then you will write a second one with the same two methods and discover you can swap them without the caller noticing.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستأخذ دالةً تهيّئ علامات الامتحان، وسترى كيف تعطي العلامةَ نفسها جوابًا مختلفًا حسب من معها في القائمة، ثم تعيد بناءها كائنًا يتذكّر ما تعلّمه. ثم ستكتب ثانيًا بالدالتين نفسيهما وتكتشف أنك تستطيع مبادلتهما دون أن يلاحظ المستدعي.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">This lesson uses four ideas from Chapter 1 and assumes all of them: <a href="#l2-h1">state stored in <code>__init__</code></a>, <a href="#l4-h2">an abstract base naming a promise</a>, <a href="#l6-h2">polymorphism</a> and <a href="#l6-s4">duck typing</a>. It also uses the words <code>fit</code>, <code>transform</code>, <code>X</code> and <em>step</em>, which are explained with no mathematics in <a href="#appendix-a3">Appendix A3</a> &mdash; read that first if you have not. There is no mathematics in this lesson: everything here is object design.</p>
+    <p class="ar">يستعمل هذا الدرس أربع أفكار من الفصل 1 ويفترضها كلها: <a href="#l2-h1">الحالة المخزَّنة في <code>__init__</code></a>، و<a href="#l4-h2">الأساس المجرّد يسمّي وعدًا</a>، و<a href="#l6-h2">تعدد الأشكال</a>، و<a href="#l6-s4">تصنيف البطة</a>. ويستعمل كذلك الألفاظ <code>fit</code> و<code>transform</code> و<code>X</code> و<em>خطوة</em>، وهي مشروحة بلا رياضيات في <a href="#appendix-a3">الملحق A3</a> &mdash; فاقرأه أولًا إن لم تكن قرأته. ولا رياضيات في هذا الدرس: فكل ما فيه تصميم كائنات.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">A secondary school keeps the final marks of its leaving class. A program will later guess a new student's final mark from their term work, and before it can do that the marks have to be put on a common scale. Everything in this lesson is that one school.</p>
+    <p class="ar">مدرسة ثانوية تحتفظ بالعلامات النهائية لصفّ التخرج. وسيخمّن برنامجٌ لاحقًا العلامةَ النهائية لطالب جديد من أعماله الفصلية، وقبل أن يستطيع ذلك يجب وضع العلامات على مقياس مشترك. وكل ما في هذا الدرس هو تلك المدرسة الواحدة.</p>
+  </div>
+
+  <h2 id="l8-h1"><span class="en">Concept 1 &mdash; A step that forgets gives a different answer every time</span><span class="ar">المفهوم 1 &mdash; الخطوة التي تنسى تعطي جوابًا مختلفًا في كل مرة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Marks run from 40 to 100. The program wants them on a 0-to-1 scale, so somebody writes the obvious function: find the smallest and the largest, and place every mark between them.</p>
+    <p class="ar">تمتد العلامات من 40 إلى 100. ويريدها البرنامج على مقياس من 0 إلى 1، فيكتب أحدهم الدالة البديهية: جدِ الأصغر والأكبر، وضع كل علامة بينهما.</p>
+  </div>
+
+  <h3 id="l8-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code bad"><code>def scale(values):
+    """Put every mark between 0 and 1."""
+    low = min(values)
+    high = max(values)
+    return [round((v - low) / (high - low), 3) for v in values]
+
+
+class_marks = [40, 55, 70, 85, 100]
+print(scale(class_marks))
+</code></pre>
+
+  <div class="output">[0.0, 0.25, 0.5, 0.75, 1.0]</div>
+
+  <p class="en">That is right, and it stays right for as long as you only ever look at the whole class at once. The school then does the thing every school does: a new student arrives in September and their mark has to go on the same scale.</p>
+  <p class="ar">هذا صحيح، ويبقى صحيحًا ما دمت لا تنظر إلا إلى الصفّ كله دفعةً واحدة. ثم تفعل المدرسة ما تفعله كل مدرسة: يصل طالب جديد في أيلول وعلى علامته أن تُوضع على المقياس نفسه.</p>
+
+<pre class="code bad"><code>print(scale([70]))        # one new student, mark 70
+print(scale([70, 90]))    # two new students
+</code></pre>
+
+  <div class="output">ZeroDivisionError: division by zero</div>
+
+  <h3 id="l8-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">The first call explodes: with one value, <code>min</code> and <code>max</code> are the same number and <code>high - low</code> is zero. That is the <em>lucky</em> failure, because it is loud. The second call is the dangerous one &mdash; it runs perfectly and prints <code>[0.0, 1.0]</code>. A mark of 70, which was <code>0.5</code> in the class, is now <code>0.0</code>. Nothing is broken, nothing is reported, and the number is wrong.</p>
+  <p class="ar">الاستدعاء الأول ينفجر: فبقيمة واحدة تتساوى <code>min</code> و<code>max</code> ويصير <code>high - low</code> صفرًا. وذلك هو الفشل <em>المحظوظ</em> لأنه صاخب. أما الاستدعاء الثاني فهو الخطير &mdash; يعمل تمامًا ويطبع <code>[0.0, 1.0]</code>. فعلامةُ 70 التي كانت <code>0.5</code> في الصفّ صارت الآن <code>0.0</code>. لا شيء مكسور، ولا شيء مُبلَّغ، والرقم خطأ.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">The function has <strong>no memory</strong>. The two numbers that define the scale &mdash; 40 and 100 &mdash; were computed, used, and thrown away. Every later call recomputes them from whatever list it happens to be handed, so the ruler changes shape depending on what you measure with it.</p>
+    <p class="ar">الدالة <strong>بلا ذاكرة</strong>. فالرقمان اللذان يعرّفان المقياس &mdash; 40 و100 &mdash; حُسبا واستُعملا ثم رُميا. وكل استدعاء لاحق يعيد حسابهما من أي قائمة تُسلَّم إليه، فتتغير المسطرة شكلًا بحسب ما تقيسه بها.</p>
+  </div>
+
+  <p class="en">You have met this defect before under another name. In <a href="#l1-h1">Lesson 1</a> three parallel lists drifted apart because nothing tied them together; here a <em>function</em> and the <em>numbers it needs</em> have drifted apart because nothing ties them together either. The answer is the same answer: put the data and the behaviour in one object.</p>
+  <p class="ar">قابلت هذا العيب من قبل باسم آخر. ففي <a href="#l1-h1">الدرس 1</a> انفصلت ثلاث قوائم متوازية لأن لا شيء يربطها؛ وهنا انفصلت <em>دالةٌ</em> عن <em>الأرقام التي تحتاجها</em> لأن لا شيء يربطهما أيضًا. والجواب هو الجواب نفسه: ضع البيانات والسلوك في كائن واحد.</p>
+
+  <h3 id="l8-s3"><span class="en">Conversion &mdash; give the step a memory</span><span class="ar">التحويل &mdash; امنح الخطوة ذاكرة</span></h3>
+
+  <p class="en">Split the one function into two methods on one object. <code>fit</code> looks at the class and <strong>stores</strong> what it found. <code>transform</code> uses what was stored and looks at nothing new.</p>
+  <p class="ar">اقسم الدالة الواحدة دالتين على كائن واحد. تنظر <code>fit</code> إلى الصفّ و<strong>تخزّن</strong> ما وجدته. وتستعمل <code>transform</code> ما خُزّن ولا تنظر إلى جديد.</p>
+
+<pre class="code good"><code>class MinMaxScaler:
+    def fit(self, values):
+        """Look once, and remember."""
+        self.low = min(values)
+        self.high = max(values)
+        return self
+
+    def transform(self, values):
+        """Use the memory. Never look at new data to decide anything."""
+        span = self.high - self.low
+        return [round((v - self.low) / span, 3) for v in values]
+
+
+scaler = MinMaxScaler()
+scaler.fit(class_marks)
+
+print(scaler.transform(class_marks))
+print(scaler.transform([70]))
+print(scaler.transform([70, 90]))
+print(scaler.low, scaler.high)
+</code></pre>
+
+  <div class="output">[0.0, 0.25, 0.5, 0.75, 1.0]
+[0.5]
+[0.5, 0.833]
+40 100</div>
+
+  <p class="en">A mark of 70 is <code>0.5</code> now, and it is <code>0.5</code> however many students arrive with it, because <code>0.5</code> is a fact about the class the scaler was fitted on, not about the list in front of it. The two numbers live on the object, and the object outlives the call.</p>
+  <p class="ar">علامةُ 70 هي <code>0.5</code> الآن، وتبقى <code>0.5</code> مهما بلغ عدد الطلبة الواصلين بها، لأن <code>0.5</code> حقيقةٌ عن الصفّ الذي دُرِّب عليه المُقيِّس لا عن القائمة التي أمامه. فالرقمان يعيشان على الكائن، والكائن يبقى بعد الاستدعاء.</p>
+
+  <div class="note">
+    <h4><span class="en">Why <code>fit</code> returns <code>self</code></span><span class="ar">لماذا تُعيد <code>fit</code> قيمة <code>self</code></span></h4>
+    <p class="en">It does not have to. Returning <code>self</code> simply lets you write <code>MinMaxScaler().fit(marks).transform(marks)</code> on one line, and every real library does it for that reason. Note what it does <strong>not</strong> return: the changed data. <code>fit</code> changes the object; <code>transform</code> returns the data. Keeping those two jobs apart is what makes the next section possible.</p>
+    <p class="ar">ليس ذلك واجبًا. فإعادة <code>self</code> تتيح لك ببساطة كتابة <code>MinMaxScaler().fit(marks).transform(marks)</code> في سطر واحد، وكل مكتبة حقيقية تفعلها لذلك السبب. ولاحظ ما <strong>لا</strong> تُعيده: البيانات المغيَّرة. فـ <code>fit</code> تغيّر الكائن، و<code>transform</code> تُعيد البيانات. والفصل بين المهمتين هو ما يجعل القسم التالي ممكنًا.</p>
+  </div>
+
+  <div data-trace-id="t-fit-memory"></div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 8.1 &mdash; Refuse to transform before fit</span><span class="ar">تمرين 8.1 &mdash; ارفض التحويل قبل التدريب</span></h4>
+    <p class="en">Right now <code>MinMaxScaler().transform([70])</code> fails with <code>AttributeError: 'MinMaxScaler' object has no attribute 'high'</code>, which names the symptom rather than the mistake. Give the class an <code>__init__</code> that sets both attributes to <code>None</code>, and make <code>transform</code> raise <code>ValueError("call fit() before transform()")</code> when it has not been fitted.</p>
+    <p class="ar">الآن تفشل <code>MinMaxScaler().transform([70])</code> بـ <code>AttributeError: 'MinMaxScaler' object has no attribute 'high'</code>، وهي تسمّي العَرَض لا الخطأ. امنح الصنف <code>__init__</code> تضبط الخاصيتين على <code>None</code>، واجعل <code>transform</code> ترفع <code>ValueError("call fit() before transform()")</code> إذا لم يكن قد دُرِّب.</p>
+
+<pre class="code"><code>class MinMaxScaler:
+    def __init__(self):
+        # set the two attributes here
+
+    def fit(self, values):
+        self.low = min(values)
+        self.high = max(values)
+        return self
+
+    def transform(self, values):
+        # refuse here if fit has not run
+        span = self.high - self.low
+        return [round((v - self.low) / span, 3) for v in values]
+
+
+MinMaxScaler().transform([70])   # must raise ValueError, not AttributeError
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class MinMaxScaler:
+    def __init__(self):
+        self.low = None
+        self.high = None
+
+    def fit(self, values):
+        self.low = min(values)
+        self.high = max(values)
+        return self
+
+    def transform(self, values):
+        if self.low is None:
+            raise ValueError("call fit() before transform()")
+        span = self.high - self.low
+        return [round((v - self.low) / span, 3) for v in values]
+</code></pre>
+      <p class="en">This is <a href="#l2-h1">Lesson 2</a> doing its job in a new setting: <code>__init__</code> is the one place the object is given a defined shape, so "not fitted yet" becomes a state the class knows about instead of a missing attribute. The error now names the mistake &mdash; you called them in the wrong order &mdash; and it names it on the line that made it.</p>
+      <p class="ar">هذا <a href="#l2-h1">الدرس 2</a> يؤدي عمله في إطار جديد: فـ <code>__init__</code> هي الموضع الوحيد الذي يُعطى فيه الكائن شكلًا معرَّفًا، فتصبح «لم يُدرَّب بعد» حالةً يعرفها الصنف بدل خاصية مفقودة. ويسمّي الخطأُ الآن الخطأ &mdash; استدعيتهما بالترتيب الخطأ &mdash; ويسمّيه في السطر الذي ارتكبه.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A scaler is fitted on the class, then the school discovers one mark was entered wrongly and corrects it. What must happen before that student's mark is transformed again?</span><span class="ar">دُرِّب المُقيِّس على الصفّ، ثم اكتشفت المدرسة أن علامة أُدخلت خطأً فصحّحتها. فماذا يجب أن يحدث قبل تحويل علامة ذلك الطالب مرة أخرى؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Nothing &mdash; <code>transform</code> recomputes the range each time it is called.</span><span class="ar">لا شيء &mdash; فـ <code>transform</code> تعيد حساب المدى في كل استدعاء.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Decide deliberately: the stored <code>low</code> and <code>high</code> are now slightly out of date, so either refit on the corrected class or accept the old scale on purpose. The object will not notice on its own.</span><span class="ar">قرّر متعمدًا: فـ <code>low</code> و<code>high</code> المخزَّنتان صارتا متقادمتين قليلًا، فإمّا أن تعيد التدريب على الصفّ المصحَّح وإمّا أن تقبل المقياس القديم بقصد. والكائن لن يلاحظ من تلقاء نفسه.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The scaler must be deleted and rebuilt, because an object's attributes cannot be reassigned.</span><span class="ar">يجب حذف المُقيِّس وإعادة بنائه، لأن خصائص الكائن لا يمكن إعادة إسنادها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing, because correcting one mark cannot change the smallest or the largest.</span><span class="ar">لا شيء، لأن تصحيح علامة واحدة لا يمكن أن يغيّر الأصغر ولا الأكبر.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Memory is the feature and memory is the cost. <code>transform</code> deliberately does not recompute &mdash; that is the whole point &mdash; so stored state can become stale, exactly like the <a href="#l2-s11">stored total in Lesson 2</a>. The difference is that here staleness is sometimes <em>correct</em>: you usually want new data measured against the original ruler, even after a correction. The fourth answer is also wrong on its own terms: the corrected mark may well have been the minimum.</div>
+      <div class="ar">الذاكرة هي الميزة والذاكرة هي الثمن. فـ <code>transform</code> لا تعيد الحساب متعمدةً &mdash; وذلك هو المقصد كله &mdash; فقد تتقادم الحالة المخزَّنة، تمامًا كـ<a href="#l2-s11">الإجمالي المخزَّن في الدرس 2</a>. والفرق أن التقادم هنا <em>صحيح</em> أحيانًا: فأنت تريد عادةً أن تُقاس البيانات الجديدة بالمسطرة الأصلية، حتى بعد تصحيح. والجواب الرابع خاطئ في ذاته أيضًا: فقد تكون العلامة المصحَّحة هي الصغرى فعلًا.</div>
+    </div>
+  </div>
+
+  <h2 id="l8-h2"><span class="en">Concept 2 &mdash; Two ways to scale, one interface</span><span class="ar">المفهوم 2 &mdash; طريقتان للتقييس، وواجهة واحدة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The school's statistician asks for a second method: instead of squeezing marks between 0 and 1, centre them on the class average. The obvious move is to add a parameter and an <code>if</code>.</p>
+    <p class="ar">يطلب إحصائي المدرسة طريقة ثانية: بدل حشر العلامات بين 0 و1، اجعلها متمركزة حول متوسط الصفّ. والحركة البديهية أن تضيف معاملًا و<code>if</code>.</p>
+  </div>
+
+<pre class="code bad"><code>class Scaler:
+    def __init__(self, method):
+        self.method = method
+
+    def fit(self, values):
+        if self.method == "minmax":
+            self.low = min(values)
+            self.high = max(values)
+        elif self.method == "standard":
+            self.mean = sum(values) / len(values)
+            var = sum((v - self.mean) ** 2 for v in values) / len(values)
+            self.sd = var ** 0.5
+        return self
+
+    def transform(self, values):
+        if self.method == "minmax":
+            span = self.high - self.low
+            return [round((v - self.low) / span, 3) for v in values]
+        elif self.method == "standard":
+            return [round((v - self.mean) / self.sd, 3) for v in values]
+</code></pre>
+
+  <h3 id="l8-s4"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">This is the <a href="#l6-h1">if/elif chain of Lesson 6</a>, and it has grown the extra limb that chain always grows: there are now <strong>two</strong> chains over the same cases, in <code>fit</code> and in <code>transform</code>, and they must agree. Add a third method next month and you will edit two places and the day you edit only one, <code>fit</code> will store a mean while <code>transform</code> reaches for a <code>low</code> that was never set. Worse, the object now carries attributes that are meaningless half the time: a <code>minmax</code> scaler has no <code>mean</code>, and nothing in the class says so.</p>
+  <p class="ar">هذه هي <a href="#l6-h1">سلسلة if/elif في الدرس 6</a>، وقد أنبتت الطرف الزائد الذي تنبته تلك السلسلة دائمًا: فثمّة الآن <strong>سلسلتان</strong> على الحالات نفسها، في <code>fit</code> وفي <code>transform</code>، وعليهما أن تتوافقا. أضف طريقة ثالثة الشهر القادم تعدّل موضعين، ويومَ تعدّل واحدًا فقط ستخزّن <code>fit</code> متوسطًا بينما تمدّ <code>transform</code> يدها إلى <code>low</code> لم تُضبط قطّ. والأسوأ أن الكائن صار يحمل خصائص بلا معنى نصف الوقت: فمُقيِّس <code>minmax</code> لا <code>mean</code> له، ولا شيء في الصنف يقول ذلك.</p>
+
+  <h3 id="l8-s5"><span class="en">The conversion &mdash; one class per strategy</span><span class="ar">التحويل &mdash; صنفٌ لكل استراتيجية</span></h3>
+
+  <p class="en">Give each method its own class. Each stores only what <em>it</em> needs, and both answer the same two messages.</p>
+  <p class="ar">امنح كل طريقة صنفها الخاص. فيخزّن كلٌّ ما يحتاجه <em>هو</em> فقط، ويجيب كلاهما الرسالتين نفسيهما.</p>
+
+<pre class="code good"><code>class MinMaxScaler:
+    def fit(self, values):
+        self.low = min(values)
+        self.high = max(values)
+        return self
+
+    def transform(self, values):
+        span = self.high - self.low
+        return [round((v - self.low) / span, 3) for v in values]
+
+
+class StandardScaler:
+    def fit(self, values):
+        self.mean = sum(values) / len(values)
+        var = sum((v - self.mean) ** 2 for v in values) / len(values)
+        self.sd = var ** 0.5
+        return self
+
+    def transform(self, values):
+        return [round((v - self.mean) / self.sd, 3) for v in values]
+
+
+for scaler in (MinMaxScaler(), StandardScaler()):
+    scaler.fit(class_marks)
+    print(f"{type(scaler).__name__:16}{scaler.transform([85])}")
+</code></pre>
+
+  <div class="output">MinMaxScaler    [0.75]
+StandardScaler  [0.707]</div>
+
+  <div class="note">
+    <h4><span class="en">This pattern has a name: <em>strategy</em></span><span class="ar">لهذا النمط اسم: <em>الاستراتيجية</em></span></h4>
+    <p class="en">Each class is one interchangeable way of doing a job, and the code that uses them holds one and never asks which. You already built this in <a href="#l5-s6">Lesson 5</a>, where a courier held a <code>Battery</code> or a <code>PetrolEngine</code>, and in <a href="#l6-h1">Lesson 6</a>, where each visit type answered <code>fee()</code> for itself. The name is useful for talking to other programmers; the idea is one you have had since Lesson 6.</p>
+    <p class="ar">كل صنف طريقةٌ واحدة قابلة للتبادل في أداء مهمة، والكودُ الذي يستعملها يمسك بواحدة ولا يسأل أيّها. وقد بنيت هذا أصلًا في <a href="#l5-s6">الدرس 5</a> حيث أمسك المندوب بـ <code>Battery</code> أو <code>PetrolEngine</code>، وفي <a href="#l6-h1">الدرس 6</a> حيث أجاب كل نوع زيارة عن <code>fee()</code> بنفسه. والاسم مفيد في محادثة المبرمجين؛ أما الفكرة فعندك منذ الدرس 6.</p>
+  </div>
+
+  <p class="en">Notice what the loop did <em>not</em> do. It did not check a type, read a <code>method</code> string, or import anything about scaling. It called <code>fit</code> and <code>transform</code> on whatever it was given &mdash; <a href="#l6-s4">duck typing</a>, and the two classes share no base class at all.</p>
+  <p class="ar">لاحظ ما <em>لم</em> تفعله الحلقة. لم تفحص نوعًا، ولم تقرأ نص <code>method</code>، ولم تستورد شيئًا عن التقييس. بل استدعت <code>fit</code> و<code>transform</code> على ما أُعطيته &mdash; <a href="#l6-s4">تصنيف البطة</a>، والصنفان لا يتقاسمان أي أساس إطلاقًا.</p>
+
+  <h3 id="l8-s6"><span class="en">Who chooses the class? A factory</span><span class="ar">من يختار الصنف؟ مصنع</span></h3>
+
+  <p class="en">The method still has to be chosen somewhere, usually from a configuration file or a command-line flag that says <code>"minmax"</code>. Put that choice in exactly one function and nowhere else.</p>
+  <p class="ar">لا يزال على الطريقة أن تُختار في مكان ما، من ملف تهيئة أو راية سطر أوامر تقول <code>"minmax"</code> غالبًا. ضع ذلك الاختيار في دالة واحدة بالضبط ولا شيء سواها.</p>
+
+<pre class="code good"><code>def make_scaler(name):
+    """The one place a name becomes a class."""
+    if name == "minmax":
+        return MinMaxScaler()
+    if name == "standard":
+        return StandardScaler()
+    raise ValueError(f"unknown scaler: {name}")
+
+
+scaler = make_scaler("standard").fit(class_marks)
+print(scaler.transform([85]))
+
+make_scaler("zscore")
+</code></pre>
+
+  <div class="output">[0.707]
+ValueError: unknown scaler: zscore</div>
+
+  <p class="en">There is still an <code>if</code> chain &mdash; it has not vanished, it has been <em>concentrated</em>. The difference is that it now runs once, at the moment of choosing, instead of inside every method that does work. Adding a third scaler is one new class and one new line here; no other file learns its name. And an unknown name fails immediately, with the name in the message, instead of returning <code>None</code> and crashing three functions later.</p>
+  <p class="ar">لا تزال سلسلة <code>if</code> موجودة &mdash; لم تختفِ بل <em>تركّزت</em>. والفرق أنها تُنفَّذ الآن مرة واحدة لحظةَ الاختيار، بدل أن تكون داخل كل دالة تؤدي عملًا. وإضافة مُقيِّس ثالث صنفٌ جديد واحد وسطرٌ جديد واحد هنا؛ ولا يتعلّم أي ملف آخر اسمه. والاسم المجهول يفشل فورًا والاسمُ في الرسالة، بدل أن يُعيد <code>None</code> وينهار بعد ثلاث دوال.</p>
+
+  <h3 id="l8-s7"><span class="en">Naming the promise, and writing <code>fit_transform</code> once</span><span class="ar">تسمية الوعد، وكتابة <code>fit_transform</code> مرة واحدة</span></h3>
+
+  <p class="en">Duck typing got the loop working without a base class. An <a href="#l4-h2">abstract base</a> is still worth adding once there are several implementations, for the reason Lesson 4 gave: a half-written step should fail when it is created, not when the data reaches it. It also gives you somewhere to put the one method every step shares.</p>
+  <p class="ar">أنجح تصنيفُ البطة الحلقةَ بلا صنف أساس. ويبقى <a href="#l4-h2">الأساس المجرّد</a> جديرًا بالإضافة متى وُجدت عدة تنفيذات، للسبب الذي ذكره الدرس 4: فالخطوة نصف المكتوبة ينبغي أن تفشل عند إنشائها لا عند وصول البيانات إليها. وهو يمنحك كذلك موضعًا تضع فيه الدالة الواحدة التي تشترك فيها كل خطوة.</p>
+
+<pre class="code good"><code>from abc import ABC, abstractmethod
+
+
+class Step(ABC):
+    @abstractmethod
+    def fit(self, values):
+        """Look at the data once and store what you need."""
+
+    @abstractmethod
+    def transform(self, values):
+        """Return changed data, using only what fit stored."""
+
+    def fit_transform(self, values):
+        """Written once here; every step inherits it."""
+        return self.fit(values).transform(values)
+
+
+class MinMaxScaler(Step):
+    def fit(self, values):
+        self.low = min(values)
+        self.high = max(values)
+        return self
+
+    def transform(self, values):
+        span = self.high - self.low
+        return [round((v - self.low) / span, 3) for v in values]
+
+
+print(MinMaxScaler().fit_transform(class_marks))
+
+
+class HalfWritten(Step):
+    def fit(self, values):
+        return self
+
+
+HalfWritten()
+</code></pre>
+
+  <div class="output">[0.0, 0.25, 0.5, 0.75, 1.0]
+TypeError: Can't instantiate abstract class HalfWritten without an implementation for abstract method 'transform'</div>
+
+  <div class="note">
+    <h4><span class="en"><code>fit_transform</code> is a <em>template method</em></span><span class="ar"><code>fit_transform</code> دالةٌ <em>قالب</em></span></h4>
+    <p class="en">It is written once in the base class, it is never overridden, and it works for every subclass ever written &mdash; including ones that did not exist when it was written &mdash; because it only calls the two methods the base promised. This is why every scikit-learn object has a <code>fit_transform</code> you never had to write: the library wrote it once, in the base, exactly like this.</p>
+    <p class="ar">تُكتب مرة واحدة في الصنف الأساس، ولا يُعاد تعريفها أبدًا، وتعمل لكل وريث كُتب يومًا &mdash; بما فيه ما لم يكن موجودًا حين كُتبت &mdash; لأنها لا تستدعي إلا الدالتين اللتين وعد بهما الأساس. ولهذا يملك كل كائن في ساي كِت ليرن دالةَ <code>fit_transform</code> لم تضطر إلى كتابتها قطّ: فقد كتبتها المكتبة مرة واحدة في الأساس، هكذا بالضبط.</p>
+  </div>
+
+  <h3 id="l8-s8"><span class="en">Second example &mdash; the same shape for words</span><span class="ar">مثال ثانٍ &mdash; الشكل نفسه للكلمات</span></h3>
+
+  <p class="en">Different data, identical design. Each student record carries a city, and the program needs a number. The city list must be remembered for exactly the reason the range had to be.</p>
+  <p class="ar">بيانات مختلفة وتصميم متطابق. فكل سجلّ طالب يحمل مدينة، والبرنامج يحتاج رقمًا. ويجب حفظ قائمة المدن للسبب نفسه الذي وجب حفظ المدى لأجله.</p>
+
+<pre class="code good"><code>class LabelEncoder(Step):
+    def fit(self, values):
+        self.classes = sorted(set(values))
+        self.index = {c: i for i, c in enumerate(self.classes)}
+        return self
+
+    def transform(self, values):
+        return [self.index[v] for v in values]
+
+
+cities = ["Gaza", "Rafah", "Gaza", "Khan Younis"]
+encoder = LabelEncoder().fit(cities)
+
+print(encoder.classes)
+print(encoder.transform(cities))
+print(encoder.transform(["Rafah"]))
+print(encoder.transform(["Jabalia"]))
+</code></pre>
+
+  <div class="output">['Gaza', 'Khan Younis', 'Rafah']
+[0, 2, 0, 1]
+[2]
+KeyError: 'Jabalia'</div>
+
+  <p class="en">Read the last two lines together. <code>"Rafah"</code> gives <code>2</code> on its own, the same <code>2</code> it had in the class, because the mapping was remembered. A city the encoder never saw raises <code>KeyError</code> &mdash; loudly, naming the city. That is the right behaviour: a step that silently invented a number for an unknown city would be the <a href="#l6-s3">quiet wrong answer</a> this whole course argues against. Deciding what to do about it is a real design choice, and <a href="#test-08">Exercise 8.2</a> makes you take it.</p>
+  <p class="ar">اقرأ السطرين الأخيرين معًا. تعطي <code>"Rafah"</code> قيمة <code>2</code> وحدها، وهي <code>2</code> نفسها التي كانت لها في الصفّ، لأن الربط حُفظ. والمدينة التي لم يرها المرمِّز قطّ ترفع <code>KeyError</code> &mdash; بصوت عالٍ، مسمّيةً المدينة. وذلك هو السلوك الصحيح: فخطوةٌ تخترع بصمت رقمًا لمدينة مجهولة ستكون <a href="#l6-s3">الجواب الخاطئ الهادئ</a> الذي يخاصمه هذا المقرر كله. وتقرير ما تفعله حياله اختيارُ تصميم حقيقي، و<a href="#test-08">التمرين 8.2</a> يجعلك تتخذه.</p>
+
+  <div data-trace-id="t-strategy-swap"></div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 8.2 &mdash; Decide what an unknown city means</span><span class="ar">تمرين 8.2 &mdash; قرّر ماذا تعني مدينة مجهولة</span></h4>
+    <p class="en">Add an <code>unknown</code> option to <code>LabelEncoder</code>. With <code>LabelEncoder(unknown="error")</code> &mdash; the default &mdash; an unseen city raises <code>KeyError</code> as it does now. With <code>LabelEncoder(unknown=-1)</code> an unseen city becomes <code>-1</code>. The choice belongs to whoever builds the encoder, not to whoever calls <code>transform</code>.</p>
+    <p class="ar">أضف خيار <code>unknown</code> إلى <code>LabelEncoder</code>. فمع <code>LabelEncoder(unknown="error")</code> &mdash; وهو الافتراضي &mdash; ترفع المدينةُ غير المرئية <code>KeyError</code> كما تفعل الآن. ومع <code>LabelEncoder(unknown=-1)</code> تصير المدينة غير المرئية <code>-1</code>. والاختيار لمن يبني المرمِّز لا لمن يستدعي <code>transform</code>.</p>
+
+<pre class="code"><code>class LabelEncoder(Step):
+    def __init__(self, unknown="error"):
+        # store the policy
+
+    def fit(self, values):
+        self.classes = sorted(set(values))
+        self.index = {c: i for i, c in enumerate(self.classes)}
+        return self
+
+    def transform(self, values):
+        # apply the policy per value
+
+
+e = LabelEncoder().fit(cities)
+print(e.transform(["Jabalia"]))            # KeyError
+
+safe = LabelEncoder(unknown=-1).fit(cities)
+print(safe.transform(["Rafah", "Jabalia"]))   # [2, -1]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class LabelEncoder(Step):
+    def __init__(self, unknown="error"):
+        self.unknown = unknown
+        self.classes = None
+        self.index = None
+
+    def fit(self, values):
+        self.classes = sorted(set(values))
+        self.index = {c: i for i, c in enumerate(self.classes)}
+        return self
+
+    def transform(self, values):
+        out = []
+        for v in values:
+            if v in self.index:
+                out.append(self.index[v])
+            elif self.unknown == "error":
+                raise KeyError(v)
+            else:
+                out.append(self.unknown)
+        return out
+</code></pre>
+      <div class="output">[2, -1]</div>
+      <p class="en">The policy is stored in <code>__init__</code> and read in <code>transform</code>, so one encoder is strict and another is forgiving and both are the same class. Note that the strict behaviour stayed the default: a program that says nothing about unknown cities still fails loudly, which is the safer thing to do when nobody has thought about it yet.</p>
+      <p class="ar">تُخزَّن السياسة في <code>__init__</code> وتُقرأ في <code>transform</code>، فيصير مرمِّزٌ صارمًا وآخر متسامحًا وكلاهما الصنف نفسه. ولاحظ أن السلوك الصارم بقي الافتراضي: فالبرنامج الذي لا يقول شيئًا عن المدن المجهولة يظل يفشل بصوت عالٍ، وهو الأسلم حين لم يفكر أحد في الأمر بعد.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 8.3 &mdash; A third strategy, and nothing else edited</span><span class="ar">تمرين 8.3 &mdash; استراتيجية ثالثة، ولا شيء آخر يُعدَّل</span></h4>
+    <p class="en">Write <code>MaxAbsScaler</code>, which divides every mark by the largest absolute value it saw, so marks land between &minus;1 and 1. Register it in <code>make_scaler</code> under the name <code>"maxabs"</code>. Count the lines you had to change outside your new class.</p>
+    <p class="ar">اكتب <code>MaxAbsScaler</code> الذي يقسم كل علامة على أكبر قيمة مطلقة رآها، فتقع العلامات بين &minus;1 و1. وسجّله في <code>make_scaler</code> باسم <code>"maxabs"</code>. وأحصِ الأسطر التي اضطررت إلى تغييرها خارج صنفك الجديد.</p>
+
+<pre class="code"><code>class MaxAbsScaler(Step):
+    # fit: store the largest absolute value
+    # transform: divide each value by it
+
+
+print(make_scaler("maxabs").fit_transform([40, 55, 70, 85, 100]))
+# expected: [0.4, 0.55, 0.7, 0.85, 1.0]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class MaxAbsScaler(Step):
+    def fit(self, values):
+        self.biggest = max(abs(v) for v in values)
+        return self
+
+    def transform(self, values):
+        return [round(v / self.biggest, 3) for v in values]
+
+
+def make_scaler(name):
+    if name == "minmax":
+        return MinMaxScaler()
+    if name == "standard":
+        return StandardScaler()
+    if name == "maxabs":
+        return MaxAbsScaler()        # the one line added
+    raise ValueError(f"unknown scaler: {name}")
+</code></pre>
+      <div class="output">[0.4, 0.55, 0.7, 0.85, 1.0]</div>
+      <p class="en">One line outside the new class. You did not touch <code>fit_transform</code>, which is inherited and worked immediately on a class that did not exist when it was written, and you did not touch any loop that uses scalers. That is what <a href="#l6-s6">open to new types</a> buys, measured the way <a href="#l7-h4">Lesson 7</a> taught: name the change, count the edits.</p>
+      <p class="ar">سطرٌ واحد خارج الصنف الجديد. لم تمسّ <code>fit_transform</code> الموروثة التي عملت فورًا على صنف لم يكن موجودًا حين كُتبت، ولم تمسّ أي حلقة تستعمل المُقيِّسات. وذلك ما يشتريه <a href="#l6-s6">الانفتاح لأنواع جديدة</a>، مقيسًا بما علّمه <a href="#l7-h4">الدرس 7</a>: سمِّ التغيير وأحصِ التعديلات.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why is a factory better than letting each caller write <code>MinMaxScaler()</code> directly?</span><span class="ar">لماذا المصنع أفضل من ترك كل مستدعٍ يكتب <code>MinMaxScaler()</code> مباشرة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because constructing a class directly is slower than calling a function that constructs it.</span><span class="ar">لأن إنشاء الصنف مباشرة أبطأ من استدعاء دالة تنشئه.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the choice usually arrives as a <em>string</em> from a config file, and a factory is the one place that string becomes a class &mdash; so renaming or replacing a scaler touches one function.</span><span class="ar">لأن الاختيار يصل عادةً <em>نصًّا</em> من ملف تهيئة، والمصنع هو الموضع الوحيد الذي يصير فيه ذلك النص صنفًا &mdash; فإعادة تسمية مُقيِّس أو استبداله تمسّ دالة واحدة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because a factory validates the data before the scaler ever sees it.</span><span class="ar">لأن المصنع يتحقّق من البيانات قبل أن يراها المُقيِّس.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It is not better. If you already know which class you want, calling it directly is clearer and a factory is ceremony.</span><span class="ar">ليس أفضل. فإن كنت تعرف أي صنف تريد فاستدعاؤه مباشرة أوضح والمصنع مراسم.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second answer names the real job: the factory exists because a <em>name</em> has to become a <em>class</em>, and that mapping should live in one place. Which makes the fourth answer more right than it looks &mdash; when there is no string and no configuration, when your code says <code>MinMaxScaler()</code> because that is the one you want, a factory really is ceremony. Apply <a href="#l7-h5">the closing question of Lesson 7</a>: what change does it make cheap? If no configuration file will ever name a scaler, the answer is "none", and you should not write one.</div>
+      <div class="ar">الجواب الثاني يسمّي المهمة الحقيقية: فالمصنع موجود لأن <em>اسمًا</em> يجب أن يصير <em>صنفًا</em>، وذلك الربط ينبغي أن يعيش في موضع واحد. وهذا يجعل الجواب الرابع أصحّ مما يبدو &mdash; فحين لا يوجد نصّ ولا تهيئة، وحين يقول كودك <code>MinMaxScaler()</code> لأنه الذي تريده، يكون المصنع مراسم فعلًا. طبّق <a href="#l7-h5">سؤال الدرس 7 الختامي</a>: أي تغيير يجعله رخيصًا؟ فإن لم يكن ملف تهيئة سيسمّي مُقيِّسًا أبدًا فالجواب «لا شيء»، ولا ينبغي أن تكتب واحدًا.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>StandardScaler</code> stores <code>mean</code> and <code>sd</code>; <code>MinMaxScaler</code> stores <code>low</code> and <code>high</code>. Why does the loop over both still work, when they have no attribute in common?</span><span class="ar">يخزّن <code>StandardScaler</code> القيمتين <code>mean</code> و<code>sd</code>؛ ويخزّن <code>MinMaxScaler</code> القيمتين <code>low</code> و<code>high</code>. فلماذا تظل الحلقة على كليهما تعمل، وليس بينهما خاصية مشتركة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Because Python copies the missing attributes from one class to the other when they are put in the same tuple.</span><span class="ar">لأن بايثون تنسخ الخصائص المفقودة من صنف إلى آخر عند وضعهما في الصفّ نفسه.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Because the loop never touches an attribute. It calls <code>fit</code> and <code>transform</code>, and each class reads its own attributes inside its own methods &mdash; the shared thing is the two <em>methods</em>, not the data behind them.</span><span class="ar">لأن الحلقة لا تمسّ خاصية إطلاقًا. بل تستدعي <code>fit</code> و<code>transform</code>، ويقرأ كل صنف خصائصه داخل دوالّه &mdash; فالمشترك هو <em>الدالتان</em> لا البيانات خلفهما.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because both inherit from <code>Step</code>, and a loop can only hold objects with a common base class.</span><span class="ar">لأن كليهما يرث من <code>Step</code>، ولا تستطيع الحلقة أن تحمل إلا كائنات بأساس مشترك.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>fit</code> gives every scaler the same four attributes regardless of class.</span><span class="ar">لأن <code>fit</code> تمنح كل مُقيِّس الخصائص الأربع نفسها أيًّا كان الصنف.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">An interface is an agreement about <strong>messages</strong>, never about storage. That is exactly why the two classes can store completely different things and still be interchangeable &mdash; and it is why the earlier one-class-with-an-<code>if</code> version was worse, since there the storage was shared and half of it was meaningless at any moment. The third answer deserves a second look: it was true of the <code>Step</code> version, but the loop worked <em>before</em> <code>Step</code> existed, which proves the base class was not what made it work. See <a href="#l6-s4">duck typing</a>.</div>
+      <div class="ar">الواجهة اتفاقٌ على <strong>الرسائل</strong> لا على التخزين أبدًا. ولهذا بالضبط يستطيع الصنفان تخزين أشياء مختلفة تمامًا ويبقيان قابلين للتبادل &mdash; ولهذا كانت نسخةُ الصنف الواحد ذي الـ<code>if</code> أسوأ، إذ كان التخزين فيها مشتركًا ونصفه بلا معنى في أي لحظة. والجواب الثالث يستحق نظرة ثانية: فقد كان صحيحًا في نسخة <code>Step</code>، لكن الحلقة عملت <em>قبل</em> وجود <code>Step</code>، وهذا يثبت أن الأساس لم يكن سبب نجاحها. انظر <a href="#l6-s4">تصنيف البطة</a>.</div>
+    </div>
+  </div>
+
+  <h3 id="l8-s9"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l8-s10"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>A step that forgets is a step that lies.</strong> The numbers a transformation depends on must be stored, or the same input gets a different answer depending on what it travelled with.</span><span class="ar"><strong>الخطوة التي تنسى خطوةٌ تكذب.</strong> فالأرقام التي يتوقف عليها التحويل يجب أن تُخزَّن، وإلا نال المُدخَل نفسه جوابًا مختلفًا بحسب ما سافر معه.</span></li>
+      <li><span class="en"><strong><code>fit</code> writes to <code>self</code>, <code>transform</code> reads from it.</strong> That is the whole contract, and it is ordinary object state from <a href="#l2-h1">Lesson 2</a> wearing a machine-learning name.</span><span class="ar"><strong><code>fit</code> تكتب على <code>self</code>، و<code>transform</code> تقرأ منه.</strong> وذلك هو العقد كله، وهو حالةُ كائنٍ عاديةٌ من <a href="#l2-h1">الدرس 2</a> تلبس اسمًا من تعلّم الآلة.</span></li>
+      <li><span class="en"><strong>One class per strategy beats one class with an <code>if</code>.</strong> Two chains over the same cases must agree for ever; two classes cannot disagree, and each stores only what it needs.</span><span class="ar"><strong>صنفٌ لكل استراتيجية أفضل من صنف واحد بـ<code>if</code>.</strong> فسلسلتان على الحالات نفسها عليهما أن تتوافقا إلى الأبد؛ وصنفان لا يستطيعان التخالف، ويخزّن كلٌّ ما يحتاجه فقط.</span></li>
+      <li><span class="en"><strong>A factory is where a string becomes a class</strong> &mdash; worth writing when the name arrives from outside the program, and ceremony when it does not.</span><span class="ar"><strong>المصنع هو حيث يصير النصُّ صنفًا</strong> &mdash; يستحق الكتابة حين يأتي الاسم من خارج البرنامج، ويكون مراسم حين لا يأتي.</span></li>
+      <li><span class="en"><strong>A template method is written once in the base</strong> and works on subclasses that did not exist yet, because it calls only what the base promised. <code>fit_transform</code> is the one you will use every day.</span><span class="ar"><strong>الدالة القالب تُكتب مرة في الأساس</strong> وتعمل على وريثات لم توجد بعد، لأنها لا تستدعي إلا ما وعد به الأساس. و<code>fit_transform</code> هي التي ستستعملها كل يوم.</span></li>
+      <li><span class="en"><strong>Next:</strong> one step is easy. <a href="#lesson-09">Lesson 9</a> is about four of them in a fixed order, applied in two different files, and the day the orders stop matching.</span><span class="ar"><strong>التالي:</strong> خطوةٌ واحدة سهلة. و<a href="#lesson-09">الدرس 9</a> عن أربعٍ منها بترتيب ثابت، تُطبَّق في ملفين مختلفين، واليومِ الذي يكفّ فيه الترتيبان عن التطابق.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+
+<section class="page" id="lesson-09">
+
+
+  <span class="kicker"><span class="en">Lesson 9 &middot; Week 4 &middot; Lecture 11 &middot; 90 min</span><span class="ar">الدرس 9 &middot; الأسبوع 4 &middot; المحاضرة 11 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">A Thing That Holds Things Like Itself: Pipelines and Decorators</span><span class="ar">شيءٌ يمسك بأشياء مثله: المسارات والمزخرِفات</span></h1>
+
+  <p class="lede en">By the end of this lesson you will take four preparation steps applied by hand in two different files, watch the two orders drift apart until the program is served data it was never trained on, and replace both with a single object that <em>is</em> a step and <em>holds</em> steps. Then you will wrap a step in another step to add logging, and change nothing inside it.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستأخذ أربع خطوات تهيئة مطبَّقة يدويًا في ملفين مختلفين، وسترى الترتيبين ينفصلان حتى يُقدَّم للبرنامج بياناتٌ لم يُدرَّب عليها قطّ، ثم تستبدل بهما كائنًا واحدًا <em>هو</em> خطوة و<em>يمسك</em> بخطوات. ثم ستلفّ خطوةً بخطوة أخرى لتضيف تسجيلًا، ولا تغيّر شيئًا بداخلها.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="#lesson-08">Lesson 8</a> first: this lesson assumes the <code>Step</code> base class, <code>fit</code>/<code>transform</code>, and the scalers and encoder built there. The two patterns here are the ones that only work <em>because</em> every step answers the same two messages, so if that is not yet solid, re-read <a href="#l8-h2">Concept 2 of Lesson 8</a> before going on.</p>
+    <p class="ar">أنجز <a href="#lesson-08">الدرس 8</a> أولًا: فهذا الدرس يفترض الصنف الأساس <code>Step</code> و<code>fit</code>/<code>transform</code> والمُقيِّسات والمرمِّز المبنية هناك. والنمطان هنا هما اللذان لا يعملان إلا <em>لأن</em> كل خطوة تجيب الرسالتين نفسيهما، فإن لم يثبت ذلك بعد فأعد قراءة <a href="#l8-h2">المفهوم 2 من الدرس 8</a> قبل المتابعة.</p>
+  </div>
+
+  <h2 id="l9-h1"><span class="en">Concept 1 &mdash; An order written twice is an order that will differ</span><span class="ar">المفهوم 1 &mdash; الترتيب المكتوب مرتين ترتيبٌ سيختلف</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The school's marks need three things done to them before the program can use them, always in the same order: cap the impossible entries, scale what is left, and encode the city. One file does it at training time. Another file does it when a new student is entered at the desk.</p>
+    <p class="ar">تحتاج علامات المدرسة إلى ثلاثة أمور قبل أن يستعملها البرنامج، بالترتيب نفسه دائمًا: احصر المُدخَلات المستحيلة، وقِس ما بقي، ورمّز المدينة. ملفٌّ يفعلها وقت التدريب. وملفٌّ آخر يفعلها حين يُدخَل طالب جديد على المكتب.</p>
+  </div>
+
+  <h3 id="l9-s1"><span class="en">The starting code &mdash; two files that must agree</span><span class="ar">الكود الابتدائي &mdash; ملفان عليهما أن يتوافقا</span></h3>
+
+<pre class="code bad"><code># train.py
+raw = [20, 55, 70, 85, 400]          # 400 is a typing error nobody caught
+
+clip = Clip(0, 100)
+scaler = MinMaxScaler()
+
+capped = clip.fit(raw).transform(raw)
+ready = scaler.fit(capped).transform(capped)
+print(ready)
+</code></pre>
+
+  <div class="output">[0.0, 0.438, 0.625, 0.812, 1.0]</div>
+
+<pre class="code bad"><code># desk.py -- written three weeks later, by someone else
+new_mark = [70]
+
+ready = scaler.transform(new_mark)   # the clip step was forgotten
+print(ready)
+</code></pre>
+
+  <div class="output">[0.625]</div>
+
+  <h3 id="l9-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">That output is correct, which is the problem. With a mark of 70 the forgotten <code>clip</code> made no difference, so the bug sits in the file doing nothing at all. The day a clerk types <code>400</code> at the desk, <code>desk.py</code> hands the program a scaled <code>4.75</code> &mdash; a value the program never saw during training and has no idea what to do with. Nothing raises, nothing warns, and the answer is nonsense delivered confidently.</p>
+  <p class="ar">ذلك المُخرَج صحيح، وتلك هي المشكلة. فمع علامة 70 لم يُحدث <code>clip</code> المنسيّ أي فرق، فيستقر الخلل في الملف ولا يفعل شيئًا إطلاقًا. ويومَ يكتب موظف <code>400</code> على المكتب يسلّم <code>desk.py</code> البرنامجَ قيمةً مقيَّسة <code>4.75</code> &mdash; قيمةً لم يرها البرنامج قطّ أثناء التدريب ولا يدري ما يفعل بها. ولا شيء يُرفع، ولا شيء يحذّر، والجواب هراء يُقدَّم بثقة.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">The <strong>order of the steps is a rule, and the rule is written in two places</strong>. You have met this exact argument twice already: a <a href="#l3-h1">mark range checked in six callers</a> in Lesson 3, and <a href="#l6-s3">two <code>if</code> chains over the same cases</a> in Lesson 6. A rule repeated is a rule that will be broken in one of its copies, and the copy that breaks is always the one written later by somebody else.</p>
+    <p class="ar">إن <strong>ترتيب الخطوات قاعدة، والقاعدة مكتوبة في موضعين</strong>. وقد قابلت هذه الحجة بعينها مرتين: <a href="#l3-h1">مدى علامة مفحوص في ستة مستدعين</a> في الدرس 3، و<a href="#l6-s3">سلسلتا <code>if</code> على الحالات نفسها</a> في الدرس 6. فالقاعدة المكرَّرة قاعدةٌ ستُكسر في إحدى نسخها، والنسخةُ التي تنكسر هي دائمًا المكتوبة لاحقًا بيد شخص آخر.</p>
+  </div>
+
+  <h3 id="l9-s3"><span class="en">The conversion &mdash; an object that owns the order</span><span class="ar">التحويل &mdash; كائنٌ يملك الترتيب</span></h3>
+
+  <p class="en">Put the list of steps inside an object, and let that object run them. Then read its two methods very carefully, because they are the whole lesson.</p>
+  <p class="ar">ضع قائمة الخطوات داخل كائن، ودعه ينفّذها. ثم اقرأ دالتيه بعناية شديدة، فهما الدرس كله.</p>
+
+<pre class="code good"><code>class Pipeline(Step):
+    def __init__(self, steps):
+        self.steps = steps
+
+    def fit(self, values):
+        """Fit each step on what the step before it produced."""
+        for step in self.steps:
+            values = step.fit(values).transform(values)
+        return self
+
+    def transform(self, values):
+        """Run the same steps, in the same order, using their memories."""
+        for step in self.steps:
+            values = step.transform(values)
+        return values
+
+
+prepare = Pipeline([Clip(0, 100), MinMaxScaler()])
+prepare.fit(raw)
+
+print(prepare.transform(raw))
+print(prepare.transform([70]))
+print(prepare.transform([400]))
+</code></pre>
+
+  <div class="output">[0.0, 0.438, 0.625, 0.812, 1.0]
+[0.625]
+[1.0]</div>
+
+  <p class="en">The desk file is now one line, <code>prepare.transform(new_mark)</code>, and it cannot skip a step or run them backwards, because it no longer knows there are steps. A clerk typing <code>400</code> gets <code>1.0</code> &mdash; clipped first, then scaled &mdash; the same treatment a <code>400</code> would have received during training.</p>
+  <p class="ar">صار ملف المكتب سطرًا واحدًا، <code>prepare.transform(new_mark)</code>، ولا يستطيع تخطّي خطوة ولا تنفيذها معكوسة، لأنه لم يعد يعلم أن ثمّة خطوات. والموظف الذي يكتب <code>400</code> ينال <code>1.0</code> &mdash; محصورةً أولًا ثم مقيَّسة &mdash; وهي المعاملة نفسها التي كان سينالها <code>400</code> أثناء التدريب.</p>
+
+  <div class="note">
+    <h4><span class="en">The one subtle line</span><span class="ar">السطر الدقيق الوحيد</span></h4>
+    <p class="en">In <code>fit</code>, each step is fitted and then <em>transformed</em>, and the result is passed on. It has to be: the scaler must be fitted on the marks <strong>after</strong> clipping, not before, or it would store a <code>high</code> of 400 and squash every real mark into the bottom quarter of the range. A pipeline's <code>fit</code> is not "fit every step on the same data" &mdash; it is "fit each step on what it will actually receive".</p>
+    <p class="ar">في <code>fit</code> تُدرَّب كل خطوة ثم <em>تُحوَّل</em>، وتُمرَّر النتيجة. ولا بدّ من ذلك: فالمُقيِّس يجب أن يُدرَّب على العلامات <strong>بعد</strong> الحصر لا قبله، وإلا خزّن <code>high</code> قيمتها 400 وسحق كل علامة حقيقية في الربع الأدنى من المدى. فـ<code>fit</code> المسارِ ليست «درّب كل خطوة على البيانات نفسها» &mdash; بل «درّب كل خطوة على ما ستستقبله فعلًا».</p>
+  </div>
+
+  <div data-trace-id="t-pipeline-fit"></div>
+
+  <h3 id="l9-s4"><span class="en">A pipeline is a step, so a pipeline can hold a pipeline</span><span class="ar">المسار خطوة، فيستطيع المسار أن يمسك بمسار</span></h3>
+
+  <p class="en">Look at the class header again: <code>class Pipeline(Step)</code>. It inherits <code>fit</code> and <code>transform</code> as its obligations and meets them, so by every test in <a href="#lesson-08">Lesson 8</a> it <em>is</em> a step. Which means it can go inside another pipeline, and nothing needs changing for that to work.</p>
+  <p class="ar">انظر إلى ترويسة الصنف مرة أخرى: <code>class Pipeline(Step)</code>. فهو يرث <code>fit</code> و<code>transform</code> التزامًا ويفي بهما، فهو <em>خطوة</em> بكل معايير <a href="#lesson-08">الدرس 8</a>. ومعناه أنه يستطيع الدخول في مسار آخر، ولا يحتاج شيء إلى تغيير ليعمل ذلك.</p>
+
+<pre class="code good"><code>clean = Pipeline([Clip(0, 100), MinMaxScaler()])
+full = Pipeline([clean, Shift()])        # a pipeline inside a pipeline
+
+full.fit(raw)
+print(full.transform(raw))
+</code></pre>
+
+  <div class="output">[-0.575, -0.137, 0.05, 0.237, 0.425]</div>
+
+  <div class="note">
+    <h4><span class="en">This is <em>composition</em>, and the <em>is-a</em> and <em>has-a</em> both being true is the trick</span><span class="ar">هذا هو <em>التركيب</em>، والحيلة أن «هو» و«له» كلتيهما صحيحة</span></h4>
+    <p class="en"><a href="#l5-s8">Lesson 5's decision rule</a> was inherit for <em>is a</em> and compose for <em>has a</em>. A pipeline is the uncommon case where both hold at once, deliberately: it <strong>is</strong> a step (so it can be used wherever a step can) and it <strong>has</strong> steps (so it can contain them). That combination is what lets you nest them to any depth having written the nesting code exactly never. Pattern books call it <em>composite</em>; you have now built one.</p>
+    <p class="ar">كانت <a href="#l5-s8">قاعدة القرار في الدرس 5</a> أن تَرِث لـ«هو نوع من» وتركّب لـ«له». والمسار هو الحالة النادرة التي تصدق فيها الاثنتان معًا، بقصد: فهو <strong>خطوة</strong> (فيُستعمل حيث تُستعمل الخطوة) و<strong>له</strong> خطوات (فيحتويها). وذلك الجمع هو ما يتيح تعشيشها إلى أي عمق وأنت لم تكتب كود التعشيش قطّ. وتسمّيه كتب الأنماط <em>المركَّب</em>؛ وقد بنيت واحدًا الآن.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 9.1 &mdash; Add a step, edit nothing</span><span class="ar">تمرين 9.1 &mdash; أضف خطوة ولا تعدّل شيئًا</span></h4>
+    <p class="en">Write <code>Round(places)</code>, a step that rounds every value to a given number of decimal places. It learns nothing, so its <code>fit</code> simply returns <code>self</code>. Add it to the end of <code>prepare</code> and confirm that <code>Pipeline</code>, <code>Clip</code> and <code>MinMaxScaler</code> are untouched.</p>
+    <p class="ar">اكتب <code>Round(places)</code>، خطوةً تقرّب كل قيمة إلى عدد معطى من المنازل العشرية. وهي لا تتعلّم شيئًا، فـ<code>fit</code> فيها تُعيد <code>self</code> فقط. أضفها إلى آخر <code>prepare</code> وتأكد أن <code>Pipeline</code> و<code>Clip</code> و<code>MinMaxScaler</code> لم تُمسّ.</p>
+
+<pre class="code"><code>class Round(Step):
+    def __init__(self, places):
+        # store it
+
+    def fit(self, values):
+        # learns nothing
+
+    def transform(self, values):
+        # round each value
+
+
+prepare = Pipeline([Clip(0, 100), MinMaxScaler(), Round(1)])
+prepare.fit(raw)
+print(prepare.transform(raw))
+# expected: [0.0, 0.4, 0.6, 0.8, 1.0]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Round(Step):
+    def __init__(self, places):
+        self.places = places
+
+    def fit(self, values):
+        return self        # nothing to learn, but the promise is kept
+
+    def transform(self, values):
+        return [round(v, self.places) for v in values]
+</code></pre>
+      <div class="output">[0.0, 0.4, 0.6, 0.8, 1.0]</div>
+      <p class="en">A step that learns nothing still implements <code>fit</code>, because the pipeline calls it on everything without asking. That is the price of a uniform interface and it is a small one &mdash; one line that returns <code>self</code> &mdash; paid so that <code>Pipeline.fit</code> can stay four lines with no special cases in it.</p>
+      <p class="ar">الخطوة التي لا تتعلّم شيئًا تنفّذ <code>fit</code> مع ذلك، لأن المسار يستدعيها على الجميع بلا سؤال. وذلك ثمن الواجهة الموحَّدة وهو صغير &mdash; سطرٌ واحد يُعيد <code>self</code> &mdash; يُدفع لتبقى <code>Pipeline.fit</code> أربعة أسطر بلا حالات خاصة فيها.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Someone changes <code>Pipeline.fit</code> to <code>step.fit(values)</code>, dropping the <code>.transform(values)</code>, so every step is fitted on the original data. What breaks?</span><span class="ar">يغيّر أحدهم <code>Pipeline.fit</code> إلى <code>step.fit(values)</code> حاذفًا <code>.transform(values)</code>، فتُدرَّب كل خطوة على البيانات الأصلية. فماذا ينكسر؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Nothing &mdash; fitting on the original data is more accurate, since nothing has been changed yet.</span><span class="ar">لا شيء &mdash; فالتدريب على البيانات الأصلية أدقّ، إذ لم يتغير شيء بعد.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">An exception on the second step, because it receives data of the wrong length.</span><span class="ar">استثناء في الخطوة الثانية، لأنها تستقبل بيانات بطول خطأ.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">Nothing visibly, and that is the danger: the scaler stores a <code>high</code> of 400 instead of 100, so <code>transform</code> &mdash; which still clips first &mdash; squashes every real mark into the bottom quarter. Wrong numbers, no error.</span><span class="ar">لا شيء ظاهريًا، وتلك هي الخطورة: فيخزّن المُقيِّس <code>high</code> بقيمة 400 بدل 100، فتسحق <code>transform</code> &mdash; وهي لا تزال تحصر أولًا &mdash; كل علامة حقيقية في الربع الأدنى. أرقام خاطئة بلا خطأ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>fit</code> stops returning <code>self</code>, so the chained call fails with <code>AttributeError</code>.</span><span class="ar">تكفّ <code>fit</code> عن إعادة <code>self</code>، فيفشل الاستدعاء المتسلسل بـ <code>AttributeError</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The two methods have to see the same sequence of data or the memories stored during <code>fit</code> do not match what <code>transform</code> will hand over. Here the scaler is fitted on unclipped marks and used on clipped ones, so 100 maps to 0.25 instead of 1.0 and every mark is compressed. This is the <a href="#l5-s5">fragile base class failure of Lesson 5</a> in a new shape: two pieces of code that must agree, where one was changed and the other was not, and nothing in the language makes them agree.</div>
+      <div class="ar">على الدالتين أن تريا تسلسل البيانات نفسه وإلا لم تطابق الذاكراتُ المخزَّنة أثناء <code>fit</code> ما ستسلّمه <code>transform</code>. فهنا يُدرَّب المُقيِّس على علامات غير محصورة ويُستعمل على محصورة، فتُربط 100 بـ 0.25 بدل 1.0 وتُضغط كل علامة. وهذا <a href="#l5-s5">فشل الصنف الأساس الهشّ في الدرس 5</a> بشكل جديد: قطعتا كود عليهما أن تتوافقا، غُيّرت إحداهما ولم تُغيَّر الأخرى، ولا شيء في اللغة يُلزمهما بالتوافق.</div>
+    </div>
+  </div>
+
+  <h2 id="l9-h2"><span class="en">Concept 2 &mdash; Wrapping a step without opening it</span><span class="ar">المفهوم 2 &mdash; لفّ خطوة دون فتحها</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The pipeline produced a wrong number last week and nobody can say which step did it. You want a line printed every time a step runs &mdash; but you do not want to edit <code>MinMaxScaler</code>, which is correct, tested, and used by three other programs.</p>
+    <p class="ar">أنتج المسارُ رقمًا خاطئًا الأسبوع الماضي ولا أحد يستطيع تحديد أي خطوة فعلتها. وتريد سطرًا يُطبع كلما نُفِّذت خطوة &mdash; لكنك لا تريد تعديل <code>MinMaxScaler</code> الصحيح المختبَر والمستعمَل في ثلاثة برامج أخرى.</p>
+  </div>
+
+  <p class="en">The tempting move is to add a <code>verbose=True</code> parameter to every step. That is the <a href="#l6-h1">if chain</a> again, scattered this time: every class grows a flag, every method grows an <code>if</code>, and the day you want timing instead of printing you do it all again. Instead, write a step whose job is to hold another step.</p>
+  <p class="ar">الحركة المغرية أن تضيف معامل <code>verbose=True</code> إلى كل خطوة. وتلك <a href="#l6-h1">سلسلة if</a> مرة أخرى، مبعثرةً هذه المرة: فينبت لكل صنف راية، ولكل دالة <code>if</code>، ويومَ تريد توقيتًا بدل طباعة تعيدها كلها. وبدلًا من ذلك، اكتب خطوةً مهمتها أن تمسك بخطوة أخرى.</p>
+
+<pre class="code good"><code>class Logged(Step):
+    """A step that holds a step, and talks about it."""
+
+    def __init__(self, step, name):
+        self.step = step
+        self.name = name
+
+    def fit(self, values):
+        print(f"  [fit] {self.name} saw {len(values)} values")
+        self.step.fit(values)
+        return self
+
+    def transform(self, values):
+        out = self.step.transform(values)
+        print(f"  [transform] {self.name}")
+        return out
+
+
+noisy = Pipeline([Logged(Clip(0, 100), "clip"),
+                  Logged(MinMaxScaler(), "scale")])
+noisy.fit(raw)
+print("result:", noisy.transform([70]))
+</code></pre>
+
+  <div class="output">  [fit] clip saw 5 values
+  [transform] clip
+  [fit] scale saw 5 values
+  [transform] scale
+  [transform] clip
+  [transform] scale
+result: [0.625]</div>
+
+  <h3 id="l9-s5"><span class="en">Diagnosis of the output</span><span class="ar">تشخيص المُخرَج</span></h3>
+
+  <p class="en">Read the first four lines and you can see <code>Pipeline.fit</code> walking the chain: fit clip, transform clip, fit scale on the clipped values, transform scale. That is the subtle line from Concept 1, now visible without a debugger &mdash; which is the point of a logging decorator. The last two lines are the separate <code>transform</code> call, which fits nothing.</p>
+  <p class="ar">اقرأ الأسطر الأربعة الأولى تَرَ <code>Pipeline.fit</code> وهي تمشي في السلسلة: درّب clip، وحوّل clip، ودرّب scale على القيم المحصورة، وحوّل scale. وذلك هو السطر الدقيق من المفهوم 1، مرئيًّا الآن بلا منقّح &mdash; وهذا مقصد مزخرِف التسجيل. والسطران الأخيران هما استدعاء <code>transform</code> المنفصل، وهو لا يدرّب شيئًا.</p>
+
+  <div class="note">
+    <h4><span class="en">This pattern is called <em>decorator</em></span><span class="ar">هذا النمط يُسمّى <em>المزخرِف</em></span></h4>
+    <p class="en">An object that implements an interface <strong>and</strong> holds another object implementing the same interface, adding something on the way through. You already wrote one in <a href="#l7-h3">Chapter 1's capstone</a> without being told the name: <code>WarrantyRepair</code> was a <code>Job</code> that held a <code>Job</code> and answered <code>subtotal()</code> differently. Note it has nothing to do with Python's <code>@decorator</code> syntax &mdash; same word, unrelated mechanism.</p>
+    <p class="ar">كائنٌ ينفّذ واجهةً <strong>ويمسك</strong> بكائن آخر ينفّذ الواجهة نفسها، مضيفًا شيئًا في الطريق. وقد كتبت واحدًا في <a href="#l7-h3">المشروع الختامي للفصل 1</a> دون أن يُقال لك الاسم: فـ <code>WarrantyRepair</code> كان <code>Job</code> يمسك بـ <code>Job</code> ويجيب <code>subtotal()</code> بطريقة مختلفة. ولاحظ أنه لا علاقة له بصيغة <code>@decorator</code> في بايثون &mdash; الكلمة نفسها وآلية مختلفة.</p>
+  </div>
+
+  <p class="en">Because <code>Logged</code> is a step and takes a step, it will wrap anything: a scaler, an encoder, or a whole pipeline. <code>Logged(prepare, "prepare")</code> works without a line changing, and so does wrapping a wrapped step. Nothing in <code>Logged</code> knows what it is holding.</p>
+  <p class="ar">ولأن <code>Logged</code> خطوةٌ وتأخذ خطوة فهي تلفّ أي شيء: مُقيِّسًا أو مرمِّزًا أو مسارًا كاملًا. فـ <code>Logged(prepare, "prepare")</code> تعمل دون تغيير سطر، وكذلك لفّ خطوة ملفوفة. ولا شيء في <code>Logged</code> يعرف ما يمسك به.</p>
+
+  <div data-trace-id="t-decorator"></div>
+
+  <h3 id="l9-s6"><span class="en">Second example &mdash; the rule the pipeline is really there to enforce</span><span class="ar">مثال ثانٍ &mdash; القاعدة التي وُجد المسار حقًا ليفرضها</span></h3>
+
+  <p class="en"><a href="#a3-h7">Appendix A3</a> said it in one line: fit on the training rows only, transform both. Here is what the two versions actually produce.</p>
+  <p class="ar">قال <a href="#a3-h7">الملحق A3</a> ذلك في سطر: درِّب على صفوف التدريب وحدها، وحوّل الاثنين. وها هو ما تنتجه النسختان فعلًا.</p>
+
+<pre class="code good"><code>train_rows = [40, 55, 70]
+test_rows = [85, 400]
+
+right = Pipeline([Clip(0, 100), MinMaxScaler()])
+right.fit(train_rows)
+print("fit on train only:", right.transform(test_rows))
+
+wrong = Pipeline([Clip(0, 100), MinMaxScaler()])
+wrong.fit(train_rows + test_rows)
+print("fit on everything:", wrong.transform(test_rows))
+</code></pre>
+
+  <div class="output">fit on train only: [1.5, 2.0]
+fit on everything: [0.75, 1.0]</div>
+
+  <p class="en">The honest version produces values <em>above 1.0</em>, and that is not a bug &mdash; it is the scaler saying plainly that these rows are outside anything it was trained on. The second version fitted on data it was supposed to be judged against, so the test rows land neatly inside the range and look like ordinary marks. The tidier output is the dishonest one.</p>
+  <p class="ar">تُنتج النسخة الصادقة قيمًا <em>فوق 1.0</em>، وليس ذلك خللًا &mdash; بل هو المُقيِّس يقول صراحةً إن هذه الصفوف خارج كل ما دُرِّب عليه. أما النسخة الثانية فدُرِّبت على بيانات كان يُفترض أن تُحاكَم بها، فحلّت صفوف الاختبار داخل المدى أنيقةً وبدت علاماتٍ عادية. فالمُخرَج الأنظف هو غير الصادق.</p>
+
+  <p class="en">The design point is the one this chapter keeps making. Whether <code>fit</code> is called on the right rows is a rule, and once the pipeline owns the order and the steps, there is exactly one <code>fit</code> call in the program to get right &mdash; instead of one per step, in two files, written weeks apart.</p>
+  <p class="ar">ومقصد التصميم هو الذي يكرّره هذا الفصل. فكونُ <code>fit</code> تُستدعى على الصفوف الصحيحة قاعدةٌ، ومتى ملك المسارُ الترتيبَ والخطوات صار في البرنامج استدعاء <code>fit</code> واحدٌ بالضبط يجب إصابته &mdash; بدل واحد لكل خطوة، في ملفين، كُتبا بفارق أسابيع.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 9.2 &mdash; A decorator that times instead of printing</span><span class="ar">تمرين 9.2 &mdash; مزخرِفٌ يوقّت بدل أن يطبع</span></h4>
+    <p class="en">Write <code>Timed</code>, a decorator that records how long each call took instead of printing a line. It should keep <code>self.fit_seconds</code> and <code>self.transform_seconds</code> so the caller can read them afterwards. Use <code>time.perf_counter()</code>.</p>
+    <p class="ar">اكتب <code>Timed</code>، مزخرِفًا يسجّل كم استغرق كل استدعاء بدل طباعة سطر. وعليه أن يحفظ <code>self.fit_seconds</code> و<code>self.transform_seconds</code> ليقرأهما المستدعي بعد ذلك. استعمل <code>time.perf_counter()</code>.</p>
+
+<pre class="code"><code>import time
+
+
+class Timed(Step):
+    def __init__(self, step):
+        # store the step and two counters
+
+    def fit(self, values):
+        # time the inner fit
+
+    def transform(self, values):
+        # time the inner transform
+
+
+t = Timed(MinMaxScaler())
+t.fit_transform([40, 55, 70, 85, 100])
+print(t.fit_seconds &gt;= 0, t.transform_seconds &gt;= 0)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>import time
+
+
+class Timed(Step):
+    def __init__(self, step):
+        self.step = step
+        self.fit_seconds = 0.0
+        self.transform_seconds = 0.0
+
+    def fit(self, values):
+        start = time.perf_counter()
+        self.step.fit(values)
+        self.fit_seconds = time.perf_counter() - start
+        return self
+
+    def transform(self, values):
+        start = time.perf_counter()
+        out = self.step.transform(values)
+        self.transform_seconds = time.perf_counter() - start
+        return out
+</code></pre>
+      <p class="en">Identical shape to <code>Logged</code>, different payload &mdash; which is the evidence that the pattern, not the printing, was the reusable part. Note that <code>fit_transform</code> worked on <code>Timed</code> without a thought: it is inherited from <code>Step</code>, it calls only <code>fit</code> and <code>transform</code>, and it has no idea it is timing anything.</p>
+      <p class="ar">الشكل نفسه كـ <code>Logged</code> بحمولة مختلفة &mdash; وهذا دليل أن النمط لا الطباعة هو الجزء القابل لإعادة الاستعمال. ولاحظ أن <code>fit_transform</code> عملت على <code>Timed</code> دون تفكير: فهي موروثة من <code>Step</code>، ولا تستدعي إلا <code>fit</code> و<code>transform</code>، ولا تدري أنها توقّت شيئًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 9.3 &mdash; Name the steps</span><span class="ar">تمرين 9.3 &mdash; سمِّ الخطوات</span></h4>
+    <p class="en">Change <code>Pipeline</code> to take <code>(name, step)</code> pairs, as real libraries do, and add a <code>named(name)</code> method returning that step so you can inspect what it learned. <code>fit</code> and <code>transform</code> must keep working exactly as before.</p>
+    <p class="ar">غيّر <code>Pipeline</code> ليأخذ أزواج <code>(name, step)</code> كما تفعل المكتبات الحقيقية، وأضف دالة <code>named(name)</code> تُعيد تلك الخطوة لتفحص ما تعلّمته. وعلى <code>fit</code> و<code>transform</code> أن تبقيا تعملان كما كانتا تمامًا.</p>
+
+<pre class="code"><code>prepare = Pipeline([("clip", Clip(0, 100)),
+                    ("scale", MinMaxScaler())])
+prepare.fit(raw)
+print(prepare.transform([70]))
+print(prepare.named("scale").high)      # 100
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>class Pipeline(Step):
+    def __init__(self, steps):
+        self.steps = steps                      # list of (name, step)
+
+    def named(self, name):
+        for step_name, step in self.steps:
+            if step_name == name:
+                return step
+        raise KeyError(f"no step named {name!r}")
+
+    def fit(self, values):
+        for _, step in self.steps:
+            values = step.fit(values).transform(values)
+        return self
+
+    def transform(self, values):
+        for _, step in self.steps:
+            values = step.transform(values)
+        return values
+</code></pre>
+      <div class="output">[0.625]
+100</div>
+      <p class="en">Being able to reach in and read what a step learned matters more than it looks: it is how you answer "why did this mark become 0.625?" without a debugger. It is also a small breach in the wall &mdash; <a href="#l4-h1">Lesson 4</a> would note that callers can now depend on a step's internals, and the honest answer is that inspection is worth that price while routine use should still go through <code>transform</code>.</p>
+      <p class="ar">القدرة على المدّ والقراءة لما تعلّمته خطوةٌ أهمّ مما تبدو: فبها تجيب «لماذا صارت هذه العلامة 0.625؟» بلا منقّح. وهي كذلك ثغرة صغيرة في الجدار &mdash; وسيلاحظ <a href="#l4-h1">الدرس 4</a> أن المستدعين صاروا قادرين على التوقف على داخل الخطوة، والجواب الصادق أن الفحص يستحق ذلك الثمن بينما ينبغي للاستعمال المعتاد أن يظل عبر <code>transform</code>.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Both <code>Pipeline</code> and <code>Logged</code> hold another step. What distinguishes them?</span><span class="ar">كلٌّ من <code>Pipeline</code> و<code>Logged</code> يمسك بخطوة أخرى. فما الذي يميّزهما؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>Pipeline</code> holds <em>many</em> and chains their data together; <code>Logged</code> holds <em>one</em> and leaves its data alone, adding behaviour around it. Composite versus decorator.</span><span class="ar">يمسك <code>Pipeline</code> بـ<em>كثير</em> ويصل بياناتها سلسلةً؛ ويمسك <code>Logged</code> بـ<em>واحدة</em> ويترك بياناتها، مضيفًا سلوكًا حولها. مركَّبٌ مقابل مزخرِف.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>Pipeline</code> inherits from <code>Step</code> and <code>Logged</code> does not.</span><span class="ar"><code>Pipeline</code> يرث من <code>Step</code> و<code>Logged</code> لا يرث.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing meaningful &mdash; they are the same pattern with different names.</span><span class="ar">لا شيء ذو معنى &mdash; فهما النمط نفسه باسمين مختلفين.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>Logged</code> cannot contain a <code>Pipeline</code>, because that would be circular.</span><span class="ar">لا يستطيع <code>Logged</code> أن يحتوي <code>Pipeline</code>، لأن ذلك سيكون دائريًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">One <em>composes</em> several things into a sequence; the other <em>wraps</em> one thing to change what happens around it. Both are only possible because the thing they hold and the thing they are answer the same two messages &mdash; which is why this lesson could not have come before <a href="#lesson-08">Lesson 8</a>. The last option is worth refuting: <code>Logged(Pipeline([...]), "whole")</code> works perfectly, and nesting like that is the usual way to time a whole stage.</div>
+      <div class="ar">أحدهما <em>يركّب</em> أشياء عدة في تسلسل؛ والآخر <em>يلفّ</em> شيئًا واحدًا ليغيّر ما يجري حوله. وكلاهما ممكنٌ فقط لأن ما يمسكان به وما هما عليه يجيبان الرسالتين نفسيهما &mdash; ولهذا لم يكن ممكنًا أن يسبق هذا الدرسُ <a href="#lesson-08">الدرسَ 8</a>. والخيار الأخير يستحق الدحض: فـ <code>Logged(Pipeline([...]), "whole")</code> تعمل تمامًا، والتعشيش هكذا هو الطريقة المعتادة لتوقيت مرحلة كاملة.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What did building <code>Pipeline</code> actually buy, measured the way <a href="#l7-h4">Lesson 7</a> taught?</span><span class="ar">ماذا اشترى بناء <code>Pipeline</code> فعلًا، مقيسًا بما علّمه <a href="#l7-h4">الدرس 7</a>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en">Fewer lines of code than applying the steps by hand.</span><span class="ar">أسطرَ كود أقلّ من تطبيق الخطوات يدويًا.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en">The order became impossible to get wrong in a second file, and adding a step became one class plus one list entry &mdash; paid for with an extra class and a chain of calls that is harder to read in a traceback.</span><span class="ar">صار الترتيب مستحيلَ الخطأ في ملف ثانٍ، وصارت إضافة خطوة صنفًا واحدًا ومدخلًا واحدًا في قائمة &mdash; بثمن صنفٍ زائد وسلسلة استدعاءات أصعب قراءةً في التتبّع.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Faster execution, because the steps now run in one loop instead of separate statements.</span><span class="ar">تنفيذًا أسرع، لأن الخطوات تُنفَّذ الآن في حلقة واحدة بدل جمل منفصلة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing that matters for a script run once; a pipeline is always worth building.</span><span class="ar">لا شيء مهمًّا لسكربت يُشغَّل مرة؛ فالمسار يستحق البناء دائمًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Name the change, count the edits, name the cost. The costs are real: one more class to understand, and a failure inside a nested pipeline produces a traceback that passes through <code>Pipeline.transform</code> twice before reaching the step that actually raised. For a notebook you will run once and delete, applying three steps by hand is clearer and you should do that &mdash; the last option is wrong precisely because it says "always", which is the kind of claim <a href="#l7-s2">Lesson 7</a> spends a whole section refusing.</div>
+      <div class="ar">سمِّ التغيير، وأحصِ التعديلات، وسمِّ الثمن. والأثمان حقيقية: صنفٌ آخر تفهمه، وفشلٌ داخل مسار معشَّش يُنتج تتبّعًا يمرّ بـ <code>Pipeline.transform</code> مرتين قبل بلوغ الخطوة التي رفعت الخطأ فعلًا. ولدفتر ستشغّله مرة وتحذفه يكون تطبيق ثلاث خطوات يدويًا أوضح وينبغي أن تفعله &mdash; والخيار الأخير خاطئ بالضبط لأنه يقول «دائمًا»، وهو نوع الادعاء الذي يصرف <a href="#l7-s2">الدرس 7</a> قسمًا كاملًا في رفضه.</div>
+    </div>
+  </div>
+
+  <h3 id="l9-s7"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l9-s8"><span class="en">The chapter in six lines</span><span class="ar">الفصل في ستة أسطر</span></h3>
+    <ul>
+      <li><span class="en"><strong>An order written in two files will differ.</strong> Give the order an owner, and the second file stops being able to get it wrong.</span><span class="ar"><strong>الترتيب المكتوب في ملفين سيختلف.</strong> امنح الترتيب مالكًا، فيكفّ الملف الثاني عن القدرة على إخطائه.</span></li>
+      <li><span class="en"><strong>A pipeline <em>is</em> a step and <em>has</em> steps.</strong> Both at once, deliberately &mdash; that is what lets it nest without any nesting code.</span><span class="ar"><strong>المسار <em>هو</em> خطوة و<em>له</em> خطوات.</strong> كلاهما معًا بقصد &mdash; وذلك ما يتيح تعشيشه بلا أي كود تعشيش.</span></li>
+      <li><span class="en"><strong><code>fit</code> walks the chain fitting each step on what the previous one produced.</strong> Fit them all on the raw data instead and you get wrong numbers with no error.</span><span class="ar"><strong><code>fit</code> تمشي في السلسلة مدرِّبةً كل خطوة على ما أنتجته سابقتها.</strong> ودرِّبها كلها على البيانات الخام بدل ذلك تحصل على أرقام خاطئة بلا خطأ.</span></li>
+      <li><span class="en"><strong>A decorator is a step holding one step,</strong> adding behaviour around it without opening it. Logging and timing are the same class with a different payload.</span><span class="ar"><strong>المزخرِف خطوةٌ تمسك بخطوة واحدة،</strong> تضيف سلوكًا حولها دون فتحها. والتسجيل والتوقيت الصنف نفسه بحمولة مختلفة.</span></li>
+      <li><span class="en"><strong>Every pattern here rests on one thing:</strong> each object answers <code>fit</code> and <code>transform</code>. Without that shared promise there is no composite and no decorator, only special cases.</span><span class="ar"><strong>كل نمط هنا يقوم على شيء واحد:</strong> أن يجيب كل كائن <code>fit</code> و<code>transform</code>. فبلا ذلك الوعد المشترك لا مركَّب ولا مزخرِف، بل حالاتٌ خاصة فقط.</span></li>
+      <li><span class="en"><strong>And the question from <a href="#l7-h5">Lesson 7</a> still applies:</strong> what change does this make cheap? For a script you run once, applying three steps by hand is the better answer.</span><span class="ar"><strong>ويظل سؤال <a href="#l7-h5">الدرس 7</a> قائمًا:</strong> أي تغيير يجعله هذا رخيصًا؟ فلسكربت تشغّله مرة، يكون تطبيق ثلاث خطوات يدويًا هو الجواب الأفضل.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>

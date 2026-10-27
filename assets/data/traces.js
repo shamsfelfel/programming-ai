@@ -6,7 +6,13 @@
    `out` is everything printed so far. Each program here was run
    in CPython first and the panels match that run exactly.
    ============================================================ */
-window.OOPTraces = {
+/* Extend, never replace: chapters 2 to 4 keep their traces in files of
+   their own, and verify_chapter.py loads every file in assets/data in
+   sorted order, which puts this one last. A bare assignment here would
+   silently drop whichever file loaded before it. */
+window.OOPTraces = window.OOPTraces || {};
+
+Object.assign(window.OOPTraces, {
 
   /* ---------------------------------------------------------- lesson 1 */
   "t-two-objects": {
@@ -528,4 +534,4 @@ window.OOPTraces = {
                 ar: "120 قطعًا + 40 عملًا. ولم تقرأ التذكرة <code>parts</code> ولا <code>labour</code> أبدًا؛ استبدل <code>WaterJob</code> ويبقى السطر 19 بلا تغيير. وهذا مردود التركيب." } }
     ]
   }
-};
+});

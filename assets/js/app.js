@@ -23,13 +23,92 @@
        layer and no install prompt, so skip it quietly. */
     if (location.protocol !== "http:" && location.protocol !== "https:") return;
 
+    var sw = navigator.serviceWorker;
+    /* No controller on this load means nothing was cached yet, so a
+       worker activating in a moment is the first copy and not an
+       update: there is nothing to tell anybody about. */
+    var first = !sw.controller;
     var base = window.OOP_BASE || "";
+
     try {
-      navigator.serviceWorker.register(base + "sw.js", { scope: base || "./" })
+      sw.register(base + "sw.js", { scope: base || "./" })
+        .then(function (reg) {
+          if (first) return;
+          watch(reg.waiting);
+          watch(reg.installing);
+          reg.addEventListener("updatefound", function () { watch(reg.installing); });
+        })
         ["catch"](function () {
           /* An unregistered worker costs offline use and nothing else. */
         });
+      if (!first) sw.addEventListener("controllerchange", announce);
     } catch (e) {}
+
+    function watch(worker) {
+      if (!worker) return;
+      if (worker.state === "installed" || worker.state === "activated") {
+        announce();
+        return;
+      }
+      worker.addEventListener("statechange", function () {
+        if (worker.state === "installed" || worker.state === "activated") announce();
+      });
+    }
+  }
+
+  /* ---------------------------------------------------------- update notice */
+
+  /* A new build is a new worker with a new cache name, and the browser
+     finds it by itself on any visit. Navigations are network-first, so a
+     reader online is already seeing the new pages; what they are not
+     seeing is the new stylesheets and question banks, which are served
+     from whichever cache was active when the page loaded. One reload
+     puts page and assets back on the same build.
+
+     The page is never replaced underneath them. Losing your place
+     mid-lesson to a deploy would be worse than reading a chapter that
+     is a day old. */
+  var noticed = false;
+
+  function announce() {
+    if (noticed) return;
+    noticed = true;
+
+    var bar = document.createElement("div");
+    bar.className = "updbar";
+    bar.setAttribute("role", "status");
+    bar.innerHTML =
+      '<p><span class="en">A newer version of the course is ready.</span>' +
+      '<span class="ar">صدرت نسخة أحدث من المادة.</span></p>' +
+      '<button class="btn" id="updNow" type="button">' +
+      '<span class="en">Reload</span><span class="ar">تحديث</span></button>' +
+      '<button class="btn updx" id="updLater" type="button" aria-label="dismiss">✕</button>';
+    document.body.appendChild(bar);
+    document.body.classList.add("has-updbar");
+
+    /* The back-to-top button lives in the same corner, and the notice is
+       two lines tall on a phone and one on a laptop, so its height is
+       measured rather than guessed. */
+    function measure() {
+      if (!bar.parentNode) return;
+      try {
+        document.body.style.setProperty("--updbar-h", bar.offsetHeight + "px");
+      } catch (e) {}
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    document.addEventListener("oop:lang", measure);
+
+    function close() {
+      if (bar.parentNode) bar.parentNode.removeChild(bar);
+      document.body.classList.remove("has-updbar");
+      try { document.body.style.removeProperty("--updbar-h"); } catch (e) {}
+    }
+    document.getElementById("updNow").onclick = function () {
+      close();
+      location.reload();
+    };
+    document.getElementById("updLater").onclick = close;
   }
 
   /* ---------------------------------------------------------- install */

@@ -120,6 +120,16 @@
 
     var list = document.createElement("ol");
     var pages = C.pages(chapterNum());
+
+    /* Lessons are numbered across the course, not within a chapter, so the
+       counter behind the drawer's badges starts where this chapter starts.
+       Chapter 3 then reads 10 to 13, as its pages do. */
+    for (var f = 0; f < pages.length; f++) {
+      if (pages[f].kind === "lesson" && pages[f].n) {
+        list.style.counterReset = "lesson " + (pages[f].n - 1);
+        break;
+      }
+    }
     for (var i = 0; i < pages.length; i++) {
       var p = pages[i];
       var li = el("li", "nv-" + p.kind);
@@ -211,30 +221,38 @@
     var ch = window.COURSE.chapter(num);
     host.innerHTML = "";
 
-    function crumb(href, text, current) {
+    /* state: "link" for somewhere to go, "current" for the page you are
+       on, "plain" for a group with no index page of its own to link to. */
+    function crumb(href, text, state) {
       var node;
-      if (current) {
-        node = el("span", null, text);
-        node.setAttribute("aria-current", "page");
-      } else {
+      if (state === "link") {
         node = document.createElement("a");
         node.href = href;
         node.textContent = text;
+      } else {
+        node = el("span", null, text);
+        if (state === "current") node.setAttribute("aria-current", "page");
       }
       host.appendChild(node);
     }
     function sep() { host.appendChild(el("span", "sep", "›")); }
 
-    crumb(url("index.html"), t("home"));
+    crumb(url("index.html"), t("home"), "link");
     if (!ch) return;
 
-    var onChapterHome = id === "chapter";
+    var p = window.COURSE.page(num, id);
+    var onChapterHome = !!p && p.kind === "chapter";
+
+    /* A numbered chapter is counted; the appendices are a group with a
+       name and no index page, so they are named and not linked. */
+    var mid = ch.num ? t("chapter", { n: ch.num }) + " · " + L(ch.title)
+                     : L(ch.title);
     sep();
-    crumb(url(ch.href), t("chapter", { n: num }) + " · " + L(ch.title), onChapterHome);
+    crumb(ch.href ? url(ch.href) : null, mid,
+          ch.href ? (onChapterHome ? "current" : "link") : "plain");
     if (onChapterHome) return;
 
-    var p = window.COURSE.page(num, id);
-    if (p) { sep(); crumb("#", L(p), true); }
+    if (p) { sep(); crumb(null, L(p), "current"); }
   }
 
   /* ---------------------------------------------------------- pager */

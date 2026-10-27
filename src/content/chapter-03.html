@@ -1,0 +1,1402 @@
+<section class="page" id="chapter-3">
+
+  <span class="kicker"><span class="en">Chapter 3 &middot; Weeks 4&ndash;5 &middot; Lectures 12&ndash;15</span><span class="ar">الفصل 3 &middot; الأسبوعان 4&ndash;5 &middot; المحاضرات 12&ndash;15</span></span>
+  <h1><span class="en">The Array, and the Mistakes It Does Not Report</span><span class="ar">المصفوفة، والأخطاء التي لا تُبلّغ عنها</span></h1>
+
+  <p class="lede en">Four lessons on the one data structure the rest of the course stands on. A shape repeats in all four: the list version does something absurd, the array version does the right thing in a single line &mdash; and then the array does something absurd of its own, quietly, with nothing raised. Each lesson ends with the rule that tells you in advance, because once there is no error message, the rule is all you have.</p>
+  <p class="lede ar">أربعة دروس في بنية البيانات الوحيدة التي يقوم عليها بقيّة المقرر. ويتكرّر شكلٌ واحد في الأربعة: نسخةُ القائمة تفعل شيئًا عبثيًا، ونسخةُ المصفوفة تفعل الصواب في سطر واحد &mdash; ثم تفعل المصفوفةُ عبثها الخاص، في صمت، بلا خطأ يُرفع. وينتهي كل درس بالقاعدة التي تخبرك سلفًا، فحين تغيب رسالةُ الخطأ لا يبقى لك غير القاعدة.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need the Python of Chapters 1 and 2, and nothing more: lists, loops, functions and classes. No mathematics beyond arithmetic. <a href="#appendix-a4">Appendix A4</a> explains why <code>0.1 + 0.2</code> is not <code>0.3</code> and why an array has a <code>dtype</code> at all &mdash; read it when a comparison surprises you, which it will.</p>
+    <p class="ar">تحتاج بايثون الفصلين الأول والثاني، ولا شيء غير ذلك: القوائم والحلقات والدوال والأصناف. ولا رياضيات أبعد من الحساب. ويشرح <a href="#appendix-a4">الملحق A4</a> لماذا <code>0.1 + 0.2</code> ليس <code>0.3</code>، ولماذا للمصفوفة <code>dtype</code> من الأصل &mdash; اقرأه حين تفاجئك مقارنة، وستفاجئك.</p>
+  </div>
+
+  <h2 id="ch3-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="#lesson-10">
+      <span class="n">10</span><span class="state" data-page-state="lesson-10" hidden></span>
+      <h3 id="ch3-s1"><span class="en">One Type, Many Numbers: the Array</span><span class="ar">نوعٌ واحد وأعداد كثيرة: المصفوفة</span></h3>
+      <p class="en">A loop that adjusts every mark in a class. The obvious list version lengthens the class instead of raising the marks. One line replaces the whole loop &mdash; and the array asks for something in return.</p>
+      <p class="ar">حلقةٌ تعدّل كل علامة في صفّ. نسخةُ القائمة البديهية تُطيل الصفَّ بدلًا من أن ترفع العلامات. وسطرٌ واحد يحلّ محل الحلقة كلها &mdash; والمصفوفة تطلب شيئًا في المقابل.</p>
+    </a>
+
+    <a class="lesson-card" href="#lesson-11">
+      <span class="n">11</span><span class="state" data-page-state="lesson-11" hidden></span>
+      <h3 id="ch3-s2"><span class="en">Slices That Are Not Copies</span><span class="ar">قطعٌ ليست نسخًا</span></h3>
+      <p class="en">Slice an array exactly the way you slice a list, write into the slice, and the original table has changed. One word fixes it; knowing which kinds of indexing copy and which do not matters more.</p>
+      <p class="ar">قطّع مصفوفةً تمامًا كما تقطّع قائمة، واكتب في القطعة، فيتغيّر الجدول الأصلي. كلمةٌ واحدة تُصلح ذلك؛ والأهم أن تعرف أيَّ أنواع الفهرسة تنسخ وأيّها لا ينسخ.</p>
+    </a>
+
+    <a class="lesson-card" href="#lesson-12">
+      <span class="n">12</span><span class="state" data-page-state="lesson-12" hidden></span>
+      <h3 id="ch3-s3"><span class="en">Shapes That Stretch: Broadcasting</span><span class="ar">أشكالٌ تتمدّد: البثّ</span></h3>
+      <p class="en">Three subject averages subtract from a table of nine marks and it works. Three <em>student</em> averages subtract just as smoothly and produce nonsense. One rule, read from the right, says which is which.</p>
+      <p class="ar">ثلاثة متوسطات مواد تُطرح من جدول فيه تسع علامات فينجح الأمر. وثلاثة متوسطات <em>طلبة</em> تُطرح بالسلاسة نفسها فتُنتج هراءً. قاعدةٌ واحدة، تُقرأ من اليمين، تفصل بين الحالتين.</p>
+    </a>
+
+    <a class="lesson-card" href="#lesson-13">
+      <span class="n">13</span><span class="state" data-page-state="lesson-13" hidden></span>
+      <h3 id="ch3-s4"><span class="en">Summarising and Selecting: Axes &amp; Masks</span><span class="ar">التلخيص والاختيار: المحاور والأقنعة</span></h3>
+      <p class="en">Which way does <code>axis=0</code> point? Pick out every student who passed with no loop and no <code>if</code>, then find out why one missing mark turns a whole class average into <code>nan</code>.</p>
+      <p class="ar">إلى أين يشير <code>axis=0</code>؟ انتقِ كل طالب نجح بلا حلقة وبلا <code>if</code>، ثم اعرف لماذا تحوّل علامةٌ مفقودة واحدة متوسطَ صفٍّ كامل إلى <code>nan</code>.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch3-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">Each lesson has a test of its own, sat after that lesson and assuming nothing later. The two chapter tests cover all four lessons &mdash; A for the core ideas, B for the harder corners, where most of the questions cross two lessons at once. The execution traces sit inside the lessons, each at the moment you need to watch it happen.</p>
+  <p class="ar">لكل درس اختباره الخاص، يُؤدَّى بعده ولا يفترض شيئًا بعده. ويغطّي اختبارا الفصل الدروس الأربعة &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب، وفيه تجمع معظم الأسئلة بين درسين في وقت واحد. أمّا آثار التنفيذ فهي داخل الدروس، كلٌّ عند اللحظة التي تحتاج أن تشاهدها فيها.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="#test-10">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 10 &mdash; the Array</span><span class="ar">اختبار 10 &mdash; المصفوفة</span></span>
+      <span class="state" data-page-state="test-10" hidden></span>
+    </a>
+
+    <a class="side-card test" href="#test-11">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 11 &mdash; Views &amp; Copies</span><span class="ar">اختبار 11 &mdash; العروض والنسخ</span></span>
+      <span class="state" data-page-state="test-11" hidden></span>
+    </a>
+
+    <a class="side-card test" href="#test-12">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 12 &mdash; Broadcasting</span><span class="ar">اختبار 12 &mdash; البثّ</span></span>
+      <span class="state" data-page-state="test-12" hidden></span>
+    </a>
+
+    <a class="side-card test" href="#test-13">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 13 &mdash; Axes &amp; Masks</span><span class="ar">اختبار 13 &mdash; المحاور والأقنعة</span></span>
+      <span class="state" data-page-state="test-13" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-03-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-03-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-03-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-03-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="#appendix-a4">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A4 &mdash; numbers in a computer</span><span class="ar">الملحق A4 &mdash; الأعداد في الحاسوب</span></span>
+      <span class="state" data-page-state="appendix-a4" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch3-s5"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">An array trades Python&rsquo;s willingness to hold anything for speed and for whole-table arithmetic &mdash; and every bug in this chapter is that trade collected: a shape, a type or a view behaving exactly as documented and not at all as you meant.</p>
+    <p class="ar">تستبدل المصفوفةُ باستعداد بايثون لاحتواء أي شيء سرعةً وحسابًا على الجدول كله &mdash; وكل خلل في هذا الفصل هو ثمن ذلك الاستبدال: شكلٌ أو نوعٌ أو عرضٌ يتصرّف كما هو موثَّق تمامًا، ولا كما قصدتَ أبدًا.</p>
+  </div>
+
+</section>
+
+
+<!-- ===== Chapter 3 — NumPy Fundamentals ===== -->
+
+<section class="page" id="lesson-10">
+
+
+  <span class="kicker"><span class="en">Lesson 10 &middot; Week 4 &middot; Lecture 12 &middot; 90 min</span><span class="ar">الدرس 10 &middot; الأسبوع 4 &middot; المحاضرة 12 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">One Type, Many Numbers: the Array</span><span class="ar">نوعٌ واحد وأعداد كثيرة: المصفوفة</span></h1>
+
+  <p class="lede en">By the end of this lesson you will take a loop that adjusts every mark in a class, watch the obvious list version do something absurd instead, and replace the whole loop with one line. Then you will find out what an array gave up in exchange: a list holds anything, an array holds exactly one type, and that type will quietly change your numbers if you let it.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستأخذ حلقةً تعدّل كل علامة في صفّ، وسترى نسخةَ القائمة البديهية تفعل شيئًا عبثيًا بدلًا من ذلك، ثم تستبدل بالحلقة كلها سطرًا واحدًا. ثم ستكتشف ما تخلّت عنه المصفوفة في المقابل: فالقائمة تحمل أي شيء، والمصفوفة تحمل نوعًا واحدًا بالضبط، وذلك النوع سيغيّر أرقامك بصمت إن تركته.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">This is the first lesson of a new chapter and it assumes only Python lists and loops. The one thing to read first is <a href="#appendix-a4">Appendix A4</a>, on what <code>int64</code> and <code>float64</code> actually are &mdash; this lesson puts a type on every array you make and the three lessons after it keep referring to it. The <a href="#lesson-08">patterns of Chapter 2</a> are not needed here, though the same <code>fit</code>/<code>transform</code> steps reappear in <a href="#lesson-13">Lesson 13</a> operating on arrays instead of lists.</p>
+    <p class="ar">هذا أول درس في فصل جديد ولا يفترض إلا قوائم بايثون وحلقاتها. والشيء الوحيد الذي تقرأه أولًا هو <a href="#appendix-a4">الملحق A4</a>، عن ماهية <code>int64</code> و<code>float64</code> فعلًا &mdash; فهذا الدرس يضع نوعًا على كل مصفوفة تصنعها وتظل الدروس الثلاثة بعده تشير إليه. ولا تلزم <a href="#lesson-08">أنماطُ الفصل 2</a> هنا، وإن كانت خطوات <code>fit</code>/<code>transform</code> نفسها تعود في <a href="#lesson-13">الدرس 13</a> عاملةً على مصفوفات بدل قوائم.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">The same secondary school as Chapter 2. The leaving class sat three subjects, and the marks now have to be adjusted, summarised and compared. There are thirty students here; by <a href="#lesson-13">Lesson 13</a> the same code will be running over far more.</p>
+    <p class="ar">المدرسة الثانوية نفسها من الفصل 2. فقد امتحن صفُّ التخرج في ثلاث مواد، وعلى العلامات الآن أن تُعدَّل وتُلخَّص وتُقارَن. وثمّة ثلاثون طالبًا هنا؛ وبحلول <a href="#lesson-13">الدرس 13</a> سيعمل الكود نفسه على أكثر من ذلك بكثير.</p>
+  </div>
+
+  <h2 id="l10-h1"><span class="en">Concept 1 &mdash; An array does arithmetic; a list does not</span><span class="ar">المفهوم 1 &mdash; المصفوفة تحسب؛ والقائمة لا</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The ministry adds five marks to every paper. You have the marks in a list, and the obvious thing to write does not do the obvious thing.</p>
+    <p class="ar">تضيف الوزارة خمس علامات إلى كل ورقة. والعلامات عندك في قائمة، والشيءُ البديهي الذي تكتبه لا يفعل الشيء البديهي.</p>
+  </div>
+
+  <h3 id="l10-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code bad"><code>marks = [40, 55, 70, 85, 100]
+
+print(marks + 5)
+</code></pre>
+
+  <div class="output">TypeError: can only concatenate list (not "int") to list</div>
+
+  <p class="en">Fair enough &mdash; <code>+</code> on a list means "join another list on the end", so adding a number is meaningless. Try doubling instead, where <code>*</code> <em>is</em> defined:</p>
+  <p class="ar">لا بأس &mdash; فـ <code>+</code> على قائمة تعني «ألحِق قائمة أخرى في النهاية»، فإضافةُ عدد بلا معنى. جرّب المضاعفة بدلًا من ذلك، حيث <code>*</code> <em>معرَّفة</em>:</p>
+
+<pre class="code bad"><code>print(marks * 2)
+</code></pre>
+
+  <div class="output">[40, 55, 70, 85, 100, 40, 55, 70, 85, 100]</div>
+
+  <h3 id="l10-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">This one is worse than the error, because it worked. <code>marks * 2</code> did not double thirty marks; it produced sixty marks. A class of thirty is now a class of sixty, every student appears twice, and the average is unchanged so the mistake is invisible in a summary. The first version at least refused.</p>
+  <p class="ar">هذه أسوأ من الخطأ، لأنها نجحت. فـ <code>marks * 2</code> لم تضاعف ثلاثين علامة؛ بل أنتجت ستين علامة. فصارَ صفُّ الثلاثين صفَّ ستين، وظهر كل طالب مرتين، والمتوسط لم يتغير فصار الخطأ غير مرئي في أي ملخّص. والنسخة الأولى رفضت على الأقل.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">A list is a <strong>container</strong>, so its operators are container operations: join and repeat. You wanted <strong>arithmetic on every element</strong>, and a list has no idea that is what its contents are for. The usual answer is a loop:</p>
+    <p class="ar">القائمة <strong>حاوية</strong>، فعملياتها عمليات حاويات: الإلحاق والتكرار. وأنت أردت <strong>حسابًا على كل عنصر</strong>، والقائمةُ لا تدري أن ذلك ما محتواها له. والجواب المعتاد حلقة:</p>
+  </div>
+
+<pre class="code"><code>adjusted = []
+for m in marks:
+    adjusted.append(m + 5)
+print(adjusted)
+</code></pre>
+
+  <div class="output">[45, 60, 75, 90, 105]</div>
+
+  <p class="en">Correct, and four lines. Now do it for three subjects, then scale them, then centre them, and the file fills up with loops that all say the same thing in slightly different words.</p>
+  <p class="ar">صحيح، وأربعة أسطر. والآن افعلها لثلاث مواد، ثم قِسها، ثم مركِزها، فيمتلئ الملف بحلقات تقول الشيء نفسه بكلمات مختلفة قليلًا.</p>
+
+  <h3 id="l10-s3"><span class="en">Conversion &mdash; a container that knows it holds numbers</span><span class="ar">التحويل &mdash; حاوية تعلم أنها تحمل أعدادًا</span></h3>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([40, 55, 70, 85, 100])
+
+print(marks + 5)
+print(marks * 2)
+print(marks / 100)
+print(marks &gt; 60)
+</code></pre>
+
+  <div class="output">[ 45  60  75  90 105]
+[ 80 110 140 170 200]
+[0.4  0.55 0.7  0.85 1.  ]
+[False False  True  True  True]</div>
+
+  <p class="en">Every operator now means "do this to each element and give me an array of the answers". The loop is gone, and so is the chance of writing it wrongly. The last line is worth a second look: comparing an array to a number gives an array of <code>True</code> and <code>False</code>, one per mark, which is the basis of everything in <a href="#lesson-13">Lesson 13</a>.</p>
+  <p class="ar">صار كل معامل يعني «افعل هذا بكل عنصر وأعطني مصفوفة الأجوبة». فاختفت الحلقة، واختفت معها فرصةُ كتابتها خطأً. والسطر الأخير يستحق نظرة ثانية: فمقارنة مصفوفة بعدد تعطي مصفوفة <code>True</code> و<code>False</code>، واحدةً لكل علامة، وهي أساس كل ما في <a href="#lesson-13">الدرس 13</a>.</p>
+
+  <div class="note">
+    <h4><span class="en">Why this is also much faster</span><span class="ar">ولماذا هذا أسرع كثيرًا أيضًا</span></h4>
+    <p class="en">A Python loop over a million marks executes a million separate Python steps. <code>marks + 5</code> hands the whole array to compiled code that walks the memory once. The speed is the famous part, but it is the <em>second</em> reason to use an array; the first is that one line cannot be written wrongly in six different places.</p>
+    <p class="ar">حلقةُ بايثون على مليون علامة تنفّذ مليون خطوة بايثون منفصلة. أما <code>marks + 5</code> فتسلّم المصفوفة كلها إلى كود مترجَم يمشي في الذاكرة مرة واحدة. والسرعة هي الجزء الشهير، لكنها السبب <em>الثاني</em> لاستعمال المصفوفة؛ والأول أن سطرًا واحدًا لا يمكن كتابته خطأً في ستة مواضع مختلفة.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does this print?<br><code>a = np.array([1, 2, 3])</code><br><code>a[0] = 2.9</code><br><code>print(a)</code></span><span class="ar">ماذا يطبع هذا؟<br><code>a = np.array([1, 2, 3])</code><br><code>a[0] = 2.9</code><br><code>print(a)</code></span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[2 2 3]</code>. The array was built from integers, so its type is <code>int64</code>, and 2.9 is cut down to fit.</span><span class="ar"><code>[2 2 3]</code>. بُنيت المصفوفة من أعداد صحيحة فنوعها <code>int64</code>، فتُقتطع 2.9 لتناسب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[3 2 3]</code>, because 2.9 is nearer to 3.</span><span class="ar"><code>[3 2 3]</code>، لأن 2.9 أقرب إلى 3.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[2.9 2.  3. ]</code> &mdash; the array becomes a float array.</span><span class="ar"><code>[2.9 2.  3. ]</code> &mdash; فتصير المصفوفة عشرية.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises a <code>TypeError</code>, because 2.9 is not an integer.</span><span class="ar">يرفع <code>TypeError</code>، لأن 2.9 ليست عددًا صحيحًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Cut, not rounded: the decimal part is thrown away, so 2.9 becomes 2 and 2.99 would too. And the array does not change its mind about its type &mdash; it was decided when the array was built, which is why the second option is wrong in a more interesting way than the first. If the marks might have decimals, say so at build time: <code>np.array([1, 2, 3], dtype=float)</code>.</div>
+      <div class="ar">قطعٌ لا تقريب: فالجزء العشري يُرمى، فتصير 2.9 اثنين، وكذلك 2.99. ولا تغيّر المصفوفة رأيها في نوعها &mdash; فقد قُرِّر عند بنائها، ولذلك كان الخيار الثاني خاطئًا بوجه أطرف من الأول. فإن كانت العلامات قد تحمل عشريات فقل ذلك عند البناء: <code>np.array([1, 2, 3], dtype=float)</code>.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.1 &mdash; Reserve the table before the marks exist</span><span class="ar">تمرين 10.1 &mdash; احجز الجدول قبل وجود العلامات</span></h4>
+    <p class="en">Thirty students will sit four papers, and no mark has been entered yet. Build the empty table, print its <code>shape</code>, <code>ndim</code>, <code>size</code> and <code>dtype</code>, then enter one mark of 72.5 for the first student&rsquo;s first paper and print that student&rsquo;s row.</p>
+    <p class="ar">ثلاثون طالبًا سيقدّمون أربع أوراق، ولم تُدخَل علامةٌ بعد. ابنِ الجدول الفارغ واطبع <code>shape</code> و<code>ndim</code> و<code>size</code> و<code>dtype</code>، ثم أدخِل علامة 72.5 لأول ورقةٍ لأول طالب واطبع صفّ ذلك الطالب.</p>
+
+<pre class="code"><code>students = 30
+# build the table here
+# expected: (30, 4) 2 120 float64
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>table = np.zeros((students, 4))
+print(table.shape, table.ndim, table.size, table.dtype)
+
+table[0, 0] = 72.5
+print(table[0])
+</code></pre>
+      <div class="output">(30, 4) 2 120 float64
+[72.5  0.   0.   0. ]</div>
+      <p class="en">The shape goes in as one tuple, because the second argument of <code>np.zeros</code> is the dtype &mdash; <code>np.zeros(30, 4)</code> is an error. Now try the same thing with <code>np.zeros((30, 4), dtype=int)</code>: the 72.5 is stored as 72, with nothing to warn you. An empty table reserved with the wrong type quietly damages every value written into it afterwards, which is why this is the moment to decide.</p>
+      <p class="ar">الشكلُ يدخل صفًّا (tuple) واحدًا، لأن الوسيط الثاني لـ <code>np.zeros</code> هو النوع &mdash; فـ <code>np.zeros(30, 4)</code> خطأ. وجرّب الآن الشيء نفسه بـ <code>np.zeros((30, 4), dtype=int)</code>: فتُخزَّن 72.5 وهي 72 بلا ما يحذّرك. فالجدولُ الفارغ المحجوز بالنوع الخاطئ يُتلف بصمتٍ كل قيمة تُكتب فيه بعد ذلك، ولذلك كانت هذه لحظةَ القرار.</p>
+      <p class="en">Note that 0.0 is a real mark, not a blank. A table of zeros says every student scored nothing; a table that means &ldquo;not marked yet&rdquo; needs <code>np.nan</code>, which arrives in <a href="#l13-s5">Lesson 13</a>.</p>
+      <p class="ar">ولاحظ أن 0.0 علامةٌ حقيقية لا فراغ. فجدولُ الأصفار يقول إن كل طالب لم ينل شيئًا؛ وأما الجدول الذي يعني «لم يُصحَّح بعد» فيحتاج <code>np.nan</code>، وهي تصل في <a href="#l13-s5">الدرس 13</a>.</p>
+    </details>
+  </section>
+
+  <h2 id="l10-h2"><span class="en">Concept 2 &mdash; What an array gave up: one type for everything</span><span class="ar">المفهوم 2 &mdash; ما تخلّت عنه المصفوفة: نوعٌ واحد للجميع</span></h2>
+
+  <p class="en">The arithmetic is not free. A list can hold a number, a string and another list at once; an array decides on one type when it is built and applies it to every value, for ever.</p>
+  <p class="ar">الحساب ليس مجانًا. فالقائمة تحمل عددًا ونصًّا وقائمة أخرى معًا؛ والمصفوفة تقرّر نوعًا واحدًا عند بنائها وتطبّقه على كل قيمة إلى الأبد.</p>
+
+<pre class="code"><code>whole = np.array([40, 55, 70])
+print(whole, whole.dtype)
+
+decimal = np.array([40, 55, 70.5])
+print(decimal, decimal.dtype)
+
+mixed = np.array([1, "two", 3])
+print(mixed, mixed.dtype)
+</code></pre>
+
+  <div class="output">[40 55 70] int64
+[40.  55.  70.5] float64
+['1' 'two' '3'] &lt;U21</div>
+
+  <p class="en">Three different decisions, none of them announced. All whole numbers gives <code>int64</code>. One decimal among them promotes <strong>every</strong> value to <code>float64</code> &mdash; notice <code>40.</code> with a trailing dot. And one string turns the numbers into text: <code>&lt;U21</code> means "unicode string, up to 21 characters", and <code>mixed * 2</code> would now repeat the text rather than double anything.</p>
+  <p class="ar">ثلاثة قرارات مختلفة، لم يُعلَن أيٌّ منها. فالأعداد الصحيحة كلها تعطي <code>int64</code>. وعشريٌّ واحد بينها يرفع <strong>كل</strong> قيمة إلى <code>float64</code> &mdash; لاحظ <code>40.</code> بالنقطة اللاحقة. ونصٌّ واحد يحوّل الأعداد كتابةً: فـ <code>&lt;U21</code> تعني «نص يونيكود حتى 21 محرفًا»، وستكرّر <code>mixed * 2</code> النصَّ الآن بدل مضاعفة أي شيء.</p>
+
+  <h3 id="l10-s4"><span class="en">The trap: an integer array silently truncates</span><span class="ar">الفخ: مصفوفة الأعداد الصحيحة تبتر بصمت</span></h3>
+
+<pre class="code bad"><code>marks = np.array([40, 55, 70])
+print(marks.dtype)
+
+marks[0] = 2.9
+print(marks)
+</code></pre>
+
+  <div class="output">int64
+[ 2 55 70]</div>
+
+  <p class="en">2.9 went in and 2 came out. The array is <code>int64</code>, it has nowhere to put a fraction, and it does not consider that worth mentioning. Scale an integer array by 0.9 and assign the result back into it and every mark loses its decimal part, quietly, for every student. The fix is to decide the type when you build it:</p>
+  <p class="ar">دخلت 2.9 وخرجت 2. فالمصفوفة <code>int64</code>، ولا موضع فيها لكسر، ولا ترى ذلك جديرًا بالذكر. وقِس مصفوفةَ أعداد صحيحة بـ 0.9 وأسند النتيجة إليها يفقد كلُّ علامة جزأها العشري، بصمت، لكل طالب. والإصلاح أن تقرّر النوع عند البناء:</p>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70], dtype=float)
+marks[0] = 2.9
+print(marks, marks.dtype)
+</code></pre>
+
+  <div class="output">[ 2.9 55.  70. ] float64</div>
+
+  <div data-trace-id="t-dtype"></div>
+
+  <h3 id="l10-s5"><span class="en">Shape: the same numbers, arranged</span><span class="ar">الشكل: الأعداد نفسها، مرتّبةً</span></h3>
+
+  <p class="en">The class sat three subjects, so the natural arrangement is a table: one row per student, one column per subject.</p>
+  <p class="ar">امتحن الصفُّ في ثلاث مواد، فالترتيب الطبيعي جدول: صفٌّ لكل طالب وعمودٌ لكل مادة.</p>
+
+<pre class="code good"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+
+print(marks.shape)
+print(marks.ndim)
+print(marks.size)
+print(marks.dtype)
+</code></pre>
+
+  <div class="output">(3, 3)
+2
+9
+int64</div>
+
+  <ul>
+    <li><span class="en"><code>shape</code> is <code>(rows, columns)</code> &mdash; always that order, and it is a tuple, so a 1-D array of five marks has shape <code>(5,)</code> with the comma and nothing after it.</span><span class="ar"><code>shape</code> هو <code>(الصفوف، الأعمدة)</code> &mdash; بهذا الترتيب دائمًا، وهو صفٌّ (tuple)، فمصفوفة أحادية بخمس علامات شكلها <code>(5,)</code> بالفاصلة ولا شيء بعدها.</span></li>
+    <li><span class="en"><code>ndim</code> is how many dimensions: 1 for a row of marks, 2 for a table.</span><span class="ar"><code>ndim</code> هو عدد الأبعاد: 1 لصفّ علامات، و2 لجدول.</span></li>
+    <li><span class="en"><code>size</code> is how many numbers in total, which is every dimension multiplied together.</span><span class="ar"><code>size</code> هو عدد الأعداد كلها، وهو حاصل ضرب كل الأبعاد.</span></li>
+  </ul>
+
+  <p class="en">Arithmetic works on the table exactly as it did on the row, element by element, with no loops and no nesting:</p>
+  <p class="ar">والحساب يعمل على الجدول تمامًا كما عمل على الصفّ، عنصرًا عنصرًا، بلا حلقات ولا تعشيش:</p>
+
+<pre class="code good"><code>print(marks + 5)
+print(marks.shape, (marks + 5).shape)
+</code></pre>
+
+  <div class="output">[[ 45  60  75]
+ [ 65  70  95]
+ [ 85  80  55]]
+(3, 3) (3, 3)</div>
+
+  <h3 id="l10-s6"><span class="en">Making arrays without typing every number</span><span class="ar">صنع المصفوفات دون كتابة كل عدد</span></h3>
+
+<pre class="code good"><code>print(np.zeros(3))
+print(np.ones((2, 3)))
+print(np.full((2, 2), 7))
+print(np.arange(0, 10, 2))
+print(np.linspace(0, 1, 5))
+</code></pre>
+
+  <div class="output">[0. 0. 0.]
+[[1. 1. 1.]
+ [1. 1. 1.]]
+[[7 7]
+ [7 7]]
+[0 2 4 6 8]
+[0.   0.25 0.5  0.75 1.  ]</div>
+
+  <p class="en">Two details that catch people. <code>np.zeros</code> and <code>np.ones</code> give <strong>floats</strong>, not integers, which is usually what you want and occasionally a surprise. And the last two look similar but ask different questions: <code>arange(0, 10, 2)</code> is "from 0, in steps of 2, stopping before 10", while <code>linspace(0, 1, 5)</code> is "five values from 0 to 1, <em>including</em> 1, evenly spaced". When you know the step, use <code>arange</code>; when you know how many you want, use <code>linspace</code>.</p>
+  <p class="ar">تفصيلان يُوقعان الناس. فـ <code>np.zeros</code> و<code>np.ones</code> تعطيان <strong>أعدادًا عشرية</strong> لا صحيحة، وهو ما تريده عادةً ومفاجأةٌ أحيانًا. والأخيرتان تتشابهان لكنهما تسألان سؤالين مختلفين: فـ <code>arange(0, 10, 2)</code> تعني «من 0 بخطوة 2 ونتوقف قبل 10»، بينما <code>linspace(0, 1, 5)</code> تعني «خمس قيم من 0 إلى 1 <em>شاملةً</em> 1 بتباعد منتظم». فإذا عرفت الخطوة فاستعمل <code>arange</code>، وإذا عرفت العدد المطلوب فاستعمل <code>linspace</code>.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.2 &mdash; Percentages without a loop</span><span class="ar">تمرين 10.2 &mdash; نسب مئوية بلا حلقة</span></h4>
+    <p class="en">Each paper is out of 120. Turn the raw marks into percentages, rounded to one decimal place, in a single expression with no <code>for</code>.</p>
+    <p class="ar">كل ورقة من 120. حوّل العلامات الخام نسبًا مئوية، مقرَّبة إلى منزلة عشرية واحدة، في تعبير واحد بلا <code>for</code>.</p>
+
+<pre class="code"><code>raw = np.array([48, 66, 84, 102, 120])
+# one line here
+# expected: [40.  55.  70.  85. 100.]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>percent = np.round(raw / 120 * 100, 1)
+print(percent, percent.dtype)
+</code></pre>
+      <div class="output">[ 40.  55.  70.  85. 100.] float64</div>
+      <p class="en">Note the <code>dtype</code>: <code>raw</code> was <code>int64</code> and the result is <code>float64</code>, because dividing always produces decimals even when they happen to come out whole. If you had written <code>raw //= 120</code> to keep it integer, every percentage would have become 0.</p>
+      <p class="ar">لاحظ <code>dtype</code>: فـ <code>raw</code> كانت <code>int64</code> والنتيجة <code>float64</code>، لأن القسمة تنتج عشريات دائمًا حتى حين تخرج صحيحة اتفاقًا. ولو كتبت <code>raw //= 120</code> لإبقائها صحيحة لصارت كل نسبة 0.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 10.3 &mdash; Build the table three ways</span><span class="ar">تمرين 10.3 &mdash; ابنِ الجدول بثلاث طرق</span></h4>
+    <p class="en">Produce a 4&times;3 array of zeros as a <code>float64</code>, a 4&times;3 array of zeros as an <code>int64</code>, and a 1-D array holding 0.0, 0.5, 1.0, 1.5, 2.0. Print the <code>shape</code> and <code>dtype</code> of each.</p>
+    <p class="ar">أنتج مصفوفة أصفار 4&times;3 من نوع <code>float64</code>، ومصفوفة أصفار 4&times;3 من نوع <code>int64</code>، ومصفوفة أحادية تحمل 0.0 و0.5 و1.0 و1.5 و2.0. واطبع <code>shape</code> و<code>dtype</code> لكلٍّ.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>a = np.zeros((4, 3))
+b = np.zeros((4, 3), dtype=int)
+c = np.linspace(0, 2, 5)
+
+for arr in (a, b, c):
+    print(arr.shape, arr.dtype)
+</code></pre>
+      <div class="output">(4, 3) float64
+(4, 3) int64
+(5,) float64</div>
+      <p class="en">Two things to take from this. The shape goes in as a <em>tuple</em> &mdash; <code>np.zeros(4, 3)</code> is an error, because the second argument is the dtype. And <code>np.arange(0, 2.5, 0.5)</code> would also work for <code>c</code>, but <code>linspace</code> is safer with decimal steps: <a href="#a4-h2">a step that cannot be stored exactly</a> can leave <code>arange</code> one value short or one value long.</p>
+      <p class="ar">خذ من هذا أمرين. فالشكل يدخل <em>صفًّا</em> (tuple) &mdash; فـ <code>np.zeros(4, 3)</code> خطأ، لأن الوسيط الثاني هو النوع. و<code>np.arange(0, 2.5, 0.5)</code> تنجح لـ <code>c</code> أيضًا، لكن <code>linspace</code> أسلم مع الخطوات العشرية: <a href="#a4-h2">فخطوةٌ لا يمكن تخزينها تمامًا</a> قد تترك <code>arange</code> ناقصةً قيمةً أو زائدةً قيمة.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does <code>np.array([1, 2, 3]) * 3</code> give, and why is it different from <code>[1, 2, 3] * 3</code>?</span><span class="ar">ماذا تعطي <code>np.array([1, 2, 3]) * 3</code>، ولماذا تختلف عن <code>[1, 2, 3] * 3</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[3 6 9]</code>. For an array <code>*</code> means arithmetic on each element; for a list it means repeat the container, giving nine items.</span><span class="ar"><code>[3 6 9]</code>. فـ <code>*</code> للمصفوفة تعني حسابًا على كل عنصر؛ وللقائمة تعني تكرار الحاوية فتعطي تسعة عناصر.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both give <code>[3, 6, 9]</code>; NumPy is only faster.</span><span class="ar">كلتاهما تعطي <code>[3, 6, 9]</code>؛ ونمباي أسرع فقط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The array raises a <code>TypeError</code>, because you cannot multiply an array by a plain number.</span><span class="ar">ترفع المصفوفة <code>TypeError</code>، لأنك لا تستطيع ضرب مصفوفة بعدد عادي.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both repeat the contents; the array just prints without commas.</span><span class="ar">كلتاهما تكرّر المحتوى؛ والمصفوفة تطبع بلا فواصل فقط.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The same symbol means two different things depending on what is to its left, and both are defined, so neither errors. That is what makes the list version dangerous: <code>marks * 2</code> on a class of thirty produces a class of sixty, every student twice, and the average is unchanged &mdash; so a summary report looks completely normal.</div>
+      <div class="ar">الرمز نفسه يعني شيئين مختلفين بحسب ما على يساره، وكلاهما معرَّف، فلا تُخطئ أيٌّ منهما. وذلك ما يجعل نسخة القائمة خطيرة: فـ <code>marks * 2</code> على صفّ ثلاثين تُنتج صفَّ ستين، كلُّ طالب مرتين، والمتوسط لم يتغير &mdash; فيبدو التقرير الملخَّص طبيعيًا تمامًا.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">An array is built from <code>[1, 2, 3]</code> and then <code>a[0] = 9.7</code> is assigned. What does the array hold?</span><span class="ar">تُبنى مصفوفة من <code>[1, 2, 3]</code> ثم يُسنَد <code>a[0] = 9.7</code>. فماذا تحمل المصفوفة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en"><code>[9.7 2.  3. ]</code> &mdash; the array promotes itself to <code>float64</code> to fit the new value.</span><span class="ar"><code>[9.7 2.  3. ]</code> &mdash; فالمصفوفة ترفع نفسها إلى <code>float64</code> لتسع القيمة الجديدة.</span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en"><code>[9 2 3]</code> &mdash; the array is <code>int64</code>, so the fraction is discarded without a word.</span><span class="ar"><code>[9 2 3]</code> &mdash; فالمصفوفة <code>int64</code>، فيُطرح الكسر بلا كلمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>TypeError</code>, because a float cannot be stored in an integer array.</span><span class="ar"><code>TypeError</code>، لأن العدد العشري لا يُخزَّن في مصفوفة صحيحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[10 2 3]</code> &mdash; 9.7 is rounded to the nearest whole number.</span><span class="ar"><code>[10 2 3]</code> &mdash; تُقرَّب 9.7 إلى أقرب عدد صحيح.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">An array's <code>dtype</code> is fixed when it is built and assignment never changes it &mdash; the value is converted to fit, not the other way round. Note it <em>truncates</em> rather than rounding, so 9.7 becomes 9 and not 10; the fourth answer is the one most people pick. The whole category of bug is prevented by one argument at build time: <code>dtype=float</code>.</div>
+      <div class="ar">نوعُ المصفوفة يُثبَّت عند بنائها ولا يغيّره الإسناد أبدًا &mdash; فالقيمة تُحوَّل لتناسب، لا العكس. ولاحظ أنها <em>تبتر</em> ولا تقرّب، فتصير 9.7 هي 9 لا 10؛ والجواب الرابع هو ما يختاره أكثر الناس. وفصيلةُ الخلل كلها تُمنع بوسيط واحد عند البناء: <code>dtype=float</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l10-s7"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l10-s8"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>A list is a container; an array is a vector of numbers.</strong> <code>+</code> and <code>*</code> mean join and repeat on one, and arithmetic on every element on the other.</span><span class="ar"><strong>القائمة حاوية؛ والمصفوفة متجهُ أعداد.</strong> فـ <code>+</code> و<code>*</code> تعنيان الإلحاق والتكرار في الأولى، والحساب على كل عنصر في الثانية.</span></li>
+      <li><span class="en"><strong>One operation replaces a whole loop,</strong> and a comparison gives an array of <code>True</code>/<code>False</code> &mdash; which <a href="#lesson-13">Lesson 13</a> turns into a way of selecting rows.</span><span class="ar"><strong>عمليةٌ واحدة تحلّ محلّ حلقة كاملة،</strong> والمقارنة تعطي مصفوفة <code>True</code>/<code>False</code> &mdash; ويحوّلها <a href="#lesson-13">الدرس 13</a> طريقةً لاختيار الصفوف.</span></li>
+      <li><span class="en"><strong>Every array has exactly one <code>dtype</code></strong>, chosen at build time from what you gave it: all whole numbers gives <code>int64</code>, one decimal promotes everything to <code>float64</code>, one string turns it all into text.</span><span class="ar"><strong>لكل مصفوفة <code>dtype</code> واحد بالضبط</strong>، يُختار عند البناء مما أعطيتها: فالصحيحة كلها تعطي <code>int64</code>، وعشريٌّ واحد يرفع الجميع إلى <code>float64</code>، ونصٌّ واحد يحوّل الكل كتابةً.</span></li>
+      <li><span class="en"><strong>Assigning into an integer array truncates, silently.</strong> If any value will ever be fractional, say <code>dtype=float</code> when you build it.</span><span class="ar"><strong>الإسناد في مصفوفة صحيحة يبتر بصمت.</strong> فإن كانت أي قيمة ستصير كسرية يومًا فقل <code>dtype=float</code> عند البناء.</span></li>
+      <li><span class="en"><strong><code>shape</code> is <code>(rows, columns)</code>,</strong> and it is the first thing to print when an array does something you did not expect. The next three lessons are almost entirely about shapes.</span><span class="ar"><strong><code>shape</code> هو <code>(الصفوف، الأعمدة)</code>،</strong> وهو أول ما تطبعه حين تفعل مصفوفةٌ ما لم تتوقعه. والدروس الثلاثة التالية عن الأشكال كلها تقريبًا.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="#lesson-11">Lesson 11</a> slices an array the way you slice a list, and finds that writing to the slice changes the original.</span><span class="ar"><strong>التالي:</strong> يقطّع <a href="#lesson-11">الدرس 11</a> مصفوفةً كما تقطّع قائمة، فيجد أن الكتابة في القطعة تغيّر الأصل.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+
+<section class="page" id="lesson-11">
+
+
+  <span class="kicker"><span class="en">Lesson 11 &middot; Week 5 &middot; Lecture 13 &middot; 90 min</span><span class="ar">الدرس 11 &middot; الأسبوع 5 &middot; المحاضرة 13 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Slices That Are Not Copies</span><span class="ar">قطعٌ ليست نسخًا</span></h1>
+
+  <p class="lede en">By the end of this lesson you will slice an array exactly the way you slice a list, write into the slice, and discover that you have changed the original table instead. Then you will learn the one-word fix, and &mdash; more usefully &mdash; which kinds of indexing have this behaviour and which do not.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستقطّع مصفوفةً تمامًا كما تقطّع قائمة، وتكتب في القطعة، فتكتشف أنك غيّرت الجدول الأصلي بدلًا من ذلك. ثم ستتعلّم الإصلاح ذا الكلمة الواحدة، و&mdash; وهو الأنفع &mdash; أيُّ أنواع الفهرسة لها هذا السلوك وأيُّها لا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="#lesson-10">Lesson 10</a> first: this lesson assumes <code>shape</code>, <code>dtype</code> and elementwise arithmetic. It needs no mathematics and no machine learning. If you have met <a href="#l1-s4">two names pointing at one object</a> in Chapter 1, this is that idea with a sharper edge.</p>
+    <p class="ar">أنجز <a href="#lesson-10">الدرس 10</a> أولًا: فهذا الدرس يفترض <code>shape</code> و<code>dtype</code> والحساب على العناصر. ولا يحتاج رياضيات ولا تعلّم آلة. وإن كنت قابلت <a href="#l1-s4">اسمين يشيران إلى كائن واحد</a> في الفصل 1 فهذه تلك الفكرة بحدٍّ أمضى.</p>
+  </div>
+
+  <h2 id="l11-h1"><span class="en">Concept 1 &mdash; A slice of an array is a window, not a photograph</span><span class="ar">المفهوم 1 &mdash; قطعة المصفوفة نافذة لا صورة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Three students sat a resit. You take their marks out of the class array, cap them at 60 as the regulations require, and report both the resit marks and the original class. One of those two is now wrong.</p>
+    <p class="ar">أعاد ثلاثة طلبة الامتحان. فتأخذ علاماتهم من مصفوفة الصفّ، وتحصرها عند 60 كما تقتضي اللائحة، وتبلّغ علاماتِ الإعادة والصفَّ الأصلي. وأحد هذين خطأٌ الآن.</p>
+  </div>
+
+  <h3 id="l11-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code bad"><code>import numpy as np
+
+marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4]
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+</code></pre>
+
+  <div class="output">resit: [60 70 85]
+class: [ 40  60  70  85 100]</div>
+
+  <p class="en">The class array changed. Nobody assigned to <code>marks</code>; the only assignment in the program is to <code>resit</code>. Do exactly the same thing with a list and it behaves the way you expected:</p>
+  <p class="ar">تغيّرت مصفوفة الصفّ. ولم يُسنِد أحدٌ إلى <code>marks</code>؛ فالإسناد الوحيد في البرنامج إلى <code>resit</code>. وافعل الشيء نفسه بقائمة تتصرف كما توقعت:</p>
+
+<pre class="code"><code>marks = [40, 55, 70, 85, 100]
+resit = marks[1:4]
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+</code></pre>
+
+  <div class="output">resit: [60, 70, 85]
+class: [40, 55, 70, 85, 100]</div>
+
+  <h3 id="l11-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">Slicing a list <strong>copies</strong> the chosen items into a new list. Slicing an array <strong>does not copy anything</strong>: it hands back a second array object that points at the same memory, starting a little further along. The two names are two windows onto one block of numbers, so writing through either is visible through both.</p>
+  <p class="ar">تقطيعُ القائمة <strong>ينسخ</strong> العناصر المختارة إلى قائمة جديدة. وتقطيعُ المصفوفة <strong>لا ينسخ شيئًا</strong>: بل يُعيد كائن مصفوفة ثانيًا يشير إلى الذاكرة نفسها، بادئًا أبعد قليلًا. فالاسمان نافذتان على كتلة أعداد واحدة، فالكتابةُ عبر أيٍّ منهما تُرى عبر كليهما.</p>
+
+  <div class="note">
+    <h4><span class="en">Why NumPy does this on purpose</span><span class="ar">لماذا تفعل نمباي هذا متعمدةً</span></h4>
+    <p class="en">A million-row table sliced into a hundred overlapping windows would be a hundred million numbers copied, for nothing, if all you wanted was to read them. Not copying is what makes a slice instant regardless of size. The cost is that you have to know when you are holding a window, and the single word <code>.copy()</code> is how you stop.</p>
+    <p class="ar">جدولٌ بمليون صفّ مقطَّعٌ إلى مئة نافذة متداخلة سيكون مئة مليون عدد منسوخة بلا طائل، إن كان كل مرادك قراءتها. وعدمُ النسخ هو ما يجعل القطعة فورية أيًّا كان الحجم. والثمنُ أن عليك أن تعرف متى تمسك بنافذة، وكلمةُ <code>.copy()</code> الواحدة هي كيف تتوقف.</p>
+  </div>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4].copy()
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+print("is it a window?", marks[1:4].base is not None, resit.base is None)
+</code></pre>
+
+  <div class="output">resit: [60 70 85]
+class: [ 40  55  70  85 100]
+is it a window? True True</div>
+
+  <p class="en"><code>.base</code> is how you ask. A view's <code>base</code> is the array it looks into; an independent array's <code>base</code> is <code>None</code>. You will not write that line often, but it is the fastest way to settle an argument with yourself at two in the morning.</p>
+  <p class="ar"><code>.base</code> هي كيف تسأل. فـ<code>base</code> النافذة هي المصفوفة التي تطلّ عليها؛ و<code>base</code> المصفوفة المستقلة هي <code>None</code>. ولن تكتب ذلك السطر كثيرًا، لكنه أسرع طريقة لحسم خصومة مع نفسك في الثانية صباحًا.</p>
+
+  <div data-trace-id="t-view"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does <code>print(a)</code> show?<br><code>a = np.array([10, 20, 30, 40, 50])</code><br><code>b = a[::2]</code><br><code>b[0] = 0</code></span><span class="ar">ماذا يُظهر <code>print(a)</code>؟<br><code>a = np.array([10, 20, 30, 40, 50])</code><br><code>b = a[::2]</code><br><code>b[0] = 0</code></span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[ 0 20 30 40 50]</code>. A slice with a step is still describable as start/step/stop, so it is a view and the write lands in <code>a</code>.</span><span class="ar"><code>[ 0 20 30 40 50]</code>. فالقطعةُ ذات الخطوة لا تزال توصف ببداية/خطوة/نهاية، فهي نافذة وتهبط الكتابةُ في <code>a</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[10 20 30 40 50]</code> &mdash; once a step is involved NumPy has to copy.</span><span class="ar"><code>[10 20 30 40 50]</code> &mdash; فمتى دخلت خطوةٌ وجب على نمباي أن تنسخ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[ 0 20  0 40  0]</code>, because <code>b</code> covers three places and all three are set.</span><span class="ar"><code>[ 0 20  0 40  0]</code>، لأن <code>b</code> تغطي ثلاثة مواضع وتُضبط كلها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises, because you cannot write through a strided view.</span><span class="ar">يرفع خطأً، لأنك لا تستطيع الكتابة عبر نافذة ذات خطوة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is the tempting one, and the reason it is wrong is worth holding on to: the step is exactly what makes the window describable. &ldquo;Every other element&rdquo; is a start, a step and a stop, so nothing needs to move. Compare <code>a[[0, 2, 4]]</code>, which selects the same three elements and <em>is</em> a copy, because a list of positions carries no rule NumPy can follow.</div>
+      <div class="ar">الخيار الثاني هو المُغري، وسببُ خطئه جديرٌ بالحفظ: فالخطوةُ هي بالضبط ما يجعل النافذة قابلةً للوصف. فـ«كل عنصر ثانٍ» بدايةٌ وخطوةٌ ونهاية، فلا شيء يحتاج أن يتحرّك. وقارن <code>a[[0, 2, 4]]</code> التي تختار العناصر الثلاثة نفسها و<em>هي</em> نسخة، لأن قائمة المواضع لا تحمل قاعدةً تتبعها نمباي.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.1 &mdash; Archive first, then moderate</span><span class="ar">تمرين 11.1 &mdash; احفظ أولًا ثم عدّل</span></h4>
+    <p class="en">The middle subject was marked too harshly and every mark in it is to go up by 5. Keep an untouched archive of the original table, apply the change <em>in place</em> to the real table, and print the middle subject from each to prove both survived.</p>
+    <p class="ar">صُحِّحت المادة الوسطى بقسوة فكل علامة فيها ستزيد 5. احفظ أرشيفًا سليمًا للجدول الأصلي، وطبّق التغيير <em>في مكانه</em> على الجدول الحقيقي، واطبع المادة الوسطى من كلٍّ لتُثبت أن الاثنين نجَوا.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# archive, then moderate
+# expected: [55. 65. 75.] then [60. 70. 80.]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>archive = marks.copy()
+marks[:, 1] += 5
+
+print(archive[:, 1])
+print(marks[:, 1])
+</code></pre>
+      <div class="output">[55. 65. 75.]
+[60. 70. 80.]</div>
+      <p class="en">Two uses of the same rule, in opposite directions. <code>archive = marks.copy()</code> must copy, because a view would change along with the table and archive nothing. <code>marks[:, 1] += 5</code> must <em>not</em> copy, because the point is to change the real table &mdash; writing through a column view is how you moderate one subject in place.</p>
+      <p class="ar">استعمالان للقاعدة نفسها في اتجاهين متعاكسين. فـ <code>archive = marks.copy()</code> يجب أن تنسخ، لأن النافذة ستتغير مع الجدول فلا تؤرشف شيئًا. و<code>marks[:, 1] += 5</code> يجب ألّا تنسخ، لأن المقصود تغييرُ الجدول الحقيقي &mdash; فالكتابةُ عبر نافذة عمود هي كيف تعدّل مادةً واحدة في مكانها.</p>
+      <p class="en">Try it with <code>archive = marks</code> instead and print again: both lines show the moderated marks, because the two names are the same array. That is not even a view &mdash; it is one object with two labels.</p>
+      <p class="ar">جرّبه بـ <code>archive = marks</code> بدلًا من ذلك واطبع مرة أخرى: فيُظهر السطران العلامات المعدَّلة، لأن الاسمين مصفوفةٌ واحدة. وذلك ليس نافذةً حتى &mdash; بل كائنٌ واحد بلافتتين.</p>
+    </details>
+  </section>
+
+  <h2 id="l11-h2"><span class="en">Concept 2 &mdash; Reaching into a table</span><span class="ar">المفهوم 2 &mdash; المدّ داخل الجدول</span></h2>
+
+  <p class="en">The class table is one row per student and one column per subject. Indexing it takes one number per dimension, separated by a comma, and that comma is the whole difference from a list of lists.</p>
+  <p class="ar">جدولُ الصفّ صفٌّ لكل طالب وعمودٌ لكل مادة. وفهرستُه تأخذ عددًا لكل بُعد، مفصولًا بفاصلة، وتلك الفاصلة هي كل الفرق عن قائمة القوائم.</p>
+
+<pre class="code good"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+
+print(marks[1, 2])
+print(marks[0])
+print(marks[:, 1])
+print(marks[1:, 1:])
+</code></pre>
+
+  <div class="output">90
+[40 55 70]
+[55 65 75]
+[[65 90]
+ [75 50]]</div>
+
+  <ul>
+    <li><span class="en"><code>marks[1, 2]</code> &mdash; row 1, column 2: the second student's third subject. Counting starts at zero in both directions.</span><span class="ar"><code>marks[1, 2]</code> &mdash; الصفّ 1 والعمود 2: المادة الثالثة للطالب الثاني. والعدّ يبدأ من صفر في الاتجاهين.</span></li>
+    <li><span class="en"><code>marks[0]</code> &mdash; a whole row, which is one student across all subjects.</span><span class="ar"><code>marks[0]</code> &mdash; صفٌّ كامل، وهو طالب واحد في كل المواد.</span></li>
+    <li><span class="en"><code>marks[:, 1]</code> &mdash; the colon means "every row", so this is a whole column: one subject across all students. This is the form people forget, and it is the one you need most.</span><span class="ar"><code>marks[:, 1]</code> &mdash; النقطتان تعنيان «كل الصفوف»، فهذا عمودٌ كامل: مادةٌ واحدة لكل الطلبة. وهذه الصيغة ينساها الناس، وهي أكثر ما تحتاج.</span></li>
+    <li><span class="en"><code>marks[1:, 1:]</code> &mdash; a rectangular block: from row 1 onwards, from column 1 onwards.</span><span class="ar"><code>marks[1:, 1:]</code> &mdash; كتلةٌ مستطيلة: من الصفّ 1 فصاعدًا ومن العمود 1 فصاعدًا.</span></li>
+  </ul>
+
+  <p class="en">Every one of those is a view. Writing into a column changes the table:</p>
+  <p class="ar">وكلُّ واحدة من تلك نافذة. فالكتابة في عمود تغيّر الجدول:</p>
+
+<pre class="code bad"><code>maths = marks[:, 0]
+maths += 5
+
+print(marks)
+</code></pre>
+
+  <div class="output">[[45 55 70]
+ [65 65 90]
+ [85 75 50]]</div>
+
+  <p class="en">Which is sometimes exactly what you want &mdash; moderating one subject in place is a real task and this is the neat way to do it. The danger is doing it by accident, having thought you were working on a copy.</p>
+  <p class="ar">وهذا أحيانًا بالضبط ما تريد &mdash; فتعديل مادة واحدة في مكانها مهمةٌ حقيقية وهذه الطريقة الأنيقة لها. والخطر أن تفعله بالصدفة وأنت تحسب أنك تعمل على نسخة.</p>
+
+  <h3 id="l11-s3"><span class="en">Which kinds of indexing copy?</span><span class="ar">أي أنواع الفهرسة تنسخ؟</span></h3>
+
+  <p class="en">This is the part worth memorising, because it is not obvious and it decides whether your edit escapes.</p>
+  <p class="ar">هذا هو الجزء الجدير بالحفظ، لأنه ليس بديهيًا وهو يقرّر هل يفلت تعديلك.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Written as</span><span class="ar">يُكتب هكذا</span></th>
+        <th><span class="en">Gives</span><span class="ar">يعطي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>a[1:4]</code>, <code>a[:, 0]</code>, <code>a[1:, 1:]</code></td>
+          <td><span class="en"><strong>A view.</strong> Writing to it writes to the original.</span><span class="ar"><strong>نافذة.</strong> فالكتابة فيها تكتب في الأصل.</span></td></tr>
+      <tr><td><code>a[[0, 2, 4]]</code> <span class="en">(a list of positions)</span><span class="ar">(قائمة مواضع)</span></td>
+          <td><span class="en"><strong>A copy.</strong> The positions are not evenly spaced, so there is no window to describe.</span><span class="ar"><strong>نسخة.</strong> فالمواضع غير متباعدة بانتظام، فلا نافذة توصَف.</span></td></tr>
+      <tr><td><code>a[a &gt; 60]</code> <span class="en">(a mask)</span><span class="ar">(قناع)</span></td>
+          <td><span class="en"><strong>A copy</strong>, for the same reason.</span><span class="ar"><strong>نسخة</strong>، للسبب نفسه.</span></td></tr>
+      <tr><td><code>a.copy()</code></td>
+          <td><span class="en"><strong>A copy</strong>, always, on purpose.</span><span class="ar"><strong>نسخة</strong>، دائمًا، بقصد.</span></td></tr>
+    </tbody>
+  </table>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+picked = marks[[0, 2, 4]]
+picked[0] = -1
+print("after writing to a fancy-indexed pick:", marks)
+
+high = marks[marks &gt; 60]
+high[0] = -1
+print("after writing to a masked pick:      ", marks)
+</code></pre>
+
+  <div class="output">after writing to a fancy-indexed pick: [ 40  55  70  85 100]
+after writing to a masked pick:       [ 40  55  70  85 100]</div>
+
+  <p class="en">The rule behind the table is mechanical, not arbitrary. A view has to be describable as "start here, take every <em>n</em>th number, stop there" &mdash; that is all the extra information an array object carries. Positions 0, 2 and 4 happen to fit that, but <code>[0, 2, 3]</code> would not, and NumPy will not decide case by case, so the whole family copies.</p>
+  <p class="ar">والقاعدةُ وراء الجدول آليةٌ لا اعتباطية. فالنافذة يجب أن تُوصَف بـ«ابدأ هنا، وخذ كل عدد <em>ن</em>، وتوقف هناك» &mdash; وذلك كل ما يحمله كائن المصفوفة من معلومات إضافية. والمواضع 0 و2 و4 تنطبق عليها اتفاقًا، لكن <code>[0, 2, 3]</code> لا تنطبق، ولن تقرّر نمباي حالةً حالةً، فتنسخ الفصيلة كلها.</p>
+
+  <div class="note">
+    <h4><span class="en">A warning you will meet</span><span class="ar">تحذيرٌ ستقابله</span></h4>
+    <p class="en">Writing <em>into</em> a mask, as opposed to writing into the copy a mask returned, does change the original and is the normal way to cap values:</p>
+    <p class="ar">الكتابةُ <em>في</em> القناع، خلافًا للكتابة في النسخة التي أعادها القناع، تغيّر الأصل وهي الطريقة المعتادة لحصر القيم:</p>
+<pre class="code good"><code>marks[marks &gt; 80] = 80
+print(marks)
+</code></pre>
+    <div class="output">[40 55 70 80 80]</div>
+    <p class="en">The difference is that here the mask is on the <em>left</em> of the <code>=</code>, so NumPy is being told where to write rather than being asked for a selection. Compare it with <code>high = marks[marks &gt; 80]</code> above, which asks for a selection and gets a copy.</p>
+    <p class="ar">والفرق أن القناع هنا على <em>يسار</em> علامة <code>=</code>، فتُخبَر نمباي أين تكتب لا تُسأل عن اختيار. قارنه بـ <code>high = marks[marks &gt; 80]</code> أعلاه، فهي تطلب اختيارًا وتنال نسخة.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.2 &mdash; Moderate one subject without touching the others</span><span class="ar">تمرين 11.2 &mdash; عدّل مادة واحدة دون مسّ الأخريات</span></h4>
+    <p class="en">Raise every mark in the third subject by 10, capped at 100, leaving the other two columns alone. Then print the table to prove the other columns did not move.</p>
+    <p class="ar">ارفع كل علامة في المادة الثالثة بمقدار 10، محصورةً عند 100، وادع العمودين الآخرين. ثم اطبع الجدول لتثبت أن العمودين الآخرين لم يتحركا.</p>
+
+<pre class="code"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+# your lines here
+# expected:
+# [[ 40  55  80]
+#  [ 60  65 100]
+#  [ 80  75  60]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>third = marks[:, 2]
+third += 10
+third[third &gt; 100] = 100
+print(marks)
+</code></pre>
+      <div class="output">[[ 40  55  80]
+ [ 60  65 100]
+ [ 80  75  60]]</div>
+      <p class="en">This is the lesson's trap used deliberately: <code>third</code> is a view, so <code>third += 10</code> writes straight into the column of the real table and no assignment back is needed. Had you written <code>third = third + 10</code> instead, the <code>+</code> would have built a new array and <code>third</code> would have been rebound to it, leaving <code>marks</code> untouched &mdash; the same two lines, one character apart, with opposite effects. That distinction is <a href="#l11-h2">worth a second read</a>.</p>
+      <p class="ar">هذا فخُّ الدرس مستعملًا متعمدًا: فـ <code>third</code> نافذة، فـ <code>third += 10</code> تكتب مباشرة في عمود الجدول الحقيقي ولا يلزم إسنادٌ عائد. ولو كتبت <code>third = third + 10</code> بدلًا من ذلك لبنى <code>+</code> مصفوفةً جديدة ولأُعيد ربط <code>third</code> بها، تاركًا <code>marks</code> بلا مساس &mdash; السطران نفسهما بفارق محرف واحد وبأثرين متعاكسين. وذلك التمييز <a href="#l11-h2">يستحق قراءة ثانية</a>.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.3 &mdash; Make the resit safe</span><span class="ar">تمرين 11.3 &mdash; اجعل الإعادة آمنة</span></h4>
+    <p class="en">Take the middle three marks of a class into a separate array, cap them at 60, and leave the class untouched. Then prove it with <code>.base</code>.</p>
+    <p class="ar">خذ العلامات الثلاث الوسطى من صفٍّ إلى مصفوفة منفصلة، واحصرها عند 60، واترك الصفَّ بلا مساس. ثم أثبت ذلك بـ <code>.base</code>.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4].copy()
+resit[resit &gt; 60] = 60
+
+print("resit:", resit, "independent:", resit.base is None)
+print("class:", marks)
+</code></pre>
+      <div class="output">resit: [55 60 60] independent: True
+class: [ 40  55  70  85 100]</div>
+      <p class="en">One word. The habit worth forming is to write <code>.copy()</code> the moment you intend to <em>modify</em> a slice, and to leave it off when you only intend to read &mdash; which is most of the time, and is where the speed comes from.</p>
+      <p class="ar">كلمةٌ واحدة. والعادة الجديرة بالتكوين أن تكتب <code>.copy()</code> لحظةَ تنوي <em>تعديل</em> قطعة، وأن تتركها حين تنوي القراءة فقط &mdash; وهو أكثر الوقت، ومنه تأتي السرعة.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>a = np.array([1, 2, 3, 4])</code>, then <code>b = a[:2]</code>, then <code>b[0] = 99</code>. What is <code>a</code>?</span><span class="ar"><code>a = np.array([1, 2, 3, 4])</code> ثم <code>b = a[:2]</code> ثم <code>b[0] = 99</code>. فما قيمة <code>a</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[99  2  3  4]</code> &mdash; the slice is a view onto <code>a</code>, so writing through <code>b</code> writes into <code>a</code>.</span><span class="ar"><code>[99  2  3  4]</code> &mdash; فالقطعة نافذة على <code>a</code>، فالكتابة عبر <code>b</code> تكتب في <code>a</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[1 2 3 4]</code> &mdash; slicing copies, as it does for a list.</span><span class="ar"><code>[1 2 3 4]</code> &mdash; فالتقطيع ينسخ كما يفعل مع القائمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[99 2]</code> &mdash; <code>a</code> is shortened to match the slice.</span><span class="ar"><code>[99 2]</code> &mdash; تُقصَّر <code>a</code> لتطابق القطعة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code>, because a view may not be written to.</span><span class="ar"><code>ValueError</code>، لأن النافذة لا يجوز الكتابة فيها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second answer is what a Python list does, and the reason this bug is so easy to write: the syntax is identical and the behaviour is not. Nothing errors and nothing warns, so the only way to catch it is to know the rule &mdash; or to find a report that disagrees with the database next week.</div>
+      <div class="ar">الجواب الثاني هو ما تفعله قائمةُ بايثون، وهو سبب سهولة كتابة هذا الخلل: فالصيغة متطابقة والسلوك ليس كذلك. ولا شيء يُخطئ ولا شيء يحذّر، فالسبيل الوحيد لضبطه معرفةُ القاعدة &mdash; أو أن تجد تقريرًا يخالف قاعدة البيانات الأسبوع القادم.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which of these gives you an array you can modify <em>without</em> touching the original?</span><span class="ar">أيٌّ من هذه يعطيك مصفوفة تستطيع تعديلها <em>دون</em> مسّ الأصل؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en"><code>a[1:4]</code></span><span class="ar"><code>a[1:4]</code></span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>a[:, 0]</code></span><span class="ar"><code>a[:, 0]</code></span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en"><code>a[a &gt; 60]</code> &mdash; and <code>a[[0, 2]]</code> and <code>a.copy()</code> as well. A selection that is not a regular window has to be copied.</span><span class="ar"><code>a[a &gt; 60]</code> &mdash; وكذلك <code>a[[0, 2]]</code> و<code>a.copy()</code>. فالاختيار الذي ليس نافذة منتظمة يجب نسخه.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">All of them, as long as you do not use <code>+=</code>.</span><span class="ar">كلها، ما دمت لا تستعمل <code>+=</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The rule is mechanical: a view only exists when the selection can be described as "start, step, stop", so a slice is a view and an arbitrary list of positions or a mask cannot be. The fourth answer contains a real insight pointing the wrong way &mdash; <code>b = b + 1</code> does leave the original alone, but only because it rebinds the <em>name</em> <code>b</code> to a brand-new array; the view itself was never the thing that changed. Write <code>b += 1</code> and the original moves.</div>
+      <div class="ar">القاعدة آلية: فالنافذة لا توجد إلا حين يُوصَف الاختيار بـ«بداية وخطوة ونهاية»، فالقطعة نافذة وقائمةُ مواضع اعتباطية أو قناعٌ لا يمكن أن يكونا كذلك. والجواب الرابع يحوي بصيرة حقيقية تشير في الاتجاه الخطأ &mdash; فـ <code>b = b + 1</code> تترك الأصل فعلًا، لكن فقط لأنها تعيد ربط <em>الاسم</em> <code>b</code> بمصفوفة جديدة تمامًا؛ والنافذةُ نفسها لم تكن قطّ هي ما تغيّر. واكتب <code>b += 1</code> يتحرك الأصل.</div>
+    </div>
+  </div>
+
+  <h3 id="l11-s4"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l11-s5"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>Slicing a list copies; slicing an array does not.</strong> Identical syntax, opposite behaviour, no error either way.</span><span class="ar"><strong>تقطيعُ القائمة ينسخ؛ وتقطيعُ المصفوفة لا.</strong> صيغةٌ متطابقة وسلوكٌ متعاكس، ولا خطأ في الحالتين.</span></li>
+      <li><span class="en"><strong>Write <code>.copy()</code> the moment you intend to modify a slice</strong>, and leave it off when you only read. Reading is most of the time, and is where the speed comes from.</span><span class="ar"><strong>اكتب <code>.copy()</code> لحظةَ تنوي تعديل قطعة</strong>، واتركها حين تقرأ فقط. والقراءة أكثر الوقت، ومنها تأتي السرعة.</span></li>
+      <li><span class="en"><strong><code>a[row, column]</code>, and <code>a[:, 1]</code> is a whole column.</strong> The colon means "all of this dimension" and is the form you will use most.</span><span class="ar"><strong><code>a[الصف، العمود]</code>، و<code>a[:, 1]</code> عمودٌ كامل.</strong> فالنقطتان تعنيان «كل هذا البُعد» وهي الصيغة التي ستستعملها أكثر.</span></li>
+      <li><span class="en"><strong>Slices give views; a list of positions and a boolean mask give copies.</strong> The rule is whether the selection can be written as start, step, stop.</span><span class="ar"><strong>القطع تعطي نوافذ؛ وقائمةُ المواضع والقناعُ المنطقي يعطيان نسخًا.</strong> والقاعدة هل يُكتب الاختيار بداية وخطوة ونهاية.</span></li>
+      <li><span class="en"><strong>A mask on the left of <code>=</code> writes; a mask on the right selects.</strong> <code>a[a &gt; 80] = 80</code> changes <code>a</code>; <code>b = a[a &gt; 80]</code> hands you a copy.</span><span class="ar"><strong>القناع يسار <code>=</code> يكتب؛ والقناع يمينها يختار.</strong> فـ <code>a[a &gt; 80] = 80</code> تغيّر <code>a</code>؛ و<code>b = a[a &gt; 80]</code> تعطيك نسخة.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="#lesson-12">Lesson 12</a> subtracts a row of three averages from a table of nine marks, and the shapes do not match &mdash; which NumPy allows, usefully, and occasionally disastrously.</span><span class="ar"><strong>التالي:</strong> يطرح <a href="#lesson-12">الدرس 12</a> صفًّا من ثلاثة متوسطات من جدول فيه تسع علامات، والشكلان لا يتطابقان &mdash; وتسمح نمباي بذلك، نافعًا، وكارثيًا أحيانًا.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+
+<section class="page" id="lesson-12">
+
+
+  <span class="kicker"><span class="en">Lesson 12 &middot; Week 5 &middot; Lecture 14 &middot; 90 min</span><span class="ar">الدرس 12 &middot; الأسبوع 5 &middot; المحاضرة 14 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Shapes That Stretch: Broadcasting</span><span class="ar">أشكالٌ تتمدّد: البثّ</span></h1>
+
+  <p class="lede en">By the end of this lesson you will subtract three subject averages from a table of nine marks and watch it work, subtract three <em>student</em> averages from the same table and watch it work just as smoothly while producing nonsense, and learn the one rule that tells the two apart before you run anything.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستطرح ثلاثة متوسطات مواد من جدول فيه تسع علامات وتراه ينجح، ثم تطرح ثلاثة متوسطات <em>طلبة</em> من الجدول نفسه وتراه ينجح بالسلاسة نفسها وهو يُنتج هراءً، وتتعلّم القاعدة الواحدة التي تميّز بينهما قبل أن تشغّل شيئًا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="#lesson-10">Lesson 10</a> and <a href="#lesson-11">Lesson 11</a>. This lesson is entirely about <code>shape</code>, so if <code>(3, 3)</code> and <code>(3,)</code> do not yet read as different things, re-read <a href="#l10-s5">the shape section</a> first. No mathematics beyond subtraction is used.</p>
+    <p class="ar">أنجز <a href="#lesson-10">الدرس 10</a> و<a href="#lesson-11">الدرس 11</a>. فهذا الدرس عن <code>shape</code> كلّه، فإن لم تكن <code>(3, 3)</code> و<code>(3,)</code> تُقرآن شيئين مختلفين بعد فأعد قراءة <a href="#l10-s5">قسم الشكل</a> أولًا. ولا تُستعمل رياضيات غير الطرح.</p>
+  </div>
+
+  <h2 id="l12-h1"><span class="en">Concept 1 &mdash; A smaller shape is stretched to fit a larger one</span><span class="ar">المفهوم 1 &mdash; الشكل الأصغر يُمدَّد ليناسب الأكبر</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Three subjects were marked by three different examiners and one marked harder than the others. To compare students fairly you want every mark expressed as a distance from its own subject's average. Written as a loop that is two nested <code>for</code>s and an index you will get wrong at least once.</p>
+    <p class="ar">صحّح ثلاثَ المواد ثلاثةُ ممتحنين وصحّح أحدهم أقسى من الآخرين. ولمقارنة الطلبة بإنصاف تريد كل علامة معبَّرًا عنها بُعدًا عن متوسط مادتها. ومكتوبًا حلقةً فهو حلقتا <code>for</code> متداخلتان وفهرسٌ ستخطئه مرة على الأقل.</p>
+  </div>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+subject_mean = marks.mean(axis=0)
+print(subject_mean, subject_mean.shape)
+
+print(marks - subject_mean)
+</code></pre>
+
+  <div class="output">[60. 65. 70.] (3,)
+[[-20. -10.   0.]
+ [  0.   0.  20.]
+ [ 20.  10. -20.]]</div>
+
+  <p class="en">Three numbers were subtracted from nine, and nobody complained. The first column had 60 taken off it, the second 65, the third 70 &mdash; each column got its own subject's average, which is exactly what was wanted. That is <strong>broadcasting</strong>: when two shapes are not the same, NumPy stretches the smaller one rather than refusing.</p>
+  <p class="ar">طُرحت ثلاثة أعداد من تسعة، ولم يعترض أحد. فالعمود الأول طُرح منه 60، والثاني 65، والثالث 70 &mdash; فنال كل عمود متوسط مادته، وهو المراد بالضبط. وذلك هو <strong>البثّ</strong>: فحين لا يتطابق الشكلان تمدّد نمباي الأصغر بدل أن ترفض.</p>
+
+  <h3 id="l12-s1"><span class="en">The rule, in one line</span><span class="ar">القاعدة في سطر</span></h3>
+
+  <div class="note">
+    <h4><span class="en">Compare the shapes from the right. A dimension fits if it is equal, or 1, or absent.</span><span class="ar">قارن الشكلين من اليمين. ويناسب البُعد إن كان متساويًا أو 1 أو غائبًا.</span></h4>
+    <p class="en">Write the two shapes one above the other, right-aligned, and check each column. Equal is fine. A 1 is fine and gets repeated. Missing is fine and is treated as 1. Anything else is an error.</p>
+    <p class="ar">اكتب الشكلين أحدهما فوق الآخر محاذَيين إلى اليمين، وافحص كل عمود. فالتساوي مقبول. و1 مقبولة وتُكرَّر. والغياب مقبول ويُعامَل 1. وما عدا ذلك خطأ.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 250" role="img" aria-labelledby="l12fig1">
+      <title id="l12fig1">right-align the shapes and check each column</title>
+      <text class="dg-t dg-b en" x="20" y="28">it fits</text>
+      <text class="dg-t dg-b ar" x="20" y="28">ينطبق</text>
+
+      <text class="dg-t dg-c dg-n" x="150" y="60" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-c dg-n" x="150" y="84" text-anchor="end">(3,)</text>
+      <path class="dg-line" d="M 20 94 L 158 94"/>
+      <text class="dg-t dg-c dg-n" x="150" y="118" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-s en" x="175" y="60">3 rows, 3 columns</text>
+      <text class="dg-t dg-s en" x="175" y="84">3 columns, no row dimension</text>
+      <text class="dg-t dg-s en" x="175" y="118">the row is reused for every row</text>
+      <text class="dg-t dg-s ar" x="175" y="60">3 صفوف و3 أعمدة</text>
+      <text class="dg-t dg-s ar" x="175" y="84">3 أعمدة بلا بُعد صفوف</text>
+      <text class="dg-t dg-s ar" x="175" y="118">يُعاد استعمال الصفّ لكل صفّ</text>
+
+      <text class="dg-t dg-b en" x="20" y="166">it does not</text>
+      <text class="dg-t dg-b ar" x="20" y="166">لا ينطبق</text>
+      <text class="dg-t dg-c dg-n" x="150" y="198" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-c dg-n" x="150" y="222" text-anchor="end">(2,)</text>
+      <path class="dg-line" d="M 20 232 L 158 232"/>
+      <text class="dg-t dg-s en" x="175" y="198">last dimension is 3</text>
+      <text class="dg-t dg-s en" x="175" y="222">last dimension is 2 — not equal, not 1</text>
+      <text class="dg-t dg-s ar" x="175" y="198">البُعد الأخير 3</text>
+      <text class="dg-t dg-s ar" x="175" y="222">البُعد الأخير 2 — لا متساوٍ ولا 1</text>
+      <text class="dg-t dg-c dg-n" x="530" y="245" text-anchor="middle">ValueError</text>
+    </svg>
+    <figcaption><span class="en">Figure 12.1 &mdash; right-align the two shapes and read down each column. The error message quotes exactly these two shapes.</span><span class="ar">الشكل 12.1 &mdash; حاذِ الشكلين إلى اليمين واقرأ كل عمود نزولًا. ورسالةُ الخطأ تقتبس هذين الشكلين بالضبط.</span></figcaption>
+  </figure>
+
+<pre class="code bad"><code>print(marks - np.array([1., 2.]))
+</code></pre>
+
+  <div class="output">ValueError: operands could not be broadcast together with shapes (3,3) (2,)</div>
+
+  <p class="en">Read that message as a gift. It prints both shapes, in the order you wrote them, so you rarely need to work out what went wrong &mdash; you need to work out which of the two is not what you meant.</p>
+  <p class="ar">اقرأ تلك الرسالة هديةً. فهي تطبع الشكلين بالترتيب الذي كتبتهما به، فنادرًا ما تحتاج إلى استنتاج ما الخطأ &mdash; بل تحتاج إلى استنتاج أيُّهما ليس ما قصدت.</p>
+
+  <div data-trace-id="t-broadcast"></div>
+
+  <h3 id="l12-s2"><span class="en">The three shapes you will actually use</span><span class="ar">الأشكال الثلاثة التي ستستعملها فعلًا</span></h3>
+
+<pre class="code good"><code>a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+
+print(a + 10)
+print(a + np.array([10, 20, 30]))
+print(a + np.array([[100],
+                    [200]]))
+</code></pre>
+
+  <div class="output">[[11 12 13]
+ [14 15 16]]
+[[11 22 33]
+ [14 25 36]]
+[[101 102 103]
+ [204 205 206]]</div>
+
+  <p class="en">A single number stretches in every direction. A <strong>row</strong> of shape <code>(3,)</code> is reused down the rows, so each column gets its own number. A <strong>column</strong> of shape <code>(2, 1)</code> is reused across the columns, so each row gets its own number. Those three cover nearly everything you will write, and the only one that needs care is telling the second apart from the third.</p>
+  <p class="ar">العددُ المفرد يتمدّد في كل اتجاه. و<strong>الصفُّ</strong> ذو الشكل <code>(3,)</code> يُعاد استعماله نزولًا على الصفوف، فينال كل عمود عددَه. و<strong>العمودُ</strong> ذو الشكل <code>(2, 1)</code> يُعاد استعماله عرضًا على الأعمدة، فينال كل صفّ عددَه. وتلك الثلاثة تغطي كل ما ستكتبه تقريبًا، والوحيد الذي يحتاج حذرًا هو تمييز الثانية عن الثالثة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A table <code>t</code> has shape <code>(2, 3)</code>. What does <code>t + np.array([1., 2.])</code> do?</span><span class="ar">جدولٌ <code>t</code> شكله <code>(2, 3)</code>. فماذا تفعل <code>t + np.array([1., 2.])</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It raises <code>ValueError</code>: right-aligned, the last dimensions are 3 and 2, which are neither equal nor 1.</span><span class="ar">ترفع <code>ValueError</code>: فبالمحاذاة يمينًا يكون البُعدان الأخيران 3 و2، ولا متساويان ولا أحدهما 1.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It adds 1 to the first row and 2 to the second, giving shape <code>(2, 3)</code>.</span><span class="ar">تضيف 1 إلى الصفّ الأول و2 إلى الثاني فتعطي الشكل <code>(2, 3)</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It gives shape <code>(2, 2)</code>, keeping only the columns that had a number.</span><span class="ar">تعطي الشكل <code>(2, 2)</code> فتُبقي الأعمدة التي لها عدد فقط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It gives shape <code>(2, 3)</code> by repeating the two numbers until the row is full.</span><span class="ar">تعطي الشكل <code>(2, 3)</code> بتكرار العددين حتى يمتلئ الصفّ.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is what you probably <em>meant</em>, and it is the whole lesson: two numbers for two rows have to be written as a column, <code>[:, None]</code>, shape <code>(2, 1)</code>. Flat arrays always line up with the columns. The fourth option is worth refuting explicitly &mdash; broadcasting never repeats a dimension of size 2 to fill a dimension of size 3; only a dimension of exactly 1 is stretched.</div>
+      <div class="ar">الخيار الثاني هو ما <em>قصدتَه</em> على الأرجح، وهو الدرس كله: فعددان لصفّين يجب أن يُكتبا عمودًا <code>[:, None]</code> بالشكل <code>(2, 1)</code>. فالمصفوفاتُ المسطّحة تُحاذي الأعمدة دائمًا. والخيار الرابع جديرٌ بالدحض صريحًا &mdash; فالبثُّ لا يكرّر أبدًا بُعدًا حجمه 2 ليملأ بُعدًا حجمه 3؛ ولا يُمدَّد إلا بُعدٌ حجمه 1 بالضبط.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.1 &mdash; Centre a table both ways</span><span class="ar">تمرين 12.1 &mdash; مركِز جدولًا بالاتجاهين</span></h4>
+    <p class="en">Four students, three subjects. Produce two centred tables from it: one where every mark is a distance from its own <em>subject</em> average, and one where every mark is a distance from its own <em>student</em> average. Print the shape of each average before you subtract it.</p>
+    <p class="ar">أربعة طلبة وثلاث مواد. أنتج منه جدولين مُمركَزين: واحدٌ تكون فيه كل علامة مسافةً من متوسط <em>مادتها</em>، وآخر تكون فيه كل علامة مسافةً من متوسط <em>طالبها</em>. واطبع شكل كل متوسط قبل طرحه.</p>
+
+<pre class="code"><code>t = np.array([[40., 55., 70.],
+              [60., 65., 90.],
+              [80., 75., 50.],
+              [50., 60., 65.]])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(t.mean(axis=0).shape, t.mean(axis=1, keepdims=True).shape)
+
+by_subject = t - t.mean(axis=0)
+by_student = t - t.mean(axis=1, keepdims=True)
+
+print(by_subject.round(1))
+print(by_student.round(1))
+</code></pre>
+      <div class="output">(3,) (4, 1)
+[[-17.5  -8.8   1.2]
+ [  2.5   1.2  21.2]
+ [ 22.5  11.2 -18.8]
+ [ -7.5  -3.8  -3.8]]
+[[-15.    0.   15. ]
+ [-11.7  -6.7  18.3]
+ [ 11.7   6.7 -18.3]
+ [ -8.3   1.7   6.7]]</div>
+      <p class="en">The subject average needs no help: <code>(3,)</code> right-aligns with the three columns, which is what a per-subject number is. The student average needs saying out loud, and this table is the one where getting it wrong is cheap &mdash; <code>t - t.mean(axis=1)</code> raises <code>ValueError: operands could not be broadcast together with shapes (4,3) (4,)</code>, because four rows cannot line up against three columns.</p>
+      <p class="ar">متوسطُ المادة لا يحتاج عونًا: فـ <code>(3,)</code> تُحاذي الأعمدة الثلاثة يمينًا، وذلك ما يكون العددُ لكل مادة. وأما متوسط الطالب فيحتاج أن يُقال جهرًا، وهذا الجدول هو الذي يكون الخطأُ فيه رخيصًا &mdash; فـ <code>t - t.mean(axis=1)</code> ترفع <code>ValueError: operands could not be broadcast together with shapes (4,3) (4,)</code>، لأن أربعة صفوف لا تُحاذي ثلاثة أعمدة.</p>
+      <p class="en">Now delete one row and run it again. With a square table the same mistake produces nine numbers and no error at all, which is <a href="#l12-h2">the next concept</a>.</p>
+      <p class="ar">واحذف الآن صفًّا واحدًا وأعِد التشغيل. فعلى جدولٍ مربّع يُنتج الخطأُ نفسه تسعةَ أعداد ولا خطأ إطلاقًا، وذلك هو <a href="#l12-h2">المفهوم التالي</a>.</p>
+    </details>
+  </section>
+
+  <h2 id="l12-h2"><span class="en">Concept 2 &mdash; The shape that fits when it should not</span><span class="ar">المفهوم 2 &mdash; الشكل الذي ينطبق حين لا ينبغي</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Now do the other comparison. Instead of asking how each mark compares with its subject, ask how it compares with that <em>student's</em> own average &mdash; who is strong at maths relative to themselves. Change one number and run it.</p>
+    <p class="ar">والآن افعل المقارنة الأخرى. فبدل السؤال كيف تقارَن كل علامة بمادتها، اسأل كيف تقارَن بمتوسط ذلك <em>الطالب</em> نفسه &mdash; من هو قويٌّ في الرياضيات نسبةً إلى نفسه. غيّر عددًا واحدًا وشغّله.</p>
+  </div>
+
+<pre class="code bad"><code>student_mean = marks.mean(axis=1)
+print(student_mean, student_mean.shape)
+
+print(marks - student_mean)
+</code></pre>
+
+  <div class="output">[55.         71.66666667 68.33333333] (3,)
+[[-15.         -16.66666667   1.66666667]
+ [  5.          -6.66666667  21.66666667]
+ [ 25.           3.33333333 -18.33333333]]</div>
+
+  <h3 id="l12-s3"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">Nine numbers came out, no error was raised, and every one of them is wrong. The row of student averages has shape <code>(3,)</code>, exactly like the row of subject averages did, so the rule applied it the only way it knows: <strong>across each row</strong>. Student 1's average was subtracted from the first column &mdash; from student 1's maths, student 2's maths and student 3's maths &mdash; and student 2's average from the second column, and so on. Each number is a real subtraction between two unrelated quantities.</p>
+  <p class="ar">خرجت تسعة أعداد ولم يُرفع أي خطأ وكلُّها خطأ. فصفُّ متوسطات الطلبة شكله <code>(3,)</code>، تمامًا كصفّ متوسطات المواد، فطبّقته القاعدة بالطريقة الوحيدة التي تعرفها: <strong>عرضًا على كل صفّ</strong>. فطُرح متوسط الطالب 1 من العمود الأول &mdash; من رياضيات الطالب 1 ورياضيات الطالب 2 ورياضيات الطالب 3 &mdash; وطُرح متوسط الطالب 2 من العمود الثاني وهكذا. فكل عدد طرحٌ حقيقي بين كمّيتين لا علاقة بينهما.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">A shape of <code>(3,)</code> does not say whether its three numbers are <em>per column</em> or <em>per row</em>. The table is square, so both readings fit the rule, and NumPy always picks the same one. Broadcasting cannot know what you meant; it only knows what shape you handed it.</p>
+    <p class="ar">الشكلُ <code>(3,)</code> لا يقول هل أعداده الثلاثة <em>لكل عمود</em> أم <em>لكل صفّ</em>. والجدول مربّع، فالقراءتان تنطبقان على القاعدة، وتختار نمباي الواحدةَ نفسها دائمًا. فالبثُّ لا يمكنه معرفة ما قصدت؛ إنما يعرف أي شكل سلّمته.</p>
+  </div>
+
+  <h3 id="l12-s4"><span class="en">The fix: say which direction you meant</span><span class="ar">الإصلاح: قل أي اتجاه قصدت</span></h3>
+
+  <p class="en">Turn the row of three into a <em>column</em> of three, so its shape says "one number per row" out loud.</p>
+  <p class="ar">حوّل صفَّ الثلاثة <em>عمودًا</em> من ثلاثة، فيقول شكله «عددٌ لكل صفّ» بصوت مسموع.</p>
+
+<pre class="code good"><code>print(student_mean.shape)
+print(student_mean[:, None].shape)
+
+print(marks - student_mean[:, None])
+</code></pre>
+
+  <div class="output">(3,)
+(3, 1)
+[[-15.           0.          15.        ]
+ [-11.66666667  -6.66666667  18.33333333]
+ [ 11.66666667   6.66666667 -18.33333333]]</div>
+
+  <p class="en"><code>[:, None]</code> means "keep every element, and add a new dimension of length 1 at the end". <code>(3,)</code> becomes <code>(3, 1)</code>, which right-aligned against <code>(3, 3)</code> matches 3 with 3 and stretches the 1 &mdash; across the columns, which is what you wanted. Check the first row of the result: &minus;15, 0, +15 for marks of 40, 55 and 70 around an average of 55. That is a student compared with themselves.</p>
+  <p class="ar"><code>[:, None]</code> تعني «أبقِ كل عنصر، وأضف بُعدًا جديدًا طوله 1 في النهاية». فتصير <code>(3,)</code> هي <code>(3, 1)</code>، ومحاذاةً إلى اليمين أمام <code>(3, 3)</code> تطابق 3 مع 3 وتمدّد الـ1 &mdash; عرضًا على الأعمدة، وهو ما أردت. وافحص الصفّ الأول من النتيجة: &minus;15 و0 و+15 لعلامات 40 و55 و70 حول متوسط 55. وذلك طالبٌ مقارَنٌ بنفسه.</p>
+
+  <div class="note">
+    <h4><span class="en">Three ways to write the same thing</span><span class="ar">ثلاث طرق لكتابة الشيء نفسه</span></h4>
+    <p class="en"><code>student_mean[:, None]</code>, <code>student_mean.reshape(-1, 1)</code> and <code>marks.mean(axis=1, keepdims=True)</code> all give shape <code>(3, 1)</code>. The last is the best of the three, because it never lets the wrong shape exist in the first place &mdash; the dimension is kept at the moment it would have been dropped, rather than put back afterwards. <a href="#lesson-13">Lesson 13</a> uses it properly.</p>
+    <p class="ar"><code>student_mean[:, None]</code> و<code>student_mean.reshape(-1, 1)</code> و<code>marks.mean(axis=1, keepdims=True)</code> تعطي كلها الشكل <code>(3, 1)</code>. وآخرها أفضلها، لأنه لا يدع الشكل الخطأ يوجد أصلًا &mdash; فيُحفَظ البُعد في اللحظة التي كان سيسقط فيها، بدل إعادته بعدها. ويستعمله <a href="#lesson-13">الدرس 13</a> كما ينبغي.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.2 &mdash; Scale each subject to 0&ndash;1</span><span class="ar">تمرين 12.2 &mdash; قِس كل مادة إلى 0&ndash;1</span></h4>
+    <p class="en">Put every mark on a 0-to-1 scale <em>within its own subject</em>, so the weakest mark in each column becomes 0 and the strongest becomes 1. Two lines, no loop. This is the <code>MinMaxScaler</code> of <a href="#lesson-08">Lesson 8</a>, done to a whole table at once.</p>
+    <p class="ar">ضع كل علامة على مقياس من 0 إلى 1 <em>داخل مادتها</em>، فتصير أضعف علامة في كل عمود 0 وأقواها 1. سطران بلا حلقة. وهذا هو <code>MinMaxScaler</code> من <a href="#lesson-08">الدرس 8</a>، مطبَّقًا على جدول كامل دفعةً.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# expected:
+# [[0.  0.  0.5]
+#  [0.5 0.5 1. ]
+#  [1.  1.  0. ]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>low = marks.min(axis=0)
+high = marks.max(axis=0)
+print((marks - low) / (high - low))
+</code></pre>
+      <div class="output">[[0.  0.  0.5]
+ [0.5 0.5 1. ]
+ [1.  1.  0. ]]</div>
+      <p class="en">Both <code>low</code> and <code>high</code> have shape <code>(3,)</code> and both broadcast down the rows, so each column is scaled by its own two numbers. Note the third column: 70 becomes 0.5 because that subject ran from 50 to 90, while the same 70 would be 1.0 in the first column. That is the point of scaling per subject, and it is also why <a href="#l8-s3">those two numbers have to be stored</a> if a new student's mark is to be placed on the same scale later.</p>
+      <p class="ar">لكلٍّ من <code>low</code> و<code>high</code> الشكل <code>(3,)</code> وكلاهما يُبثّ نزولًا على الصفوف، فيُقاس كل عمود برقميه. ولاحظ العمود الثالث: فتصير 70 هي 0.5 لأن تلك المادة امتدت من 50 إلى 90، بينما تكون 70 نفسها 1.0 في العمود الأول. وذلك مقصد التقييس لكل مادة، وهو أيضًا سبب <a href="#l8-s3">وجوب تخزين ذينك الرقمين</a> إن كانت علامةُ طالب جديد ستُوضع على المقياس نفسه لاحقًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.3 &mdash; Read the error, then fix it</span><span class="ar">تمرين 12.3 &mdash; اقرأ الخطأ ثم أصلحه</span></h4>
+    <p class="en">A colleague has four students and three subjects, and wants to add a bonus per student. Their code raises an error. Read the shapes in the message and fix the line without changing <code>bonus</code> itself.</p>
+    <p class="ar">لدى زميل أربعة طلبة وثلاث مواد، ويريد إضافة مكافأة لكل طالب. وكودُه يرفع خطأً. اقرأ الشكلين في الرسالة وأصلح السطر دون تغيير <code>bonus</code> نفسه.</p>
+
+<pre class="code bad"><code>table = np.zeros((4, 3))
+bonus = np.array([1., 2., 3., 4.])
+
+print(table + bonus)
+</code></pre>
+    <div class="output">ValueError: operands could not be broadcast together with shapes (4,3) (4,)</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(table + bonus[:, None])
+</code></pre>
+      <div class="output">[[1. 1. 1.]
+ [2. 2. 2.]
+ [3. 3. 3.]
+ [4. 4. 4.]]</div>
+      <p class="en">The message said <code>(4,3)</code> and <code>(4,)</code>: right-aligned, the last dimensions are 3 and 4, which are neither equal nor 1. Making the bonus a column, <code>(4, 1)</code>, aligns 4 with 4 and stretches the 1 across the three subjects. Worth noticing: this table is 4&times;3 rather than square, so the mistake from Concept 2 is <em>impossible</em> here &mdash; the error is a gift that a square table would not have given you.</p>
+      <p class="ar">قالت الرسالة <code>(4,3)</code> و<code>(4,)</code>: فمحاذَيين إلى اليمين يكون البُعدان الأخيران 3 و4، وليسا متساويين ولا 1. وجعلُ المكافأة عمودًا <code>(4, 1)</code> يحاذي 4 مع 4 ويمدّد الـ1 على المواد الثلاث. ويجدر الانتباه: فهذا الجدول 4&times;3 لا مربّع، فخطأُ المفهوم 2 <em>مستحيل</em> هنا &mdash; والخطأُ هديةٌ ما كان جدولٌ مربّع ليعطيكها.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">An array of shape <code>(5, 3)</code> is added to an array of shape <code>(3,)</code>. What happens?</span><span class="ar">تُجمع مصفوفةٌ شكلها <code>(5, 3)</code> مع مصفوفة شكلها <code>(3,)</code>. فماذا يحدث؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It works: right-aligned the last dimensions are 3 and 3, and the missing one counts as 1, so the three numbers are reused down all five rows. The result has shape <code>(5, 3)</code>.</span><span class="ar">تنجح: فمحاذَيين إلى اليمين يكون البُعدان الأخيران 3 و3، والغائب يُحسب 1، فتُعاد الأعداد الثلاثة نزولًا على الصفوف الخمسة. والنتيجة شكلها <code>(5, 3)</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code>, because 5 and 3 are different.</span><span class="ar"><code>ValueError</code>، لأن 5 و3 مختلفان.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It works, and the three numbers are reused across the columns, one per row.</span><span class="ar">تنجح، وتُعاد الأعداد الثلاثة عرضًا على الأعمدة، واحدًا لكل صفّ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The result has shape <code>(3,)</code>, because the smaller shape wins.</span><span class="ar">النتيجة شكلها <code>(3,)</code>، لأن الشكل الأصغر يفوز.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Shapes are compared <strong>from the right</strong>, so 5 is never compared with 3 &mdash; the 5 has nothing opposite it and is simply kept. The third answer is the one to understand rather than just reject: that is what you would get from shape <code>(5, 1)</code>, and it is the whole subject of Concept 2. With a 5&times;3 table the two readings have different shapes and a mistake raises an error; with a square table they do not, and it does not.</div>
+      <div class="ar">تُقارَن الأشكال <strong>من اليمين</strong>، فلا تُقارَن 5 بـ3 أبدًا &mdash; فالـ5 لا شيء يقابلها وتُحفَظ ببساطة. والجواب الثالث يُفهَم لا يُرفض فحسب: فذلك ما ستحصل عليه من الشكل <code>(5, 1)</code>، وهو موضوع المفهوم 2 كلّه. ومع جدول 5&times;3 تختلف القراءتان شكلًا فيرفع الخطأُ خطأً؛ ومع جدول مربّع لا تختلفان ولا يرفع.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why is subtracting <code>marks.mean(axis=1)</code> from a square <code>marks</code> table worse than a crash?</span><span class="ar">لماذا طرحُ <code>marks.mean(axis=1)</code> من جدول <code>marks</code> مربّع أسوأ من الانهيار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because the shapes do fit, so it runs and returns a full table of plausible-looking numbers, each one a subtraction between a mark and an unrelated student's average.</span><span class="ar">لأن الشكلين ينطبقان، فيعمل ويُعيد جدولًا كاملًا من أعداد تبدو معقولة، كلٌّ منها طرحٌ بين علامة ومتوسط طالب لا علاقة له.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because it is slower than the correct version.</span><span class="ar">لأنه أبطأ من النسخة الصحيحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because it changes <code>marks</code> in place, so the original is lost.</span><span class="ar">لأنه يغيّر <code>marks</code> في مكانها، فيُفقد الأصل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It is not worse; the numbers are correct, just transposed.</span><span class="ar">ليس أسوأ؛ فالأعداد صحيحة لكنها منقولة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A crash tells you on the line that caused it. This tells you nothing, and the output has the right shape and a believable range, so it survives a glance at the first few rows. The fourth answer is worth refuting precisely: the values are not a transposed version of the right answer, they are arithmetic between quantities that have nothing to do with each other &mdash; there is no rearrangement that recovers the intended result. The habit that prevents all of it is to print <code>.shape</code> of both operands before writing a line like this.</div>
+      <div class="ar">الانهيارُ يخبرك في السطر الذي سبّبه. وهذا لا يخبرك بشيء، ومُخرَجه بالشكل الصحيح وبمدى قابل للتصديق، فينجو من نظرة إلى الصفوف الأولى. والجواب الرابع يستحق دحضًا دقيقًا: فالقيم ليست نسخة منقولة من الجواب الصحيح، بل حسابٌ بين كمّيات لا علاقة بينها &mdash; ولا إعادةَ ترتيب تستعيد النتيجة المقصودة. والعادةُ التي تمنع ذلك كله أن تطبع <code>.shape</code> للطرفين قبل كتابة سطر كهذا.</div>
+    </div>
+  </div>
+
+  <h3 id="l12-s5"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l12-s6"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>Compare shapes from the right.</strong> A dimension fits if it is equal, or 1, or absent. Anything else raises, and the message prints both shapes.</span><span class="ar"><strong>قارن الأشكال من اليمين.</strong> فيناسب البُعد إن كان متساويًا أو 1 أو غائبًا. وما عدا ذلك يرفع خطأً، والرسالة تطبع الشكلين.</span></li>
+      <li><span class="en"><strong>A row <code>(3,)</code> is reused down the rows;</strong> a column <code>(3, 1)</code> is reused across the columns. Those two are the whole subject.</span><span class="ar"><strong>الصفُّ <code>(3,)</code> يُعاد نزولًا على الصفوف؛</strong> والعمودُ <code>(3, 1)</code> يُعاد عرضًا على الأعمدة. وهذان هما الموضوع كله.</span></li>
+      <li><span class="en"><strong>A shape of <code>(3,)</code> does not say which direction you meant,</strong> and on a square table both readings fit the rule &mdash; so the wrong one runs silently.</span><span class="ar"><strong>الشكلُ <code>(3,)</code> لا يقول أي اتجاه قصدت،</strong> وعلى جدول مربّع تنطبق القراءتان على القاعدة &mdash; فتُنفَّذ الخاطئة بصمت.</span></li>
+      <li><span class="en"><strong><code>[:, None]</code> turns a row into a column,</strong> and <code>keepdims=True</code> is better still because it never lets the ambiguous shape exist.</span><span class="ar"><strong><code>[:, None]</code> تحوّل الصفَّ عمودًا،</strong> و<code>keepdims=True</code> أفضل منها لأنها لا تدع الشكل الملتبس يوجد أصلًا.</span></li>
+      <li><span class="en"><strong>Print <code>.shape</code> of both operands</strong> before any line that combines two arrays of different sizes. It costs one line and it is the only reliable defence against a silent result.</span><span class="ar"><strong>اطبع <code>.shape</code> للطرفين</strong> قبل أي سطر يجمع مصفوفتين مختلفتي الحجم. فهو يكلّف سطرًا واحدًا وهو الدفاع الموثوق الوحيد ضد نتيجة صامتة.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="#lesson-13">Lesson 13</a> is about the <code>axis=0</code> and <code>axis=1</code> that produced those averages, and about selecting rows with a mask.</span><span class="ar"><strong>التالي:</strong> <a href="#lesson-13">الدرس 13</a> عن <code>axis=0</code> و<code>axis=1</code> اللتين أنتجتا تلك المتوسطات، وعن اختيار الصفوف بقناع.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+
+<section class="page" id="lesson-13">
+
+
+  <span class="kicker"><span class="en">Lesson 13 &middot; Week 5 &middot; Lecture 15 &middot; 90 min</span><span class="ar">الدرس 13 &middot; الأسبوع 5 &middot; المحاضرة 15 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Summarising and Selecting: Axes and Masks</span><span class="ar">التلخيص والاختيار: المحاور والأقنعة</span></h1>
+
+  <p class="lede en">By the end of this lesson you will know which way <code>axis=0</code> points without guessing, pick out every student who passed without writing a loop or an <code>if</code>, and understand why a single missing mark turns a whole class average into <code>nan</code>.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستعرف أي اتجاه يشير إليه <code>axis=0</code> بلا تخمين، وستنتقي كل طالب نجح بلا حلقة ولا <code>if</code>، وستفهم لماذا تحوّل علامةٌ مفقودة واحدة متوسطَ صفٍّ كامل إلى <code>nan</code>.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="#lesson-12">Lesson 12</a>, which produced the averages this lesson explains, and read <a href="#a4-h4">Appendix A4 §4</a> on <code>nan</code> before the last section. This is the final lesson of the chapter; the two chapter tests come after it.</p>
+    <p class="ar">أنجز <a href="#lesson-12">الدرس 12</a> الذي أنتج المتوسطات التي يشرحها هذا الدرس، واقرأ <a href="#a4-h4">الملحق A4 §4</a> عن <code>nan</code> قبل القسم الأخير. وهذا آخر دروس الفصل؛ واختبارا الفصل بعده.</p>
+  </div>
+
+  <h2 id="l13-h1"><span class="en">Concept 1 &mdash; The axis you name is the one that disappears</span><span class="ar">المفهوم 1 &mdash; المحور الذي تسمّيه هو الذي يختفي</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">You want two summaries of the same table: how each subject did, and how each student did. Both are one call to <code>mean</code>, differing by a single digit, and that digit is the one everybody guesses wrong.</p>
+    <p class="ar">تريد ملخّصين للجدول نفسه: كيف أبلت كل مادة، وكيف أبلى كل طالب. وكلاهما استدعاءٌ واحد لـ <code>mean</code> يختلفان برقم واحد، وذلك الرقم هو ما يخمّنه الجميع خطأً.</p>
+  </div>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+print(marks.shape)
+print(marks.mean())
+print(marks.mean(axis=0), marks.mean(axis=0).shape)
+print(marks.mean(axis=1), marks.mean(axis=1).shape)
+</code></pre>
+
+  <div class="output">(3, 3)
+65.0
+[60. 65. 70.] (3,)
+[55.         71.66666667 68.33333333] (3,)</div>
+
+  <div class="note">
+    <h4><span class="en">The rule that makes this stop being a guess</span><span class="ar">القاعدة التي تجعل هذا يكفّ عن كونه تخمينًا</span></h4>
+    <p class="en">The shape is <code>(rows, columns)</code>, so axis 0 is rows and axis 1 is columns. <strong>The axis you name is the one that is collapsed away.</strong> <code>axis=0</code> eats the rows, which means it runs <em>down</em> each column and leaves one number per column &mdash; a subject average. <code>axis=1</code> eats the columns, running <em>across</em> each row, leaving one number per student.</p>
+    <p class="ar">الشكلُ <code>(الصفوف، الأعمدة)</code>، فالمحور 0 هو الصفوف والمحور 1 هو الأعمدة. و<strong>المحورُ الذي تسمّيه هو الذي يُطوى</strong>. فـ <code>axis=0</code> يأكل الصفوف، ومعناه أنه يمشي <em>نزولًا</em> في كل عمود ويترك عددًا لكل عمود &mdash; متوسطَ مادة. و<code>axis=1</code> يأكل الأعمدة، فيمشي <em>عرضًا</em> في كل صفّ، تاركًا عددًا لكل طالب.</p>
+    <p class="en">The reliable check is the shape, not the intuition: <code>(3, 3)</code> with axis 0 removed is <code>(3,)</code> &mdash; three numbers, one per surviving column.</p>
+    <p class="ar">والفحصُ الموثوق هو الشكل لا الحدس: فـ <code>(3, 3)</code> بإزالة المحور 0 تصير <code>(3,)</code> &mdash; ثلاثة أعداد، واحدٌ لكل عمود باقٍ.</p>
+  </div>
+
+  <div data-trace-id="t-axis"></div>
+
+  <p class="en">The same axis argument works on every reduction, and they all behave identically:</p>
+  <p class="ar">ووسيطُ المحور نفسه يعمل على كل اختزال، وكلُّها تتصرف تمامًا:</p>
+
+<pre class="code good"><code>print(marks.sum(axis=0))
+print(marks.min(axis=1))
+print(marks.max())
+print(marks.std(axis=0).round(2))
+</code></pre>
+
+  <div class="output">[180. 195. 210.]
+[40. 60. 50.]
+90.0
+[16.33  8.16 16.33]</div>
+
+  <h3 id="l13-s1"><span class="en"><code>keepdims</code>, and why it exists</span><span class="ar"><code>keepdims</code> ولماذا توجد</span></h3>
+
+  <p class="en"><a href="#l12-h2">Lesson 12's silent disaster</a> happened because <code>mean(axis=1)</code> gave shape <code>(3,)</code>, which no longer says which direction it came from. <code>keepdims=True</code> leaves the collapsed dimension in place as a 1, so the shape remembers.</p>
+  <p class="ar">وقعت <a href="#l12-h2">كارثةُ الدرس 12 الصامتة</a> لأن <code>mean(axis=1)</code> أعطت الشكل <code>(3,)</code> الذي لم يعد يقول من أي اتجاه جاء. و<code>keepdims=True</code> تُبقي البُعدَ المطويّ في موضعه 1، فيتذكّر الشكل.</p>
+
+<pre class="code good"><code>print(marks.mean(axis=1).shape)
+print(marks.mean(axis=1, keepdims=True).shape)
+
+print(marks - marks.mean(axis=1, keepdims=True))
+</code></pre>
+
+  <div class="output">(3,)
+(3, 1)
+[[-15.           0.          15.        ]
+ [-11.66666667  -6.66666667  18.33333333]
+ [ 11.66666667   6.66666667 -18.33333333]]</div>
+
+  <p class="en">That is the same correct answer as <code>[:, None]</code> gave, reached without the ambiguous shape ever existing. Make it a habit: if a reduction's result is going to be combined with the original array, ask for <code>keepdims=True</code>.</p>
+  <p class="ar">وذلك هو الجوابُ الصحيح نفسه الذي أعطته <code>[:, None]</code>، مبلوغًا دون أن يوجد الشكلُ الملتبس أصلًا. واجعلها عادة: إن كانت نتيجةُ اختزال ستُدمج بالمصفوفة الأصلية فاطلب <code>keepdims=True</code>.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">For the usual three-by-three table of marks, what is <code>(marks &gt;= 60).sum(axis=1)</code>?</span><span class="ar">في جدول العلامات المعتاد ثلاثة في ثلاثة، ما <code>(marks &gt;= 60).sum(axis=1)</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">How many subjects each student passed &mdash; one number per student, because naming axis 1 collapses the columns.</span><span class="ar">كم مادةً نجح فيها كل طالب &mdash; عددٌ لكل طالب، لأن تسمية المحور 1 تَطبِق الأعمدة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">How many students passed each subject &mdash; one number per subject.</span><span class="ar">كم طالبًا نجح في كل مادة &mdash; عددٌ لكل مادة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">One number: how many of the nine marks were passes.</span><span class="ar">عددٌ واحد: كم من العلامات التسع كانت ناجحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Three <code>True</code>/<code>False</code> values: whether each student passed at all.</span><span class="ar">ثلاث قيم <code>True</code>/<code>False</code>: هل نجح كل طالب أصلًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Two rules in sequence, and both have to be right. The comparison gives a <code>(3, 3)</code> mask, and the axis then says which direction to count in &mdash; the axis you name is the one that disappears, so axis 1 leaves one number per row. The second option is what <code>axis=0</code> gives, and on a square table both are three numbers, so the shape will not tell you which one you asked for. The fourth option is <code>.any(axis=1)</code>: counting and asking are different questions.</div>
+      <div class="ar">قاعدتان بالتتابع، وكلتاهما يجب أن تصحّ. فالمقارنةُ تعطي قناعًا <code>(3, 3)</code>، ثم يقول المحورُ في أي اتجاه يُعدّ &mdash; فالمحور الذي تسمّيه هو الذي يختفي، فيترك المحور 1 عددًا لكل صفّ. والخيار الثاني هو ما تعطيه <code>axis=0</code>، وعلى جدول مربّع كلاهما ثلاثة أعداد، فلن يخبرك الشكل أيّهما طلبت. والخيار الرابع هو <code>.any(axis=1)</code>: فالعدُّ والسؤال سؤالان مختلفان.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.1 &mdash; A shortlist with two conditions</span><span class="ar">تمرين 13.1 &mdash; قائمةٌ قصيرة بشرطين</span></h4>
+    <p class="en">Four students, three subjects, and one mark never arrived. Select the rows of students who scored 60 or more in the first subject <strong>and</strong> have a complete set of marks. No loop, no <code>if</code>, and no <code>np.isnan</code> &mdash; the chapter has already given you a way to exclude a gap.</p>
+    <p class="ar">أربعة طلبة وثلاث مواد وعلامةٌ لم تصل أبدًا. اختر صفوف الطلبة الذين نالوا 60 أو أكثر في المادة الأولى <strong>و</strong>لديهم علامات كاملة. بلا حلقة ولا <code>if</code> ولا <code>np.isnan</code> &mdash; فقد أعطاك الفصل سبيلًا لاستثناء الفراغ.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., np.nan, 90.],
+                  [80., 75., 50.],
+                  [65., 70., 72.]])
+# expected:
+# [[80. 75. 50.]
+#  [65. 70. 72.]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>complete = (marks &gt;= 0).all(axis=1)
+strong = marks[:, 0] &gt;= 60
+
+print(complete)
+print(strong)
+print(marks[complete &amp; strong])
+</code></pre>
+      <div class="output">[ True False  True  True]
+[False  True  True  True]
+[[80. 75. 50.]
+ [65. 70. 72.]]</div>
+      <p class="en">The trick is the one fact about <code>nan</code> that is easy to resent and useful here: every comparison against it is <code>False</code>. So <code>marks &gt;= 0</code> is false at the gap, and requiring it of every mark in the row excludes exactly the students with a missing mark. <code>np.isnan(marks).any(axis=1)</code> is the version that says what it means, and you should prefer it in real code; this one is worth doing once to make the rule stick.</p>
+      <p class="ar">والحيلةُ هي الواقعةُ الوحيدة عن <code>nan</code> التي يسهل الاستياء منها وهي مفيدة هنا: فكلُّ مقارنة بها <code>False</code>. فـ <code>marks &gt;= 0</code> كاذبةٌ عند الفراغ، واشتراطُها في كل علامة في الصفّ يستثني بالضبط الطلبةَ ذوي العلامة المفقودة. و<code>np.isnan(marks).any(axis=1)</code> هي النسخة التي تقول ما تعني، وينبغي أن تُفضّلها في الشفرة الحقيقية؛ وهذه جديرةٌ بأن تُفعل مرة ليثبت القاعدة.</p>
+      <p class="en">Two masks, one per row each, combined with <code>&amp;</code> &mdash; and note that both had to be reduced to one answer per row before they could meet. <code>complete</code> came from a reduction across the columns and <code>strong</code> from a single column; they are the same shape, <code>(4,)</code>, which is what makes the <code>&amp;</code> legal and the row selection correct.</p>
+      <p class="ar">قناعان، في كلٍّ مدخلٌ لكل صفّ، مجموعان بـ <code>&amp;</code> &mdash; ولاحظ أن كليهما وجب أن يُخفَّض إلى جوابٍ لكل صفّ قبل أن يتلاقيا. فـ <code>complete</code> جاء من تخفيضٍ على الأعمدة و<code>strong</code> من عمودٍ واحد؛ وهما بالشكل نفسه <code>(4,)</code>، وذلك ما يجعل <code>&amp;</code> مشروعةً واختيارَ الصفوف صحيحًا.</p>
+    </details>
+  </section>
+
+  <h2 id="l13-h2"><span class="en">Concept 2 &mdash; A mask is a question answered for every element</span><span class="ar">المفهوم 2 &mdash; القناع سؤالٌ مُجابٌ لكل عنصر</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">List every mark of 60 or more, count them, and cap anything above 95. Written with a loop that is three loops and two counters; written with masks it is three lines with no <code>if</code> anywhere.</p>
+    <p class="ar">اسرد كل علامة 60 فأكثر، وعدّها، واحصر ما فوق 95. ومكتوبًا بحلقة فهو ثلاث حلقات وعدّادان؛ ومكتوبًا بالأقنعة فهو ثلاثة أسطر بلا <code>if</code> في أي موضع.</p>
+  </div>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+passed = marks &gt;= 60
+print(passed)
+print(marks[passed])
+print(passed.sum())
+</code></pre>
+
+  <div class="output">[False False  True  True  True]
+[ 70  85 100]
+3</div>
+
+  <p class="en">Three separate ideas, each worth stating. A comparison produces a <strong>mask</strong> &mdash; one <code>True</code> or <code>False</code> per element, the same shape as the array. Indexing with a mask <strong>selects</strong> the elements where it is <code>True</code>. And summing a mask <strong>counts</strong> them, because <code>True</code> adds as 1 &mdash; which is why you will see <code>.sum()</code> used to count things all through the rest of this course.</p>
+  <p class="ar">ثلاث أفكار منفصلة، كلٌّ جديرة بالقول. فالمقارنةُ تُنتج <strong>قناعًا</strong> &mdash; <code>True</code> أو <code>False</code> لكل عنصر، بشكل المصفوفة نفسه. والفهرسةُ بقناع <strong>تختار</strong> العناصر التي هو فيها <code>True</code>. وجمعُ القناع <strong>يعدّها</strong>، لأن <code>True</code> تُجمع 1 &mdash; ولهذا سترى <code>.sum()</code> مستعملةً للعدّ في بقية هذا المقرر كله.</p>
+
+  <h3 id="l13-s2"><span class="en">Combining conditions: <code>&amp;</code> and <code>|</code>, never <code>and</code></span><span class="ar">جمع الشروط: <code>&amp;</code> و<code>|</code> ولا <code>and</code> أبدًا</span></h3>
+
+<pre class="code good"><code>print(marks[(marks &gt; 50) &amp; (marks &lt; 90)])
+print(marks[(marks &lt; 50) | (marks &gt; 90)])
+
+print(marks[(marks &gt; 50) and (marks &lt; 90)])
+</code></pre>
+
+  <div class="output">[55 70 85]
+[ 40 100]
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()</div>
+
+  <p class="en">The error is being helpful, if you read it slowly. <code>and</code> wants to decide whether the whole left side is true or false, so that it can decide whether to look at the right side &mdash; and an array of five answers is neither. <code>&amp;</code> has no such ambition: it combines the two masks element by element. <strong>The brackets are not optional</strong>: <code>&amp;</code> binds more tightly than <code>&gt;</code>, so without them Python tries <code>50 &amp; marks</code> first.</p>
+  <p class="ar">الخطأُ يساعدك إن قرأته متمهلًا. فـ <code>and</code> تريد أن تقرّر هل الطرف الأيسر كله صحيح أم خطأ، لتقرّر هل تنظر إلى الأيمن &mdash; ومصفوفةٌ بخمسة أجوبة ليست هذا ولا ذاك. أما <code>&amp;</code> فلا طموح لها في ذلك: إنما تجمع القناعين عنصرًا عنصرًا. و<strong>القوسان ليسا اختياريين</strong>: فـ <code>&amp;</code> أشدُّ ارتباطًا من <code>&gt;</code>، فبلا قوسين تجرّب بايثون <code>50 &amp; marks</code> أولًا.</p>
+
+  <h3 id="l13-s3"><span class="en">Selecting rows of a table</span><span class="ar">اختيار صفوف جدول</span></h3>
+
+  <p class="en">This is the form you will use for the rest of the course: build a mask from one column, then use it to pick whole rows.</p>
+  <p class="ar">وهذه هي الصيغة التي ستستعملها بقية المقرر: ابنِ قناعًا من عمود ثم استعمله لانتقاء صفوف كاملة.</p>
+
+<pre class="code good"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+strong = marks[:, 0] &gt;= 60
+print(strong)
+print(marks[strong])
+print(marks[strong].shape)
+</code></pre>
+
+  <div class="output">[False  True  True]
+[[60. 65. 90.]
+ [80. 75. 50.]]
+(2, 3)</div>
+
+  <p class="en">The mask has one entry per <em>row</em>, because it was built from a column, and indexing the table with it keeps those rows whole. Note the result is <code>(2, 3)</code>, not a flat list of six numbers &mdash; the rows stayed rows, so a student's three subjects are still together.</p>
+  <p class="ar">للقناع مدخلٌ لكل <em>صفّ</em>، لأنه بُني من عمود، وفهرسةُ الجدول به تُبقي تلك الصفوف كاملة. ولاحظ أن النتيجة <code>(2, 3)</code> لا قائمةً مسطّحة من ستة أعداد &mdash; فقد بقيت الصفوف صفوفًا، فمواد الطالب الثلاث لا تزال معًا.</p>
+
+  <h3 id="l13-s4"><span class="en"><code>np.where</code>: choose per element</span><span class="ar"><code>np.where</code>: اختر لكل عنصر</span></h3>
+
+<pre class="code good"><code>flat = np.array([40, 55, 70, 85, 100])
+
+print(np.where(flat &gt;= 60, "pass", "fail"))
+print(np.where(flat &gt; 90, 90, flat))
+</code></pre>
+
+  <div class="output">['fail' 'fail' 'pass' 'pass' 'pass']
+[40 55 70 85 90]</div>
+
+  <p class="en">Read it as "where the mask is true take the second argument, otherwise the third" &mdash; an <code>if</code>/<code>else</code> applied to every element at once. It returns a new array, which is the difference from <code>flat[flat &gt; 90] = 90</code> in <a href="#l11-s3">Lesson 11</a>, which writes into the original.</p>
+  <p class="ar">اقرأها «حيث يكون القناع صحيحًا خذ الوسيط الثاني، وإلا فالثالث» &mdash; وهي <code>if</code>/<code>else</code> مطبَّقة على كل عنصر دفعةً. وتُعيد مصفوفة جديدة، وذلك هو الفرق عن <code>flat[flat &gt; 90] = 90</code> في <a href="#l11-s3">الدرس 11</a> التي تكتب في الأصل.</p>
+
+  <h3 id="l13-s5"><span class="en">One missing mark poisons the average</span><span class="ar">علامةٌ مفقودة واحدة تسمّم المتوسط</span></h3>
+
+<pre class="code bad"><code>marks = np.array([40., np.nan, 70.])
+
+print(marks.mean())
+print(np.nanmean(marks))
+print(np.isnan(marks).sum())
+</code></pre>
+
+  <div class="output">nan
+55.0
+1</div>
+
+  <p class="en">An array has one type, so a missing mark cannot be <code>None</code> in a float array; it is <code>nan</code>. Any arithmetic touching it gives <code>nan</code>, so one gap turns the whole class average into <code>nan</code> &mdash; loudly, which is the kindness. An average that quietly skipped the gap would be the average of a different class from the one you asked about. Decide deliberately: <code>np.nanmean</code> to skip, or find them with <code>np.isnan</code> and deal with them. <strong>Never <code>marks == np.nan</code></strong>, which is <code>False</code> everywhere and finds nothing, silently.</p>
+  <p class="ar">للمصفوفة نوعٌ واحد، فلا تكون العلامةُ المفقودة <code>None</code> في مصفوفة عشرية؛ بل <code>nan</code>. وأي حساب يمسّها يعطي <code>nan</code>، فتحوّل فجوةٌ واحدة متوسطَ الصفّ كله إلى <code>nan</code> &mdash; بصوت عالٍ، وذلك هو اللطف. فمتوسطٌ يتخطى الفجوة بصمت سيكون متوسط صفٍّ غير الذي سألت عنه. قرّر متعمدًا: <code>np.nanmean</code> للتخطي، أو جدها بـ <code>np.isnan</code> وعالجها. و<strong>لا تكتب <code>marks == np.nan</code> أبدًا</strong>، فهي <code>False</code> في كل موضع ولا تجد شيئًا بصمت.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.2 &mdash; Who passed everything?</span><span class="ar">تمرين 13.2 &mdash; من نجح في كل شيء؟</span></h4>
+    <p class="en">Select the rows of students who scored 60 or more in <em>every</em> subject. One mask, built with a reduction, then used to index. Think about which axis.</p>
+    <p class="ar">اختر صفوف الطلبة الذين نالوا 60 فأكثر في <em>كل</em> مادة. قناعٌ واحد يُبنى باختزال ثم يُستعمل للفهرسة. وفكّر في أي محور.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# expected:
+# [[60. 65. 90.]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>all_passed = (marks &gt;= 60).all(axis=1)
+print(all_passed)
+print(marks[all_passed])
+</code></pre>
+      <div class="output">[False  True False]
+[[60. 65. 90.]]</div>
+      <p class="en">Two steps worth separating. <code>marks &gt;= 60</code> is a <code>(3, 3)</code> mask, one answer per mark. <code>.all(axis=1)</code> then collapses the columns, asking "were they all true across this row?" and leaving one answer per student &mdash; shape <code>(3,)</code>. Use <code>.any(axis=1)</code> instead and you get students who passed <em>at least one</em>; use <code>axis=0</code> and you get an answer per subject, which is a different question entirely.</p>
+      <p class="ar">خطوتان تستحقان الفصل. فـ <code>marks &gt;= 60</code> قناعٌ <code>(3, 3)</code>، جوابٌ لكل علامة. ثم تطوي <code>.all(axis=1)</code> الأعمدةَ سائلةً «أكانت كلها صحيحة عرض هذا الصفّ؟» وتترك جوابًا لكل طالب &mdash; شكله <code>(3,)</code>. واستعمل <code>.any(axis=1)</code> بدلًا منها تنل الطلبة الناجحين في <em>واحدة على الأقل</em>؛ واستعمل <code>axis=0</code> تنل جوابًا لكل مادة، وذلك سؤال مختلف تمامًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.3 &mdash; A report with no loops</span><span class="ar">تمرين 13.3 &mdash; تقريرٌ بلا حلقات</span></h4>
+    <p class="en">From the table, print: the hardest subject (lowest average), how many marks in the whole table are below 60, and the class average with any missing marks skipped.</p>
+    <p class="ar">من الجدول، اطبع: أصعب مادة (أدنى متوسط)، وكم علامة في الجدول كله دون 60، ومتوسطَ الصفّ مع تخطي أي علامات مفقودة.</p>
+
+<pre class="code"><code>subjects = np.array(["maths", "arabic", "science"])
+marks = np.array([[40., 55., 70.],
+                  [60., np.nan, 90.],
+                  [80., 75., 50.]])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>means = np.nanmean(marks, axis=0)
+print("hardest subject:", subjects[means.argmin()], means.round(1))
+print("marks below 60:", (marks &lt; 60).sum())
+print("class average:", round(np.nanmean(marks), 2))
+</code></pre>
+      <div class="output">hardest subject: maths [60. 65. 70.]
+marks below 60: 3
+class average: 65.0</div>
+      <p class="en">Three things to take away. <code>argmin</code> gives the <em>position</em> of the smallest, not the value, which is exactly what you need to look up a name in another array. <code>(marks &lt; 60).sum()</code> counts over the whole table at once because no axis was named. And the <code>nan</code> is simply not counted by <code>&lt; 60</code> &mdash; a comparison against <code>nan</code> is <code>False</code>, so the missing mark is neither a pass nor a fail, which is honest.</p>
+      <p class="ar">ثلاثة أمور تأخذها. فـ <code>argmin</code> تعطي <em>موضع</em> الأصغر لا قيمته، وهو بالضبط ما تحتاجه للبحث عن اسم في مصفوفة أخرى. و<code>(marks &lt; 60).sum()</code> تعدّ على الجدول كله دفعةً لأنه لم يُسمَّ محور. و<code>nan</code> لا تُعدّ ببساطة بـ <code>&lt; 60</code> &mdash; فالمقارنة بـ <code>nan</code> هي <code>False</code>، فالعلامةُ المفقودة ليست نجاحًا ولا رسوبًا، وذلك صادق.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A table has shape <code>(30, 4)</code> &mdash; thirty students, four subjects. Which call gives one average per subject?</span><span class="ar">جدولٌ شكله <code>(30, 4)</code> &mdash; ثلاثون طالبًا وأربع مواد. فأي استدعاء يعطي متوسطًا لكل مادة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>marks.mean(axis=0)</code> &mdash; it collapses the rows, leaving shape <code>(4,)</code>: one number per surviving column.</span><span class="ar"><code>marks.mean(axis=0)</code> &mdash; يطوي الصفوف تاركًا الشكل <code>(4,)</code>: عددٌ لكل عمود باقٍ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks.mean(axis=1)</code>, because subjects are the second dimension.</span><span class="ar"><code>marks.mean(axis=1)</code>، لأن المواد هي البُعد الثاني.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks.mean()</code>, which averages each column by default.</span><span class="ar"><code>marks.mean()</code>، وهي تعدّل كل عمود افتراضيًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Either axis, since the result is the same four numbers.</span><span class="ar">أيُّ محور، إذ النتيجة الأعداد الأربعة نفسها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second answer is the intuition almost everyone has, and it is exactly backwards: naming an axis <em>removes</em> it rather than keeping it. The shape is the check that never lies &mdash; <code>(30, 4)</code> with axis 0 gone is <code>(4,)</code>, four numbers, one per subject, while axis 1 would give <code>(30,)</code>, one per student. This table is not square, so a mistake here produces an obviously wrong length; on a square table it would not, which is <a href="#l12-h2">Lesson 12's disaster</a>.</div>
+      <div class="ar">الجواب الثاني هو حدسُ الجميع تقريبًا، وهو مقلوب بالضبط: فتسميةُ محور <em>تزيله</em> لا تُبقيه. والشكلُ هو الفحص الذي لا يكذب &mdash; فـ <code>(30, 4)</code> بذهاب المحور 0 تصير <code>(4,)</code>، أربعة أعداد لكل مادة، بينما المحور 1 سيعطي <code>(30,)</code>، واحدًا لكل طالب. وهذا الجدول ليس مربّعًا، فالخطأ هنا يُنتج طولًا خاطئًا بيّنًا؛ وعلى جدول مربّع لن يفعل، وتلك <a href="#l12-h2">كارثةُ الدرس 12</a>.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>marks[(marks &gt; 50) and (marks &lt; 90)]</code> raise a <code>ValueError</code> when <code>&amp;</code> works?</span><span class="ar">لماذا ترفع <code>marks[(marks &gt; 50) and (marks &lt; 90)]</code> خطأ <code>ValueError</code> بينما تعمل <code>&amp;</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because <code>and</code> must decide whether the whole left array is true or false before it looks at the right, and an array of several answers is neither. <code>&amp;</code> combines the two masks element by element and never asks that question.</span><span class="ar">لأن <code>and</code> يجب أن تقرّر هل المصفوفة اليسرى كلها صحيحة أم خاطئة قبل أن تنظر إلى اليمنى، ومصفوفةٌ بأجوبة عدة ليست هذا ولا ذاك. أما <code>&amp;</code> فتجمع القناعين عنصرًا عنصرًا ولا تسأل ذلك السؤال أبدًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>and</code> only works on numbers, not on booleans.</span><span class="ar">لأن <code>and</code> لا تعمل إلا على الأعداد لا على القيم المنطقية.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because the brackets are in the wrong place; <code>marks &gt; 50 and marks &lt; 90</code> would work.</span><span class="ar">لأن القوسين في الموضع الخطأ؛ و<code>marks &gt; 50 and marks &lt; 90</code> ستعمل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>and</code> is reserved for <code>if</code> statements.</span><span class="ar">لأن <code>and</code> محجوزة لجمل <code>if</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The message names the problem precisely once you know what to look for: "the truth value of an array with more than one element is ambiguous". It is asking you for <em>one</em> answer and you have given it five. Note the brackets round each comparison are still required with <code>&amp;</code> &mdash; <code>&amp;</code> binds more tightly than <code>&gt;</code>, so leaving them off makes Python attempt <code>50 &amp; marks</code>.</div>
+      <div class="ar">الرسالةُ تسمّي المشكلة بدقة متى عرفت ما تبحث عنه: «قيمةُ الصدق لمصفوفة بأكثر من عنصر ملتبسة». فهي تطلب منك جوابًا <em>واحدًا</em> وقد أعطيتها خمسة. ولاحظ أن القوسين حول كل مقارنة لا يزالان لازمَين مع <code>&amp;</code> &mdash; فـ <code>&amp;</code> أشدُّ ارتباطًا من <code>&gt;</code>، فتركُهما يجعل بايثون تحاول <code>50 &amp; marks</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l13-s6"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l13-s7"><span class="en">The chapter in seven lines</span><span class="ar">الفصل في سبعة أسطر</span></h3>
+    <ul>
+      <li><span class="en"><strong>The axis you name is the one that disappears.</strong> <code>axis=0</code> collapses rows and gives a number per column; <code>axis=1</code> collapses columns and gives a number per row. Check the shape, never the intuition.</span><span class="ar"><strong>المحور الذي تسمّيه هو الذي يختفي.</strong> فـ <code>axis=0</code> يطوي الصفوف ويعطي عددًا لكل عمود؛ و<code>axis=1</code> يطوي الأعمدة ويعطي عددًا لكل صفّ. افحص الشكل لا الحدس.</span></li>
+      <li><span class="en"><strong><code>keepdims=True</code> when the result will be combined with the original,</strong> so the ambiguous <code>(3,)</code> shape never exists.</span><span class="ar"><strong><code>keepdims=True</code> حين ستُدمج النتيجة بالأصل،</strong> فلا يوجد الشكلُ الملتبس <code>(3,)</code> أبدًا.</span></li>
+      <li><span class="en"><strong>A comparison gives a mask; a mask selects; summing a mask counts.</strong> Those three replace almost every loop you would have written.</span><span class="ar"><strong>المقارنة تعطي قناعًا؛ والقناع يختار؛ وجمع القناع يعدّ.</strong> وتلك الثلاثة تحلّ محلّ كل حلقة كنت ستكتبها تقريبًا.</span></li>
+      <li><span class="en"><strong><code>&amp;</code> and <code>|</code> with brackets, never <code>and</code> and <code>or</code>.</strong> The error message is telling you it was asked for one answer and given many.</span><span class="ar"><strong><code>&amp;</code> و<code>|</code> بقوسين، ولا <code>and</code> ولا <code>or</code> أبدًا.</strong> ورسالةُ الخطأ تقول لك إنها سُئلت جوابًا واحدًا فأُعطيت كثيرًا.</span></li>
+      <li><span class="en"><strong>A mask built from one column selects whole rows,</strong> which is how you will filter tables for the rest of the course.</span><span class="ar"><strong>القناع المبني من عمود يختار صفوفًا كاملة،</strong> وبه سترشّح الجداول في بقية المقرر.</span></li>
+      <li><span class="en"><strong>One <code>nan</code> makes the whole average <code>nan</code>,</strong> which is loud and therefore kind. Skip with <code>np.nanmean</code>, find with <code>np.isnan</code>, and never compare with <code>==</code>.</span><span class="ar"><strong><code>nan</code> واحدة تجعل المتوسط كله <code>nan</code>،</strong> وذلك صاخبٌ ولذلك لطيف. تخطَّ بـ <code>np.nanmean</code>، وجِد بـ <code>np.isnan</code>، ولا تقارن بـ <code>==</code> أبدًا.</span></li>
+      <li><span class="en"><strong>Next:</strong> everything in this chapter was one table of numbers of one type. <a href="#home-h2">Chapter 6</a> puts names on the columns and lets each one be a different type, and the whole of this chapter keeps working underneath it.</span><span class="ar"><strong>التالي:</strong> كل ما في هذا الفصل كان جدولًا واحدًا من أعداد بنوع واحد. ويضع <a href="#home-h2">الفصل 6</a> أسماءً على الأعمدة ويدع كلًّا منها نوعًا مختلفًا، ويظل هذا الفصل كله يعمل تحته.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>

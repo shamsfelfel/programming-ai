@@ -8,38 +8,63 @@ will offer to install it as an app.
 
 **Read it:** <https://shamsfelfel.github.io/programming-ai/>
 
-## Chapter 1 — Object-Oriented Python
+## What is in it
+
+Four chapters of the eleven, and the appendices they lean on. Sixteen lessons,
+one per 90-minute lecture.
+
+| | Chapter | Lessons | Exercises | Questions | Traced programs |
+|---|---|--:|--:|--:|--:|
+| 1 | Object-Oriented Python | 7 | 28 | 144 | 8 |
+| 2 | OOP Design Patterns for ML | 2 | 6 | 56 | 4 |
+| 3 | NumPy Fundamentals | 4 | 12 | 88 | 4 |
+| 4 | NumPy for ML Math | 3 | 9 | 72 | 3 |
+| — | Appendices A3–A6 | 4 | — | 30 | — |
+| | **Total** | **16** | **55** | **390** | **19** |
 
 Every lesson opens with working code that hurts — code that duplicates, breaks
-on change, or cannot be reused — and rebuilds it with the one OOP idea that
-fixes that exact pain.
+on change, cannot be reused, or quietly returns the wrong number — and rebuilds
+it with the one idea that fixes that exact pain.
 
-| | |
-|---|---|
-| Lessons | 7, from objects and classes to a capstone written twice |
-| Exercises | 28, each with a worked solution |
-| Inline checks | 30 |
-| Tests | 9 — one per lesson, plus two chapter tests |
-| Questions | 144, every one labelled by difficulty and topic |
-| Execution traces | 8 programs, 82 steps, run one line at a time |
+- **Chapter 1** — objects, state, encapsulation, abstraction, inheritance
+  against composition, polymorphism, and a capstone written twice.
+- **Chapter 2** — strategy, factory, pipeline and decorator, each arriving
+  because a plain function has just failed without raising.
+- **Chapter 3** — arrays, views that are not copies, broadcasting, axes and
+  masks: four ways NumPy is wrong without saying so.
+- **Chapter 4** — the dot product, distance, `@` and the shape rule, removing
+  a loop, and random numbers you can repeat tomorrow. Its spine is one
+  clinic example where the patient most similar to a feverish new arrival
+  turns out to be the only one with no fever, because nobody scaled the
+  columns.
+- **Appendices A3–A6** — the vocabulary of machine learning without the
+  mathematics, numbers in a computer, reading mathematical notation, and the
+  linear algebra the course actually uses. Self-study, never examined, and
+  outside the lecture budget: a lesson states a result and links here rather
+  than deriving it.
 
-Questions come in eleven forms — true/false, multiple choice, choose-all,
-fill in the blank, put in order, match the pairs, find the error, complete the
-code, compare two versions, write the output, and trace a value — and each one
-carries chips for its difficulty and the topics it covers, with every topic
-linking back to the paragraph that teaches it. Explanation and worked solution
-are collapsed until you ask for them.
+There is a test after every lesson and two at the end of every chapter — one
+for the core ideas, one for the harder corners. Questions come in eleven
+forms — true/false, multiple choice, choose-all, fill in the blank, put in
+order, match the pairs, find the error, complete the code, compare two
+versions, write the output, and trace a value — and each one carries chips for
+its difficulty and the topics it covers, with every topic linking back to the
+paragraph that teaches it. Explanation and worked solution are collapsed until
+you ask for them.
 
-The **Execution Lab** steps through the chapter's trickiest programs one line
-at a time, showing the current line, the variables as they stand with the one
-that just changed flagged, and everything printed so far — the shared default
-list, attribute shadowing, `super()` across two `__init__` methods, and
-polymorphic dispatch.
+The **Execution Lab** steps through a program one line at a time, showing the
+current line, the variables as they stand with the one that just changed
+flagged, and everything printed so far. Chapter 1 collects its eight programs
+on a lab page of its own; the chapters after it put each trace in the lesson
+that needs it, at the moment you need to watch it happen.
 
 ## Features
 
 - **PWA** — installable on a phone, and the whole course is precached on the
-  first visit, so every page opens offline, including ones never visited
+  first visit, so every page opens offline, including ones never visited. When
+  a new chapter is published an installed copy says so and offers to reload;
+  a deploy it cannot finish downloading is abandoned rather than activated, so
+  a bad connection never costs a reader the copy they already have
 - **One page per file** — a lesson loads a lesson, not the chapter
 - **Light and dark themes**, both designed, following the OS by default
 - **English and Arabic** at full parity, with a correct RTL layout
@@ -58,6 +83,7 @@ lessons/                one page per lesson
 tests/                  one page per lesson test
 exams/                  the two chapter tests
 labs/                   the execution lab
+appendices/             one page per appendix
 assets/css  assets/js   the shared stylesheets and engines
 assets/data             question banks, traces, the topic registry
 src/content/            the authored chapters, before they are split
@@ -81,11 +107,13 @@ npm test                          # the end-to-end suite (Playwright)
 npm run serve                     # a no-cache server at :8088 for authoring
 ```
 
-Pages under `index.html`, `chapters/`, `lessons/`, `tests/`, `exams/` and
-`labs/`, along with `assets/js/anchors.js` and `sw.js`, are **generated** —
+Pages under `index.html`, `chapters/`, `lessons/`, `tests/`, `exams/`,
+`labs/` and `appendices/`, along with `assets/js/anchors.js` and `sw.js`, are
+**generated** —
 never edit them by hand. Sources are in `src/content/` and `assets/`.
 
 - [docs/SPEC.md](docs/SPEC.md) — what every chapter must satisfy
+- [docs/SYLLABUS.md](docs/SYLLABUS.md) — the 14-week, 42-lecture plan
 - [docs/AUTHORING.md](docs/AUTHORING.md) — how to build the next one
 
 ### Testing
@@ -106,9 +134,9 @@ npm run test:report               # the HTML report of the last run
 ## Roadmap
 
 1. **OOP Foundation** ✅
-2. OOP Design Patterns for ML
-3. NumPy Fundamentals
-4. NumPy for ML Math
+2. **OOP Design Patterns for ML** ✅
+3. **NumPy Fundamentals** ✅
+4. **NumPy for ML Math** ✅
 5. `np.linalg` and Linear Algebra
 6. Pandas Fundamentals
 7. Pandas Data Wrangling

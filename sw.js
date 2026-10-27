@@ -15,23 +15,36 @@
    cache name, so there is nothing to revalidate.
 
    CACHE changes on every build. The activate handler deletes every
-   other cache, which is what makes a stale chapter impossible.
+   other cache, which is what makes a stale chapter impossible -- and
+   is why install is all-or-nothing: a cache with holes in it would
+   replace one without.
    ============================================================ */
 'use strict';
 
-var CACHE = 'oop-20261020-5';
+var CACHE = 'oop-20261027-7';
 
 /* Paths are relative to this file, which sits at the site root, so
    they resolve the same whether the course is served from a domain
    root or from a GitHub Pages project subpath. */
 var PRECACHE = [
   "./",
+  "appendices/appendix-a3.html",
+  "appendices/appendix-a4.html",
+  "appendices/appendix-a5.html",
+  "appendices/appendix-a6.html",
   "assets/css/assess.css",
   "assets/css/base.css",
   "assets/css/chrome.css",
   "assets/css/components.css",
   "assets/css/tokens.css",
   "assets/css/trace.css",
+  "assets/data/questions-appendix-a3.js",
+  "assets/data/questions-appendix-a4.js",
+  "assets/data/questions-appendix-a5.js",
+  "assets/data/questions-appendix-a6.js",
+  "assets/data/questions-chapter-02.js",
+  "assets/data/questions-chapter-03.js",
+  "assets/data/questions-chapter-04.js",
   "assets/data/questions-chapter-a.js",
   "assets/data/questions-chapter-b.js",
   "assets/data/questions-lesson-01.js",
@@ -41,7 +54,19 @@ var PRECACHE = [
   "assets/data/questions-lesson-05.js",
   "assets/data/questions-lesson-06.js",
   "assets/data/questions-lesson-07.js",
+  "assets/data/questions-lesson-08.js",
+  "assets/data/questions-lesson-09.js",
+  "assets/data/questions-lesson-10.js",
+  "assets/data/questions-lesson-11.js",
+  "assets/data/questions-lesson-12.js",
+  "assets/data/questions-lesson-13.js",
+  "assets/data/questions-lesson-14.js",
+  "assets/data/questions-lesson-15.js",
+  "assets/data/questions-lesson-16.js",
   "assets/data/topics.js",
+  "assets/data/traces-chapter-02.js",
+  "assets/data/traces-chapter-03.js",
+  "assets/data/traces-chapter-04.js",
   "assets/data/traces.js",
   "assets/js/anchors.js",
   "assets/js/app.js",
@@ -55,8 +80,17 @@ var PRECACHE = [
   "assets/js/theme.js",
   "assets/js/trace.js",
   "chapters/chapter-1.html",
+  "chapters/chapter-2.html",
+  "chapters/chapter-3.html",
+  "chapters/chapter-4.html",
   "exams/chapter-1-exam-a.html",
   "exams/chapter-1-exam-b.html",
+  "exams/chapter-2-exam-a.html",
+  "exams/chapter-2-exam-b.html",
+  "exams/chapter-3-exam-a.html",
+  "exams/chapter-3-exam-b.html",
+  "exams/chapter-4-exam-a.html",
+  "exams/chapter-4-exam-b.html",
   "icons/apple-touch-icon.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
@@ -70,6 +104,15 @@ var PRECACHE = [
   "lessons/chapter-1-lesson-5.html",
   "lessons/chapter-1-lesson-6.html",
   "lessons/chapter-1-lesson-7.html",
+  "lessons/chapter-2-lesson-8.html",
+  "lessons/chapter-2-lesson-9.html",
+  "lessons/chapter-3-lesson-10.html",
+  "lessons/chapter-3-lesson-11.html",
+  "lessons/chapter-3-lesson-12.html",
+  "lessons/chapter-3-lesson-13.html",
+  "lessons/chapter-4-lesson-14.html",
+  "lessons/chapter-4-lesson-15.html",
+  "lessons/chapter-4-lesson-16.html",
   "manifest.webmanifest",
   "tests/chapter-1-test-1.html",
   "tests/chapter-1-test-2.html",
@@ -77,19 +120,49 @@ var PRECACHE = [
   "tests/chapter-1-test-4.html",
   "tests/chapter-1-test-5.html",
   "tests/chapter-1-test-6.html",
-  "tests/chapter-1-test-7.html"
+  "tests/chapter-1-test-7.html",
+  "tests/chapter-2-test-8.html",
+  "tests/chapter-2-test-9.html",
+  "tests/chapter-3-test-10.html",
+  "tests/chapter-3-test-11.html",
+  "tests/chapter-3-test-12.html",
+  "tests/chapter-3-test-13.html",
+  "tests/chapter-4-test-14.html",
+  "tests/chapter-4-test-15.html",
+  "tests/chapter-4-test-16.html"
 ];
 
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(CACHE).then(function (cache) {
-      /* Added one at a time: addAll rejects as a unit, so a single
-         404 would leave the worker uninstalled and the course with
-         no offline support at all. */
+      /* Added one at a time rather than with addAll, so that a failure
+         names the file instead of just rejecting. */
       return Promise.all(PRECACHE.map(function (url) {
-        return cache.add(new Request(url, { cache: 'reload' }))['catch'](function () {});
+        return cache.add(new Request(url, { cache: 'reload' })).then(
+          function () { return null; },
+          function () { return url; }
+        );
       }));
-    }).then(function () { return self.skipWaiting(); })
+    }).then(function (results) {
+      var missing = results.filter(function (u) { return u; });
+      if (!missing.length) return self.skipWaiting();
+
+      /* Fail the install, and fail it on purpose. activate deletes every
+         other cache, so activating on a half-filled one would swap a
+         reader's working offline copy for one with holes in it -- and
+         they would find out about the holes on a bus with no signal,
+         which is the worst possible moment. Failing here leaves the old
+         worker and the old cache in charge, and the browser tries again
+         on the next visit.
+
+         The half-filled cache goes first: it was opened under this
+         build's name, and leaving it behind would mean the next attempt
+         inherits a cache that looks ready and is not. */
+      return caches['delete'](CACHE).then(function () {
+        throw new Error('precache incomplete, ' + missing.length + ' of ' +
+                        PRECACHE.length + ' missing: ' + missing.slice(0, 5).join(', '));
+      });
+    })
   );
 });
 

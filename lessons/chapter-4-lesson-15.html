@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Tables That Multiply · Python OOP by Example" data-ar="جداولُ تضرب · البرمجة الكائنية بلغة بايثون">Tables That Multiply · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="4" data-page="lesson-15" data-path="lessons/chapter-4-lesson-15.html">
+<main>
+<section class="page" id="lesson-15">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 15 &middot; Week 6 &middot; Lecture 17 &middot; 90 min</span><span class="ar">الدرس 15 &middot; الأسبوع 6 &middot; المحاضرة 17 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Tables That Multiply: <code>@</code> and the Shapes That Fit</span><span class="ar">جداولُ تضرب: <code>@</code> والأشكال التي تنطبق</span></h1>
+
+  <p class="lede en">By the end of this lesson you will mark a whole class with one operator, read the shape rule that says in advance whether a line will work, meet the mistake that produces a table where you wanted a column &mdash; without any error at all &mdash; and write the line that every machine-learning model is built on.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستُصحّح صفًّا كاملًا بمُعامل واحد، وستقرأ قاعدة الأشكال التي تقول سلفًا هل سينجح السطر، وستلقى الخطأ الذي يُنتج جدولًا حيث أردت عمودًا &mdash; بلا أي خطأ يُرفع &mdash; وستكتب السطر الذي يُبنى عليه كل نموذج تعلّم آلة.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-4-lesson-14.html#lesson-14">Lesson 14</a>: this lesson is that lesson's <code>@</code> with a table on the left. You will also want <a href="../lessons/chapter-3-lesson-10.html#l10-s5">shape</a> to be second nature, because almost every question here is answered by reading two shapes. <a href="../appendices/appendix-a6.html#a6-h6">Appendix A6 &sect;6</a> explains what matrix multiplication <em>is</em>, with the row-by-column rule worked by hand; this lesson states the rule and spends its time on getting it right in code.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-4-lesson-14.html#lesson-14">الدرس 14</a>: فهذا الدرس هو <code>@</code> ذلك الدرس بجدولٍ يسارها. وستريد أيضًا أن يكون <a href="../lessons/chapter-3-lesson-10.html#l10-s5">الشكل</a> طبيعةً ثانية، فكلُّ سؤال هنا تقريبًا يُجاب بقراءة شكلين. و<a href="../appendices/appendix-a6.html#a6-h6">الملحق A6 &sect;6</a> يشرح ما <em>هو</em> ضربُ المصفوفات بقاعدة الصفّ في العمود محلولةً باليد؛ وهذا الدرس يذكر القاعدة ويصرف وقته في إصابتها في الكود.</p>
+  </div>
+
+  <h2 id="l15-h1"><span class="en">Concept 1 &mdash; One operator marks the whole class</span><span class="ar">المفهوم 1 &mdash; مُعاملٌ واحد يُصحّح الصفّ كلّه</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Lesson 14 produced one student's final mark. There are five students in this table and three hundred in the real one, and the obvious next step is to put the line you already have inside a loop.</p>
+    <p class="ar">أنتج الدرس 14 علامةَ طالبٍ واحد النهائية. وفي هذا الجدول خمسة طلبة وفي الحقيقي ثلاثمئة، والخطوةُ البديهية التالية أن تضع السطر الذي عندك داخل حلقة.</p>
+  </div>
+
+  <h3 id="l15-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code"><code>import numpy as np
+
+marks = np.array([[72., 65., 80.],
+                  [48., 55., 60.],
+                  [90., 88., 95.],
+                  [60., 70., 55.],
+                  [35., 42., 50.]])
+weights = np.array([0.2, 0.3, 0.5])
+
+totals = []
+for row in marks:
+    totals.append(row @ weights)
+
+print(np.array(totals))
+</code></pre>
+
+  <div class="output">[73.9 56.1 91.9 60.5 44.6]</div>
+
+  <p class="en">Correct again, and again it is a loop, a growing list and a conversion at the end. Worse, it is a loop in Python around an operation NumPy already knows how to do five times &mdash; or three hundred thousand times &mdash; in one call.</p>
+  <p class="ar">صحيحٌ مرة أخرى، ومرة أخرى هو حلقةٌ وقائمةٌ تنمو وتحويلٌ في النهاية. والأسوأ أنه حلقةٌ في بايثون حول عمليةٍ تعرف نمباي أصلًا كيف تؤديها خمس مرات &mdash; أو ثلاثمئة ألف &mdash; في نداءٍ واحد.</p>
+
+  <h3 id="l15-s2"><span class="en">The same operator, one shape larger</span><span class="ar">المُعامل نفسه بشكلٍ أكبر بدرجة</span></h3>
+
+<pre class="code good"><code>print(marks.shape, weights.shape)
+print(marks @ weights)
+</code></pre>
+
+  <div class="output">(5, 3) (3,)
+[73.9 56.1 91.9 60.5 44.6]</div>
+
+  <p class="en">Five dot products, one line, no loop. Each row of the table met the weights, produced its own total, and the five totals came back in order. This is <strong>matrix multiplication</strong>, and the only thing you must be able to do with it is predict the shape of what comes out.</p>
+  <p class="ar">خمسةُ ضروب قياسية في سطرٍ واحد بلا حلقة. فكلُّ صفٍّ في الجدول لاقى الأوزان وأنتج مجموعَه، وعادت المجاميع الخمسة بالترتيب. وهذا <strong>ضربُ المصفوفات</strong>، والشيء الوحيد الذي يجب أن تقدر عليه معه هو توقّعُ شكل ما يخرج.</p>
+
+  <h3 id="l15-s3"><span class="en">The shape rule, in one line</span><span class="ar">قاعدة الأشكال في سطر</span></h3>
+
+  <div class="problem">
+    <h4><span class="en">The rule</span><span class="ar">القاعدة</span></h4>
+    <p class="en"><code>(m, n) @ (n, p)</code> gives <code>(m, p)</code>. The two inner numbers must be equal, and they <strong>disappear</strong>; the two outer numbers survive.</p>
+    <p class="ar"><code>(m, n) @ (n, p)</code> تعطي <code>(m, p)</code>. فالعددان الداخليان يجب أن يتساويا، وهما <strong>يختفيان</strong>؛ والعددان الخارجيان يبقيان.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 230" role="img" aria-labelledby="l15fig1">
+      <title id="l15fig1">the inner dimensions meet and vanish</title>
+
+      <text class="dg-t dg-b en" x="20" y="30">it fits</text>
+      <text class="dg-t dg-b ar" x="20" y="30">ينطبق</text>
+
+      <text class="dg-t dg-c dg-n" x="60" y="72">(5, 3)</text>
+      <text class="dg-t dg-c dg-n" x="135" y="72">@</text>
+      <text class="dg-t dg-c dg-n" x="160" y="72">(3, 2)</text>
+      <text class="dg-t dg-c dg-n" x="250" y="72">&rarr;</text>
+      <text class="dg-t dg-c dg-n" x="285" y="72">(5, 2)</text>
+      <path class="dg-line" d="M 104 80 C 110 104 160 104 168 80"/>
+      <text class="dg-t dg-s en" x="400" y="62">the 3s meet, match, and vanish</text>
+      <text class="dg-t dg-s en" x="400" y="84">five rows in, two columns out</text>
+      <text class="dg-t dg-s ar" x="400" y="62">الثلاثتان تتلاقيان وتتطابقان وتختفيان</text>
+      <text class="dg-t dg-s ar" x="400" y="84">خمسةُ صفوف تدخل وعمودان يخرجان</text>
+
+      <text class="dg-t dg-b en" x="20" y="150">it does not</text>
+      <text class="dg-t dg-b ar" x="20" y="150">لا ينطبق</text>
+
+      <text class="dg-t dg-c dg-n" x="60" y="192">(3, 5)</text>
+      <text class="dg-t dg-c dg-n" x="135" y="192">@</text>
+      <text class="dg-t dg-c dg-n" x="160" y="192">(3,)</text>
+      <text class="dg-t dg-c dg-n" x="250" y="192">&rarr;</text>
+      <text class="dg-t dg-c dg-n" x="285" y="192">ValueError</text>
+      <path class="dg-line dg-dash" d="M 104 200 C 110 224 150 224 160 200"/>
+      <text class="dg-t dg-s en" x="400" y="182">5 against 3: not equal, so nothing happens</text>
+      <text class="dg-t dg-s en" x="400" y="204">the message ends &ldquo;size 3 is different from 5&rdquo;</text>
+      <text class="dg-t dg-s ar" x="400" y="182">5 مقابل 3: غير متساويين فلا شيء يحدث</text>
+      <text class="dg-t dg-s ar" x="400" y="204">وتنتهي الرسالة بـ &ldquo;size 3 is different from 5&rdquo;</text>
+    </svg>
+    <figcaption><span class="en">Figure 15.1 &mdash; write the two shapes side by side and look at the two numbers that touch. If they are equal the line works and both of them are gone from the answer.</span><span class="ar">الشكل 15.1 &mdash; اكتب الشكلين جنبًا إلى جنب وانظر إلى العددين المتلامسين. فإن تساويا نجح السطر وذهبا كلاهما من الجواب.</span></figcaption>
+  </figure>
+
+  <p class="en">A 1-D array has only one number in its shape, so it takes whichever role makes the line work: on the right of a table it behaves as a column and the answer is 1-D, which is the <code>(5, 3) @ (3,) &rarr; (5,)</code> you just ran. That convenience is worth knowing and worth distrusting &mdash; it is also why a 1-D array will sometimes fit where you did not intend it to.</p>
+  <p class="ar">المصفوفةُ الأحادية ليس في شكلها إلا عددٌ واحد، فتأخذ الدور الذي يُنجح السطر: فعلى يمين جدولٍ تتصرّف عمودًا ويكون الجواب أحاديًّا، وهو <code>(5, 3) @ (3,) &rarr; (5,)</code> الذي شغّلته لتوّك. وتلك الرفاهية جديرةٌ بالمعرفة وبعدم الثقة &mdash; فهي أيضًا سببُ أن تنطبق المصفوفةُ الأحادية أحيانًا حيث لم تقصد.</p>
+
+  <h3 id="l15-s4"><span class="en">The mistake that does not raise</span><span class="ar">الخطأ الذي لا يرفع</span></h3>
+
+  <p class="en">One character apart from the correct line is a line that runs perfectly and answers a different question:</p>
+  <p class="ar">على بُعد حرفٍ واحد من السطر الصحيح سطرٌ يعمل تمامًا ويجيب سؤالًا آخر:</p>
+
+<pre class="code bad"><code>print(marks * weights)
+print((marks * weights).shape)
+</code></pre>
+
+  <div class="output">[[14.4 19.5 40. ]
+ [ 9.6 16.5 30. ]
+ [18.  26.4 47.5]
+ [12.  21.  27.5]
+ [ 7.  12.6 25. ]]
+(5, 3)</div>
+
+  <p class="en"><code>*</code> is <a href="../lessons/chapter-3-lesson-12.html#l12-h1">elementwise with broadcasting</a>: it weighted every mark and kept all fifteen of them. <code>@</code> weights every mark <em>and adds up each row</em>. The results differ in shape &mdash; <code>(5, 3)</code> against <code>(5,)</code> &mdash; so a later line will usually complain, but it will complain somewhere else, about something that looks unrelated. The two are related, and saying how is the clearest way to remember the difference:</p>
+  <p class="ar"><code>*</code> هي <a href="../lessons/chapter-3-lesson-12.html#l12-h1">العمل على العناصر مع البثّ</a>: فقد وزنت كل علامة وأبقت الخمس عشرة كلها. و<code>@</code> توزن كل علامة <em>وتجمع كل صفّ</em>. والنتيجتان تختلفان شكلًا &mdash; <code>(5, 3)</code> مقابل <code>(5,)</code> &mdash; فسيشتكي سطرٌ لاحق غالبًا، لكنه سيشتكي في مكان آخر عن شيءٍ يبدو غير ذي صلة. والاثنتان مرتبطتان، وبيانُ كيف أوضحُ سبيلٍ لتذكّر الفرق:</p>
+
+<pre class="code good"><code>print((marks * weights).sum(axis=1))
+print(marks @ weights)
+</code></pre>
+
+  <div class="output">[73.9 56.1 91.9 60.5 44.6]
+[73.9 56.1 91.9 60.5 44.6]</div>
+
+  <p class="en"><code>@</code> is <code>*</code> followed by a sum along the last axis. If you can only remember one sentence from this lesson, remember that one.</p>
+  <p class="ar"><code>@</code> هي <code>*</code> متبوعةً بجمعٍ على المحور الأخير. فإن لم تتذكّر من هذا الدرس إلا جملة فتذكّر تلك.</p>
+
+  <div data-trace-id="t-matmul"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A table of shape <code>(300, 4)</code> times a weight vector of shape <code>(4,)</code>. What comes back?</span><span class="ar">جدولٌ شكله <code>(300, 4)</code> في متجه أوزانٍ شكله <code>(4,)</code>. فما الذي يعود؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Shape <code>(300,)</code> &mdash; one weighted total per row. The 4s meet and vanish; the 300 survives.</span><span class="ar">الشكل <code>(300,)</code> &mdash; مجموعٌ موزون لكل صفّ. فالأربعتان تتلاقيان وتختفيان؛ والـ 300 تبقى.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Shape <code>(300, 4)</code> &mdash; every value weighted, nothing added up.</span><span class="ar">الشكل <code>(300, 4)</code> &mdash; كل قيمة موزونة ولا شيء مجموع.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Shape <code>(4,)</code> &mdash; one number per column.</span><span class="ar">الشكل <code>(4,)</code> &mdash; عددٌ لكل عمود.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A single number: the whole table weighted and totalled.</span><span class="ar">عددٌ واحد: الجدول كله موزونًا ومجموعًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is what <code>*</code> gives, and it is worth being able to tell the two apart at a glance, because nothing will raise if you write the wrong one. The third is what you would get from <code>weights @ table</code> &mdash; wait, no: that would need the 4 to meet the 300 and would raise. Being able to say that quickly, by reading the shapes rather than by running it, is the whole skill this lesson is teaching.</div>
+      <div class="ar">الخيار الثاني هو ما تعطيه <code>*</code>، وجديرٌ أن تميّز الاثنين بنظرة، فلن يُرفع خطأٌ إن كتبت الخاطئ. والثالث هو ما كنت ستحصل عليه من <code>weights @ table</code> &mdash; كلّا: فتلك تحتاج أن تلاقي الـ 4 الـ 300 فترفع خطأً. والقدرةُ على قول ذلك بسرعة، بقراءة الأشكال لا بتشغيلها، هي المهارةُ التي يعلّمها هذا الدرس كله.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 15.1 &mdash; Two examiners, one call</span><span class="ar">تمرين 15.1 &mdash; مُمتحنان ونداءٌ واحد</span></h4>
+    <p class="en">The department wants to compare the official weighting with a proposed flat one, for every student at once. Put both schemes in one array and produce a table with one row per student and one column per scheme. Predict the output shape before you run it.</p>
+    <p class="ar">يريد القسم مقارنة الترجيح الرسمي بترجيحٍ مسطَّح مقترح، لكل طالب دفعةً واحدة. ضع النظامين في مصفوفة واحدة وأنتج جدولًا بصفٍّ لكل طالب وعمودٍ لكل نظام. وتوقّع شكل الناتج قبل أن تشغّله.</p>
+
+<pre class="code"><code>official = [0.2, 0.3, 0.5]
+flat = [0.34, 0.33, 0.33]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>W = np.array([[0.2, 0.34],
+              [0.3, 0.33],
+              [0.5, 0.33]])
+
+print(marks.shape, W.shape)
+print((marks @ W).round(2))
+</code></pre>
+      <div class="output">(5, 3) (3, 2)
+[[73.9  72.33]
+ [56.1  54.27]
+ [91.9  90.99]
+ [60.5  61.65]
+ [44.6  42.26]]</div>
+      <p class="en">The weights go in as <strong>columns</strong>, which is the part that catches people: <code>(5, 3) @ (3, 2)</code> needs the 3 on the left of <code>W</code>'s shape, so each scheme runs down a column, not across a row. Write the two schemes as rows and you get a <code>(2, 3)</code> array and a <code>ValueError</code> &mdash; which is the good outcome. Look at student 3 (row index 3): 60.5 officially, 61.65 flat. The flat scheme helps the student who did better on coursework than on the final, which is the only interesting thing in the whole table and is visible because both answers are side by side.</p>
+      <p class="ar">تدخل الأوزان <strong>أعمدةً</strong>، وهذا ما يُسقط الناس: فـ <code>(5, 3) @ (3, 2)</code> تحتاج الـ 3 يسارَ شكل <code>W</code>، فيمضي كل نظام نزولًا في عمود لا عرضًا في صفّ. واكتب النظامين صفّين تحصل على مصفوفة <code>(2, 3)</code> و<code>ValueError</code> &mdash; وتلك هي النتيجة الطيبة. وانظر الطالب 3 (دليل الصفّ 3): 60.5 رسميًّا و61.65 مسطَّحًا. فالنظام المسطَّح يُعين الطالب الذي أبلى في أعمال الفصل خيرًا من النهائي، وهو الشيء الوحيد المثير في الجدول كله ويُرى لأن الجوابين جنبًا إلى جنب.</p>
+    </details>
+  </section>
+
+  <h2 id="l15-h2"><span class="en">Concept 2 &mdash; When the shapes do not fit: transpose</span><span class="ar">المفهوم 2 &mdash; حين لا تنطبق الأشكال: المنقول</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">The examinations office sends the same marks stored the other way round: one row per subject, one column per student. The line that worked a minute ago now refuses, and the data is not wrong &mdash; only its orientation is.</p>
+    <p class="ar">يرسل مكتبُ الامتحانات العلاماتِ نفسها مخزَّنةً بالمقلوب: صفٌّ لكل مادة وعمودٌ لكل طالب. فالسطرُ الذي نجح قبل دقيقة يرفض الآن، والبياناتُ ليست خاطئة &mdash; بل اتجاهُها وحده.</p>
+  </div>
+
+  <h3 id="l15-s5"><span class="en">Reading the refusal</span><span class="ar">قراءة الرفض</span></h3>
+
+<pre class="code bad"><code>by_subject = marks.T
+print(by_subject.shape)
+print(by_subject @ weights)
+</code></pre>
+
+  <div class="output">(3, 5)
+ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature (n?,k),(k,m?)-&gt;(n?,m?) (size 3 is different from 5)</div>
+
+  <p class="en">Read the last six words and ignore the rest. The two numbers that had to meet were 5 and 3, and they did not. <code>.T</code> swaps the two dimensions, so applying it again turns the table back and the line works:</p>
+  <p class="ar">اقرأ الكلمات الستّ الأخيرة وأهمل سواها. فالعددان اللذان كان عليهما أن يتلاقيا 5 و3 ولم يتلاقيا. و<code>.T</code> تبدّل البُعدين، فتطبيقها ثانيةً يعيد الجدول وينجح السطر:</p>
+
+<pre class="code good"><code>print(by_subject.T @ weights)
+print(weights @ by_subject)
+</code></pre>
+
+  <div class="output">[73.9 56.1 91.9 60.5 44.6]
+[73.9 56.1 91.9 60.5 44.6]</div>
+
+  <p class="en">Both work and both are the same five totals. The second is the 1-D convenience again: with a vector on the <em>left</em> of a table, the vector behaves as a row, <code>(3,) @ (3, 5)</code> matches its 3s, and the 5 survives. Prefer the first form in code other people will read &mdash; <code>by_subject.T @ weights</code> says &ldquo;turn the table the right way round, then weight it&rdquo;, which is what you meant.</p>
+  <p class="ar">كلاهما ينجح وكلاهما المجاميعُ الخمسة نفسها. والثاني رفاهيةُ الأحادي مرة أخرى: فبمتجهٍ <em>يسارَ</em> الجدول يتصرّف المتجه صفًّا، و<code>(3,) @ (3, 5)</code> تطابق ثلاثتيها، وتبقى الـ 5. وفضّل الصيغة الأولى في كودٍ سيقرؤه غيرك &mdash; فـ <code>by_subject.T @ weights</code> تقول «أدِر الجدول في اتجاهه الصحيح ثم زِنه»، وهو ما قصدت.</p>
+
+  <h3 id="l15-s6"><span class="en">Two things about <code>.T</code> that surprise people</span><span class="ar">أمران في <code>.T</code> يفاجئان الناس</span></h3>
+
+<pre class="code"><code>w = np.array([0.2, 0.3, 0.5])
+print(w.shape, w.T.shape)
+print(w[:, None].shape, w[:, None].T.shape)
+</code></pre>
+
+  <div class="output">(3,) (3,)
+(3, 1) (1, 3)</div>
+
+  <p class="en">First: <strong><code>.T</code> on a 1-D array does nothing at all.</strong> There are no two dimensions to swap. Textbooks draw a vector as a column and its transpose as a row, so people reach for <code>.T</code> to turn one into the other and are baffled when nothing happens. <a href="../lessons/chapter-3-lesson-12.html#l12-s4"><code>[:, None]</code></a> is the tool for that, as it was in Lesson 12 &mdash; and once the array really has two dimensions, <code>.T</code> behaves as expected.</p>
+  <p class="ar">أولًا: <strong><code>.T</code> على مصفوفة أحادية لا تفعل شيئًا إطلاقًا.</strong> فلا بُعدين لتبديلهما. والكتبُ ترسم المتجه عمودًا ومنقولَه صفًّا، فيمدّ الناس أيديهم إلى <code>.T</code> ليحوّلوا أحدهما إلى الآخر ويُدهشون ألّا شيء يحدث. و<a href="../lessons/chapter-3-lesson-12.html#l12-s4"><code>[:, None]</code></a> هي أداةُ ذلك كما كانت في الدرس 12 &mdash; ومتى صار للمصفوفة بُعدان فعلًا تصرّفت <code>.T</code> كما يُتوقّع.</p>
+
+  <p class="en">Second: <code>.T</code> is <a href="../lessons/chapter-3-lesson-11.html#l11-h1">a view</a>, like a slice. It costs nothing because nothing moves &mdash; NumPy simply reads the same memory with the two dimensions swapped &mdash; and, exactly as in Lesson 11, writing into the transpose writes into the original.</p>
+  <p class="ar">ثانيًا: <code>.T</code> <a href="../lessons/chapter-3-lesson-11.html#l11-h1">نافذة</a> كالقطعة. فهي بلا كلفة لأن لا شيء يتحرك &mdash; إذ تقرأ نمباي الذاكرة نفسها ببُعدين مبدَّلين &mdash; وكما في الدرس 11 تمامًا، فالكتابةُ في المنقول كتابةٌ في الأصل.</p>
+
+  <h3 id="l15-s7"><span class="en">Order matters, and that is not a detail</span><span class="ar">الترتيب يهمّ، وليس ذلك تفصيلًا</span></h3>
+
+<pre class="code"><code>A = np.array([[1., 2.],
+              [3., 4.]])
+B = np.array([[0., 1.],
+              [1., 0.]])
+
+print(A @ B)
+print(B @ A)
+</code></pre>
+
+  <div class="output">[[2. 1.]
+ [4. 3.]]
+[[3. 4.]
+ [1. 2.]]</div>
+
+  <p class="en">Both shapes fit both ways round, nothing raises, and the answers are different: <code>A @ B</code> swapped the columns, <code>B @ A</code> swapped the rows. For ordinary numbers <code>3 * 4</code> and <code>4 * 3</code> agree and you have never had to think about it; here you do. When a line gives wrong-looking numbers with the right shape, the order of the operands is the first thing to check.</p>
+  <p class="ar">الشكلان ينطبقان في الاتجاهين ولا شيء يرفع والجوابان مختلفان: فـ <code>A @ B</code> بدّلت الأعمدة، و<code>B @ A</code> بدّلت الصفوف. وفي الأعداد العادية تتفق <code>3 * 4</code> و<code>4 * 3</code> ولم تحتج قطُّ أن تفكر في ذلك؛ وهنا تحتاج. فمتى أعطى سطرٌ أعدادًا تبدو خاطئة بالشكل الصحيح فترتيبُ المُعاملين أولُ ما تفحص.</p>
+
+  <h3 id="l15-s8"><span class="en">The line every model is built on</span><span class="ar">السطر الذي يُبنى عليه كل نموذج</span></h3>
+
+  <p class="en">Everything so far has been marks and weights. The same line, with the names changed, is what a trained model does when it predicts. A <strong>model</strong> here means a rule with numbers in it that were chosen by looking at past data; those numbers are its <strong>weights</strong>, one per column of the table, plus a single <strong>intercept</strong> added to every row. <a href="../appendices/appendix-a3.html#appendix-a3">Appendix A3</a> defines these words carefully and without mathematics.</p>
+  <p class="ar">كلُّ ما مضى كان علاماتٍ وأوزانًا. والسطرُ نفسه بأسماءٍ مبدَّلة هو ما يفعله نموذجٌ مدرَّب حين يتنبّأ. و<strong>النموذج</strong> هنا قاعدةٌ فيها أعدادٌ اختيرت بالنظر إلى بيانات ماضية؛ وتلك الأعداد <strong>أوزانه</strong>، واحدٌ لكل عمود في الجدول، مع <strong>مقطعٍ</strong> واحد يُضاف إلى كل صفّ. و<a href="../appendices/appendix-a3.html#appendix-a3">الملحق A3</a> يعرّف هذه الكلمات بعناية وبلا رياضيات.</p>
+
+<pre class="code good"><code>X = np.array([[3., 120.],
+              [1.,  60.],
+              [5., 200.],
+              [2.,  95.]])
+w = np.array([1.5, 0.02])
+b = 10.
+
+print((X @ w + b).round(2))
+</code></pre>
+
+  <div class="output">[16.9 12.7 21.5 14.9]</div>
+
+  <p class="en">Four deliveries, two columns describing each one &mdash; parcels carried and kilometres driven &mdash; and a predicted time in minutes for each. <code>X @ w</code> is <code>(4, 2) @ (2,) &rarr; (4,)</code>, and <code>+ b</code> is <a href="../lessons/chapter-3-lesson-12.html#l12-h1">broadcasting</a> adding one number to all four. That is the whole of prediction for a linear model, and you have now written it. Chapter 11 will show where <code>w</code> and <code>b</code> come from; the code that uses them is this line and no more.</p>
+  <p class="ar">أربعُ توصيلات وعمودان يصفان كلًّا منها &mdash; طرودٌ محمولة وكيلومترات مقطوعة &mdash; ووقتٌ متوقَّع بالدقائق لكلٍّ. فـ <code>X @ w</code> هي <code>(4, 2) @ (2,) &rarr; (4,)</code>، و<code>+ b</code> <a href="../lessons/chapter-3-lesson-12.html#l12-h1">بثٌّ</a> يضيف عددًا واحدًا إلى الأربعة. وذلك هو التنبّؤ كلّه لنموذج خطي، وقد كتبته الآن. والفصل 11 سيُظهر من أين تأتي <code>w</code> و<code>b</code>؛ أما الكودُ الذي يستعملهما فهذا السطر لا غير.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Your features are <code>X</code> with shape <code>(100, 5)</code> and your weights <code>w</code> have shape <code>(5,)</code>. A colleague writes <code>w @ X</code>. What happens?</span><span class="ar">سماتُك <code>X</code> شكلها <code>(100, 5)</code> وأوزانك <code>w</code> شكلها <code>(5,)</code>. وكتب زميلٌ <code>w @ X</code>. فماذا يحدث؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It raises: on the left, the vector's 5 must meet <code>X</code>'s first dimension, which is 100.</span><span class="ar">يرفع خطأً: فعلى اليسار يجب أن تلاقي الـ 5 في المتجه بُعد <code>X</code> الأول وهو 100.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It works and gives the same 100 predictions; <code>@</code> is symmetric for a vector and a table.</span><span class="ar">تنجح وتعطي المئة تنبّؤ نفسها؛ فـ <code>@</code> متماثلة لمتجه وجدول.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It works and gives shape <code>(5,)</code>: one number per feature.</span><span class="ar">تنجح وتعطي الشكل <code>(5,)</code>: عددٌ لكل سمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It works but the 100 predictions come back in reverse order.</span><span class="ar">تنجح لكن المئة تنبّؤ تعود بترتيب معكوس.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is the one to kill carefully, because the 1-D convenience really does make <code>@</code> look symmetric: <code>w @ X</code> is legal when the shapes allow it, and with <code>X.T</code> of shape <code>(5, 100)</code> it would give exactly the 100 predictions. The rule has not bent &mdash; the vector's single dimension is matched against whichever dimension is adjacent to it, which on the left is the table's first. Read the shapes, not the names.</div>
+      <div class="ar">الخيار الثاني جديرٌ بالقتل بعناية، فرفاهيةُ الأحادي تجعل <code>@</code> تبدو متماثلة فعلًا: فـ <code>w @ X</code> مشروعةٌ حين تسمح الأشكال، ومع <code>X.T</code> ذات الشكل <code>(5, 100)</code> كانت ستعطي المئة تنبّؤ بالضبط. والقاعدةُ لم تنثنِ &mdash; فبُعد المتجه الوحيد يُطابَق بالبُعد المجاور له، وهو على اليسار بُعد الجدول الأول. اقرأ الأشكال لا الأسماء.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 15.2 &mdash; Fix it without touching the data</span><span class="ar">تمرين 15.2 &mdash; أصلحه دون مسّ البيانات</span></h4>
+    <p class="en">This raises. Fix it by changing the expression only &mdash; do not rebuild, reshape or re-enter the arrays &mdash; and say which two numbers had to meet.</p>
+    <p class="ar">هذا يرفع خطأً. أصلحه بتغيير التعبير وحده &mdash; لا تُعِد بناء المصفوفات ولا تُعِد تشكيلها ولا إدخالها &mdash; وقل أيُّ عددين كان عليهما أن يتلاقيا.</p>
+
+<pre class="code bad"><code>X = np.array([[3., 120.],
+              [1.,  60.],
+              [5., 200.],
+              [2.,  95.]])
+w = np.array([1.5, 0.02])
+
+print(w @ X)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(X @ w)
+print(w @ X.T)
+</code></pre>
+      <div class="output">[ 6.9  2.7 11.5  4.9]
+[ 6.9  2.7 11.5  4.9]</div>
+      <p class="en">Either is correct and the first is better. The failing line asked the vector's 2 to meet <code>X</code>'s first dimension, 4. Swapping the operands puts the 2 next to the other 2; transposing moves the 2 to where the vector is waiting. Prefer <code>X @ w</code>: it reads as &ldquo;apply the weights to the table&rdquo;, and it is the form you will see in every library, every tutorial and every paper.</p>
+      <p class="ar">كلاهما صحيح والأول أفضل. فالسطرُ الفاشل طلب أن تلاقي الـ 2 في المتجه بُعد <code>X</code> الأول وهو 4. وتبديلُ المُعاملين يضع الـ 2 بجوار الـ 2 الأخرى؛ والنقلُ ينقل الـ 2 إلى حيث ينتظر المتجه. وفضّل <code>X @ w</code>: فهي تُقرأ «طبّق الأوزان على الجدول»، وهي الصيغةُ التي ستراها في كل مكتبة وكل شرح وكل بحث.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 15.3 &mdash; Predict the shapes before you run anything</span><span class="ar">تمرين 15.3 &mdash; توقّع الأشكال قبل أن تشغّل شيئًا</span></h4>
+    <p class="en">For each pair, write down the resulting shape or the word <code>ValueError</code>, on paper, before touching a keyboard. Then check all five at once.</p>
+    <p class="ar">لكل زوج اكتب الشكل الناتج أو كلمة <code>ValueError</code> على ورقة قبل أن تمسّ لوحة المفاتيح. ثم افحص الخمسة دفعةً واحدة.</p>
+
+<pre class="code"><code>(5, 3) @ (3,)      (5, 3) @ (3, 2)      (3, 5) @ (3,)
+(5, 3) @ (5,)      (2, 3) @ (3, 3)
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>pairs = [((5, 3), (3,)), ((5, 3), (3, 2)), ((3, 5), (3,)),
+         ((5, 3), (5,)), ((2, 3), (3, 3))]
+
+for a, b in pairs:
+    try:
+        print(a, "@", b, "->", (np.ones(a) @ np.ones(b)).shape)
+    except ValueError:
+        print(a, "@", b, "-> ValueError")
+</code></pre>
+      <div class="output">(5, 3) @ (3,) -> (5,)
+(5, 3) @ (3, 2) -> (5, 2)
+(3, 5) @ (3,) -> ValueError
+(5, 3) @ (5,) -> ValueError
+(2, 3) @ (3, 3) -> (2, 3)</div>
+      <p class="en">The fourth is the one worth staring at. <code>(5, 3) @ (5,)</code> looks reasonable &mdash; five rows, five numbers &mdash; and it is exactly the mistake of someone who has a value per <em>row</em> and reaches for <code>@</code>. Matrix multiplication always pairs the last dimension on the left with the first on the right; a per-row quantity is not a thing you multiply by, it is a thing you <a href="../lessons/chapter-3-lesson-12.html#l12-s4">broadcast</a> with <code>[:, None]</code>. <code>np.ones</code> is doing honest work here too: when only the shapes matter, you do not need the real data to answer the question.</p>
+      <p class="ar">الرابع جديرٌ بالتحديق. فـ <code>(5, 3) @ (5,)</code> يبدو معقولًا &mdash; خمسةُ صفوف وخمسةُ أعداد &mdash; وهو بالضبط خطأُ من عنده قيمةٌ لكل <em>صفّ</em> فيمدّ يده إلى <code>@</code>. وضربُ المصفوفات يزاوج دائمًا البُعد الأخير يسارًا بالأول يمينًا؛ والمقدارُ الذي لكل صفّ ليس شيئًا تضرب به بل شيئًا <a href="../lessons/chapter-3-lesson-12.html#l12-s4">تبثّه</a> بـ <code>[:, None]</code>. و<code>np.ones</code> تؤدي عملًا صادقًا هنا أيضًا: فمتى كانت الأشكال وحدها هي المهمّة لم تحتج البيانات الحقيقية للجواب.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What is the shape of <code>(X @ w + b)</code> when <code>X</code> is <code>(4, 2)</code>, <code>w</code> is <code>(2,)</code> and <code>b</code> is a single number?</span><span class="ar">ما شكل <code>(X @ w + b)</code> حين تكون <code>X</code> بـ <code>(4, 2)</code> و<code>w</code> بـ <code>(2,)</code> و<code>b</code> عددًا مفردًا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>(4,)</code> &mdash; the matrix multiply gives four numbers, and adding a single number broadcasts over all four without changing the shape.</span><span class="ar"><code>(4,)</code> &mdash; فضربُ المصفوفات يعطي أربعة أعداد، وإضافةُ عدد مفرد تُبثّ على الأربعة بلا تغيير الشكل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>(4, 1)</code>, because the result is a column of predictions.</span><span class="ar"><code>(4, 1)</code>، لأن النتيجة عمودُ تنبّؤات.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>(4, 2)</code> &mdash; <code>b</code> is added to each of the two columns.</span><span class="ar"><code>(4, 2)</code> &mdash; فـ <code>b</code> تُضاف إلى كلٍّ من العمودين.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A single number, since <code>b</code> collapses the result.</span><span class="ar">عددٌ مفرد، إذ تَطبِق <code>b</code> النتيجة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is the one people expect from textbooks, where predictions are drawn as a column, and it is worth being clear: NumPy gives you <code>(4,)</code>, flat, with no column-ness to it at all. If something downstream needs <code>(4, 1)</code>, say so with <code>[:, None]</code> rather than assuming. This is the same &ldquo;a 1-D array is not a column&rdquo; point as <code>.T</code> doing nothing, arriving from the other direction.</div>
+      <div class="ar">الخيار الثاني هو ما يتوقعه الناس من الكتب حيث تُرسم التنبّؤات عمودًا، وجديرٌ بالوضوح: فنمباي تعطيك <code>(4,)</code> مسطّحة بلا عموديّةٍ فيها إطلاقًا. فإن احتاج شيءٌ لاحق <code>(4, 1)</code> فقل ذلك بـ <code>[:, None]</code> لا بالافتراض. وهذه هي نقطةُ «المصفوفة الأحادية ليست عمودًا» نفسها التي جاءت من كون <code>.T</code> لا تفعل شيئًا، آتيةً من الجهة الأخرى.</div>
+    </div>
+  </div>
+
+  <h3 id="l15-s9"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l15-s10"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><code>(m, n) @ (n, p)</code> gives <code>(m, p)</code>: the inner numbers must match and they vanish. Read the two shapes before you run the line.</span><span class="ar"><code>(m, n) @ (n, p)</code> تعطي <code>(m, p)</code>: فالعددان الداخليان يجب أن يتطابقا وهما يختفيان. اقرأ الشكلين قبل تشغيل السطر.</span></li>
+      <li><span class="en"><code>@</code> is <code>*</code> followed by a sum along the last axis. <code>*</code> keeps every value; <code>@</code> adds each row up.</span><span class="ar"><code>@</code> هي <code>*</code> متبوعةً بجمعٍ على المحور الأخير. فـ <code>*</code> تُبقي كل قيمة؛ و<code>@</code> تجمع كل صفّ.</span></li>
+      <li><span class="en"><code>.T</code> swaps two dimensions, costs nothing, is a view &mdash; and does nothing at all to a 1-D array.</span><span class="ar"><code>.T</code> تبدّل بُعدين بلا كلفة وهي نافذة &mdash; ولا تفعل شيئًا إطلاقًا بمصفوفة أحادية.</span></li>
+      <li><span class="en"><code>A @ B</code> is not <code>B @ A</code>, even when both are legal.</span><span class="ar"><code>A @ B</code> ليست <code>B @ A</code> حتى حين تصحّ الاثنتان.</span></li>
+      <li><span class="en"><code>X @ w + b</code> is a linear model's prediction for every row of a table. You will meet it again, unchanged, in Chapters 10 and 11.</span><span class="ar"><code>X @ w + b</code> تنبّؤُ نموذجٍ خطي لكل صفّ في جدول. وستلقاها ثانيةً بلا تغيير في الفصلين 10 و11.</span></li>
+    </ul>
+  </div>
+
+  <h3 id="l15-s10"><span class="en">What comes next</span><span class="ar">ما التالي</span></h3>
+
+  <p class="en">Two lessons have replaced loops with single operators. <a href="../lessons/chapter-4-lesson-16.html#lesson-16">Lesson 16</a> asks what that is actually worth &mdash; with a stopwatch &mdash; gives you a recipe for turning any loop you meet into array code, and then deals with the one thing in this course that must be allowed to vary and must also be repeatable: random numbers. <a href="../tests/chapter-4-test-15.html#test-15">Test 15</a> first.</p>
+  <p class="ar">استبدل درسان بالحلقات مُعاملات مفردة. و<a href="../lessons/chapter-4-lesson-16.html#lesson-16">الدرس 16</a> يسأل كم يساوي ذلك فعلًا &mdash; بساعة إيقاف &mdash; ويعطيك وصفةً لتحويل أي حلقة تلقاها إلى كود مصفوفات، ثم يعالج الشيء الوحيد في هذا المقرر الذي يجب أن يُسمح له بالتغيّر ويجب أن يكون قابلًا للتكرار أيضًا: الأعدادَ العشوائية. و<a href="../tests/chapter-4-test-15.html#test-15">الاختبار 15</a> أولًا.</p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-04.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="A4 — Numbers in a Computer · Python OOP by Example" data-ar="A4 — الأعداد في الحاسوب · البرمجة الكائنية بلغة بايثون">A4 — Numbers in a Computer · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="0" data-page="appendix-a4" data-path="appendices/appendix-a4.html">
+<main>
+<section class="page" id="appendix-a4">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Appendix A4 &middot; self-study &middot; not examined</span><span class="ar">الملحق A4 &middot; دراسة ذاتية &middot; غير ممتحَن فيه</span></span>
+  <h1><span class="en">Numbers in a Computer</span><span class="ar">الأعداد في الحاسوب</span></h1>
+
+  <p class="lede en">A Python list will happily hold <code>1</code>, <code>2.5</code> and <code>"three"</code> at the same time. A NumPy array will not: every array has <strong>one</strong> type for all of its values, and that type is chosen for you unless you choose it. From <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lecture 12</a> onwards that choice shows up in your results, so this appendix explains what the types actually are.</p>
+  <p class="lede ar">قائمةُ بايثون تحمل <code>1</code> و<code>2.5</code> و<code>"three"</code> معًا راضيةً. أما مصفوفةُ نمباي فلا: فلكل مصفوفة نوعٌ <strong>واحد</strong> لكل قيمها، ويُختار ذلك النوع نيابةً عنك ما لم تختره. ومن <a href="../lessons/chapter-3-lesson-10.html#lesson-10">المحاضرة 12</a> فصاعدًا يظهر ذلك الاختيار في نتائجك، فيشرح هذا الملحق ما الأنواع فعلًا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">How to use this appendix</span><span class="ar">كيف تستخدم هذا الملحق</span></h4>
+    <p class="en">Read it once before Week 5. It takes about twenty minutes, it contains no mathematics beyond arithmetic, and it is <strong>not lecture material</strong> &mdash; no lesson test or chapter test asks about anything on this page. What the lectures examine is the array: what you can do to it and what it does to your numbers.</p>
+    <p class="ar">اقرأه مرة واحدة قبل الأسبوع 5. يستغرق نحو عشرين دقيقة، ولا يحوي رياضيات غير الحساب، وهو <strong>ليس مادة محاضرة</strong> &mdash; فلا اختبار درس ولا اختبار فصل يسأل عن شيء في هذه الصفحة. أما ما تمتحن فيه المحاضرات فهو المصفوفة: ما تستطيع فعله بها وما تفعله هي بأرقامك.</p>
+  </div>
+
+  <h2 id="a4-h1"><span class="en">A4.1 &mdash; Whole numbers are exact, and they have an edge</span><span class="ar">A4.1 &mdash; الأعداد الصحيحة دقيقة، ولها حافة</span></h2>
+
+  <p class="en">An ordinary Python <code>int</code> has no largest value. You can keep multiplying until the computer runs out of memory, and the answer stays exactly right. NumPy does not work that way, because it reserves a fixed number of bits for every value in advance &mdash; that is what makes it fast.</p>
+  <p class="ar">عددُ بايثون الصحيح العادي بلا قيمة كبرى. فتستطيع الضرب حتى ينفد حاسوبك من الذاكرة، ويبقى الجواب صحيحًا تمامًا. ولا تعمل نمباي هكذا، لأنها تحجز عددًا ثابتًا من البتّات لكل قيمة مقدمًا &mdash; وذلك ما يجعلها سريعة.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Type</span><span class="ar">النوع</span></th>
+        <th><span class="en">Bits</span><span class="ar">البتّات</span></th>
+        <th><span class="en">Smallest</span><span class="ar">الأصغر</span></th>
+        <th><span class="en">Largest</span><span class="ar">الأكبر</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>int8</code></td><td>8</td><td><code>-128</code></td><td><code>127</code></td></tr>
+      <tr><td><code>int16</code></td><td>16</td><td><code>-32 768</code></td><td><code>32 767</code></td></tr>
+      <tr><td><code>int32</code></td><td>32</td><td><code>-2 147 483 648</code></td><td><code>2 147 483 647</code></td></tr>
+      <tr><td><code>int64</code></td><td>64</td><td><code>-9 223 372 036 854 775 808</code></td><td><code>9 223 372 036 854 775 807</code></td></tr>
+    </tbody>
+  </table>
+
+  <p class="en"><code>int64</code> is the default on the machines you will use, and nine quintillion is comfortably beyond any exam mark. The edge still matters, because what happens <em>at</em> the edge is not an error.</p>
+  <p class="ar">و<code>int64</code> هو الافتراضي على الأجهزة التي ستستعملها، وتسعة كوينتليون تتجاوز أي علامة امتحان براحة. وتبقى الحافة مهمة، لأن ما يحدث <em>عندها</em> ليس خطأً.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" role="img" aria-labelledby="a4fig1">
+      <title id="a4fig1">an 8-bit integer wraps from 127 round to -128</title>
+      <defs>
+        <marker id="a4arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+
+      <circle cx="350" cy="104" r="68" class="dg-box" fill="none"/>
+      <text class="dg-t dg-c dg-n" x="350" y="40" text-anchor="middle">127</text>
+      <text class="dg-t dg-c dg-n" x="350" y="178" text-anchor="middle">-1</text>
+      <text class="dg-t dg-c dg-n" x="258" y="109" text-anchor="middle">0</text>
+      <text class="dg-t dg-c dg-n" x="444" y="109" text-anchor="middle">-128</text>
+
+      <path class="dg-line" d="M 372 42 A 68 68 0 0 1 420 92" marker-end="url(#a4arrow)"/>
+      <text class="dg-t dg-b en" x="560" y="60" text-anchor="middle">add 1 to 127</text>
+      <text class="dg-t dg-b ar" x="560" y="60" text-anchor="middle">أضف 1 إلى 127</text>
+      <text class="dg-t dg-s en" x="560" y="80" text-anchor="middle">and you arrive at -128,</text>
+      <text class="dg-t dg-s en" x="560" y="96" text-anchor="middle">with only a warning</text>
+      <text class="dg-t dg-s ar" x="560" y="80" text-anchor="middle">فتصل إلى -128،</text>
+      <text class="dg-t dg-s ar" x="560" y="96" text-anchor="middle">بتحذير فقط</text>
+
+      <text class="dg-t dg-s en" x="140" y="80" text-anchor="middle">an int8 has 256 slots</text>
+      <text class="dg-t dg-s en" x="140" y="96" text-anchor="middle">arranged in a ring,</text>
+      <text class="dg-t dg-s en" x="140" y="112" text-anchor="middle">not a line</text>
+      <text class="dg-t dg-s ar" x="140" y="80" text-anchor="middle">لـ int8 مئتان وستة وخمسون</text>
+      <text class="dg-t dg-s ar" x="140" y="96" text-anchor="middle">موضعًا مرتّبة حلقةً،</text>
+      <text class="dg-t dg-s ar" x="140" y="112" text-anchor="middle">لا خطًّا</text>
+    </svg>
+    <figcaption><span class="en">Figure A4.1 &mdash; a fixed-width integer counts round a ring. Past the top it reappears at the bottom.</span><span class="ar">الشكل A4.1 &mdash; العدد الصحيح ثابت العرض يعدّ في حلقة. وبعد القمة يظهر من جديد عند القاع.</span></figcaption>
+  </figure>
+
+<pre class="code"><code>import numpy as np
+
+small = np.array([100, 120], dtype=np.int8)
+print(small[0] + np.int8(100))
+</code></pre>
+
+  <div class="output">RuntimeWarning: overflow encountered in scalar add
+-56</div>
+
+  <p class="en">100 + 100 is &minus;56. NumPy prints a warning and carries on with the wrong number; a warning is not an exception and will not stop a script or fail a test. This is the single best argument for leaving the default <code>int64</code> alone unless you have a reason.</p>
+  <p class="ar">100 + 100 تساوي &minus;56. تطبع نمباي تحذيرًا وتمضي بالرقم الخطأ؛ والتحذيرُ ليس استثناءً ولن يوقف سكربتًا ولن يُفشل اختبارًا. وهذه أقوى حجة على ترك <code>int64</code> الافتراضي وشأنه ما لم يكن لديك سبب.</p>
+
+  <div class="note">
+    <h4><span class="en">Building one is stricter than computing with one</span><span class="ar">البناء أشدّ من الحساب</span></h4>
+    <p class="en">Asking for an <code>int8</code> array that already contains 200 raises <code>OverflowError: Python integer 200 out of bounds for int8</code>. Arithmetic that <em>arrives</em> at 200 only warns. Two different behaviours for the same impossible value, and the loud one is the one you are less likely to hit.</p>
+    <p class="ar">طلبُ مصفوفة <code>int8</code> تحوي 200 أصلًا يرفع <code>OverflowError: Python integer 200 out of bounds for int8</code>. أما الحساب الذي <em>يصل</em> إلى 200 فيحذّر فقط. سلوكان مختلفان للقيمة المستحيلة نفسها، والصاخب منهما هو الأقل احتمالًا أن تصادفه.</p>
+  </div>
+
+  <h2 id="a4-h2"><span class="en">A4.2 &mdash; Decimal numbers are approximate</span><span class="ar">A4.2 &mdash; الأعداد العشرية تقريبية</span></h2>
+
+  <p class="en">This is the part that surprises everyone once, and only once.</p>
+  <p class="ar">هذا هو الجزء الذي يفاجئ الجميع مرة واحدة، ومرة واحدة فقط.</p>
+
+<pre class="code"><code>print(0.1 + 0.2)
+print(0.1 + 0.2 == 0.3)
+</code></pre>
+
+  <div class="output">0.30000000000000004
+False</div>
+
+  <p class="en">Nothing is broken. A computer stores a decimal number as a sum of halves &mdash; a half, a quarter, an eighth, and so on &mdash; in the same way that writing <sup>1</sup>&frasl;<sub>3</sub> in decimal gives 0.3333… and never finishes. <code>0.5</code> is exactly a half, so it is stored exactly. <code>0.1</code> is not any sum of halves, so what gets stored is the closest one available:</p>
+  <p class="ar">لا شيء مكسور. فالحاسوب يخزّن العدد العشري مجموعَ أنصاف &mdash; نصفًا وربعًا وثُمنًا وهكذا &mdash; كما أن كتابة <sup>1</sup>&frasl;<sub>3</sub> عشريًا تعطي 0.3333… ولا تنتهي. و<code>0.5</code> نصفٌ تمامًا فتُخزَّن تمامًا. أما <code>0.1</code> فليست مجموعَ أنصاف، فيُخزَّن أقربُ ما هو متاح:</p>
+
+<pre class="code"><code>print("%.20f" % 0.1)
+print("%.20f" % 0.5)
+</code></pre>
+
+  <div class="output">0.10000000000000000555
+0.50000000000000000000</div>
+
+  <div class="note">
+    <h4><span class="en">What to do about it</span><span class="ar">ماذا تفعل حياله</span></h4>
+    <p class="en"><strong>Never compare two computed decimals with <code>==</code>.</strong> Use <code>np.isclose(a, b)</code>, which asks whether they are near enough rather than identical. That one habit removes every problem this section describes; you do not need to think about halves again.</p>
+    <p class="ar"><strong>لا تقارن عشريّين محسوبَين بـ <code>==</code> أبدًا.</strong> استعمل <code>np.isclose(a, b)</code> التي تسأل هل هما قريبان كفاية لا هل هما متطابقان. وتلك العادة الواحدة تزيل كل مشكلة يصفها هذا القسم؛ ولن تحتاج إلى التفكير في الأنصاف ثانيةً.</p>
+  </div>
+
+  <h2 id="a4-h3"><span class="en">A4.3 &mdash; <code>float32</code> and <code>float64</code>: precision against memory</span><span class="ar">A4.3 &mdash; <code>float32</code> و<code>float64</code>: الدقة في مقابل الذاكرة</span></h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Type</span><span class="ar">النوع</span></th>
+        <th><span class="en">Reliable digits</span><span class="ar">الأرقام الموثوقة</span></th>
+        <th><span class="en">One million values</span><span class="ar">مليون قيمة</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>float64</code> <span class="en">(the default)</span><span class="ar">(الافتراضي)</span></td><td>15</td><td>7.6 MB</td></tr>
+      <tr><td><code>float32</code></td><td>6</td><td>3.8 MB</td></tr>
+      <tr><td><code>int8</code></td><td><span class="en">whole numbers only</span><span class="ar">صحيحة فقط</span></td><td>1.0 MB</td></tr>
+    </tbody>
+  </table>
+
+  <p class="en">Six reliable digits sounds generous until you meet a number with seven:</p>
+  <p class="ar">ستة أرقام موثوقة تبدو سخيّة حتى تقابل عددًا بسبعة:</p>
+
+<pre class="code"><code>print(np.float32(16777216.0) + np.float32(1))
+print(np.float64(16777216.0) + 1)
+</code></pre>
+
+  <div class="output">16777216.0
+16777217.0</div>
+
+  <p class="en">In <code>float32</code> there is simply no slot between 16 777 216 and 16 777 218, so adding one lands back where it started. Nothing warns. This is why you leave <code>float64</code> alone for anything you are reasoning about, and reach for <code>float32</code> only when memory is the actual problem &mdash; which, with a million rows, it can genuinely be.</p>
+  <p class="ar">في <code>float32</code> لا يوجد ببساطة موضع بين 16 777 216 و16 777 218، فإضافةُ واحد تعود إلى حيث بدأت. ولا شيء يحذّر. ولهذا تترك <code>float64</code> وشأنه لكل ما تستدلّ عليه، ولا تمدّ يدك إلى <code>float32</code> إلا حين تكون الذاكرة هي المشكلة فعلًا &mdash; وهي كذلك فعلًا مع مليون صفّ.</p>
+
+  <h2 id="a4-h4"><span class="en">A4.4 &mdash; <code>nan</code>: the value that means "no value"</span><span class="ar">A4.4 &mdash; <code>nan</code>: القيمة التي تعني «لا قيمة»</span></h2>
+
+  <p class="en">An array has one type, so a missing mark cannot be <code>None</code> in a float array. NumPy uses a special float called <strong>nan</strong>, for "not a number". It has one behaviour worth knowing before you meet it in a result:</p>
+  <p class="ar">للمصفوفة نوعٌ واحد، فلا يمكن أن تكون العلامةُ المفقودة <code>None</code> في مصفوفة عشرية. وتستعمل نمباي عددًا عشريًا خاصًا اسمه <strong>nan</strong> أي «ليس عددًا». وله سلوكٌ واحد يستحق المعرفة قبل أن تقابله في نتيجة:</p>
+
+<pre class="code"><code>marks = np.array([40.0, np.nan, 70.0])
+
+print(marks.mean())
+print(np.nanmean(marks))
+print(np.nan == np.nan)
+print(np.isnan(marks))
+</code></pre>
+
+  <div class="output">nan
+55.0
+False
+[False  True False]</div>
+
+  <p class="en">One missing value turns the mean of the whole array into <code>nan</code>. That is deliberate and it is a kindness: an average that quietly ignored the gap would be an average of a different class from the one you asked about. Use <code>np.nanmean</code> when skipping is what you want, and <code>np.isnan</code> to find them &mdash; never <code>== np.nan</code>, which is <code>False</code> even for <code>nan</code> itself.</p>
+  <p class="ar">قيمةٌ مفقودة واحدة تحوّل متوسط المصفوفة كلها إلى <code>nan</code>. وذلك متعمَّد وهو لطفٌ: فمتوسطٌ يتجاهل الفجوة بصمت سيكون متوسط صفٍّ غير الذي سألت عنه. استعمل <code>np.nanmean</code> حين يكون التخطي هو مرادك، و<code>np.isnan</code> لإيجادها &mdash; ولا تستعمل <code>== np.nan</code> أبدًا، فهي <code>False</code> حتى لـ <code>nan</code> نفسها.</p>
+
+  <h2 id="a4-h5"><span class="en">A4.5 &mdash; Which type to ask for</span><span class="ar">A4.5 &mdash; أي نوع تطلب</span></h2>
+
+  <table>
+    <thead>
+      <tr><th><span class="en">Situation</span><span class="ar">الحالة</span></th><th><span class="en">Use</span><span class="ar">استعمل</span></th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="en">Anything you are still thinking about</span><span class="ar">أي شيء لا تزال تفكر فيه</span></td><td><span class="en">the default &mdash; ask for nothing</span><span class="ar">الافتراضي &mdash; لا تطلب شيئًا</span></td></tr>
+      <tr><td><span class="en">Counts, ids, indexes</span><span class="ar">الأعداد والمعرّفات والفهارس</span></td><td><code>int64</code></td></tr>
+      <tr><td><span class="en">Measurements, marks, prices</span><span class="ar">القياسات والعلامات والأسعار</span></td><td><code>float64</code></td></tr>
+      <tr><td><span class="en">Yes/no flags, a mask</span><span class="ar">رايات نعم/لا، أو قناع</span></td><td><code>bool</code></td></tr>
+      <tr><td><span class="en">Millions of values and memory is the real problem</span><span class="ar">ملايين القيم والذاكرة هي المشكلة فعلًا</span></td><td><code>float32</code>, <span class="en">measured first</span><span class="ar">بعد القياس أولًا</span></td></tr>
+      <tr><td><span class="en">Money</span><span class="ar">المال</span></td><td><span class="en">not a float at all &mdash; store whole piastres as <code>int64</code></span><span class="ar">ليس عددًا عشريًا إطلاقًا &mdash; خزّن القروش صحيحةً <code>int64</code></span></td></tr>
+    </tbody>
+  </table>
+
+  <p class="en">The last row is the practical consequence of A4.2: a price of 19.99 cannot be stored exactly, and a thousand of them added up will not equal what the till says. Counting whole piastres keeps every value exact, and you divide by 100 once, at the moment you print.</p>
+  <p class="ar">والصفّ الأخير هو النتيجة العملية لـ A4.2: فسعر 19.99 لا يمكن تخزينه تمامًا، وألفٌ منها مجموعةً لن تساوي ما يقوله الصندوق. وعدُّ القروش صحيحةً يُبقي كل قيمة دقيقة، وتقسم على 100 مرة واحدة لحظةَ الطباعة.</p>
+
+  <h2 id="a4-h6"><span class="en">Self-check</span><span class="ar">فحص ذاتي</span></h2>
+
+  <p class="en">Six questions on this page alone. Not part of any test and no score is recorded &mdash; they are here so you can find out whether something is still vague before it turns up in a result.</p>
+  <p class="ar">ستة أسئلة على هذه الصفحة وحدها. وهي ليست جزءًا من أي اختبار ولا تُسجَّل نتيجة &mdash; إنما هي هنا لتكتشف هل بقي شيء غامضًا قبل أن يظهر في نتيجة.</p>
+
+  <div class="assess" data-bank="appendix-a4" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">You are ready for the arrays</span><span class="ar">أنت جاهز للمصفوفات</span></h4>
+    <p class="en">Nothing above is examined. What matters is that <code>int64</code>, <code>float64</code>, overflow, precision and <code>nan</code> are now words you recognise, because <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lecture 12</a> puts a <code>dtype</code> on every array you make and the lectures after it keep referring to it.</p>
+    <p class="ar">لا شيء مما سبق ممتحَن فيه. والمهم أن <code>int64</code> و<code>float64</code> والطفحان والدقة و<code>nan</code> صارت ألفاظًا تعرفها، لأن <a href="../lessons/chapter-3-lesson-10.html#lesson-10">المحاضرة 12</a> تضع <code>dtype</code> على كل مصفوفة تصنعها، وتظل المحاضرات بعدها تشير إليه.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-appendix-a4.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter 3 · Python OOP by Example" data-ar="الفصل 3 · البرمجة الكائنية بلغة بايثون">Chapter 3 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="3" data-page="chapter-3" data-path="chapters/chapter-3.html">
+<main>
+<section class="page" id="chapter-3">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Chapter 3 &middot; Weeks 4&ndash;5 &middot; Lectures 12&ndash;15</span><span class="ar">الفصل 3 &middot; الأسبوعان 4&ndash;5 &middot; المحاضرات 12&ndash;15</span></span>
+  <h1><span class="en">The Array, and the Mistakes It Does Not Report</span><span class="ar">المصفوفة، والأخطاء التي لا تُبلّغ عنها</span></h1>
+
+  <p class="lede en">Four lessons on the one data structure the rest of the course stands on. A shape repeats in all four: the list version does something absurd, the array version does the right thing in a single line &mdash; and then the array does something absurd of its own, quietly, with nothing raised. Each lesson ends with the rule that tells you in advance, because once there is no error message, the rule is all you have.</p>
+  <p class="lede ar">أربعة دروس في بنية البيانات الوحيدة التي يقوم عليها بقيّة المقرر. ويتكرّر شكلٌ واحد في الأربعة: نسخةُ القائمة تفعل شيئًا عبثيًا، ونسخةُ المصفوفة تفعل الصواب في سطر واحد &mdash; ثم تفعل المصفوفةُ عبثها الخاص، في صمت، بلا خطأ يُرفع. وينتهي كل درس بالقاعدة التي تخبرك سلفًا، فحين تغيب رسالةُ الخطأ لا يبقى لك غير القاعدة.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need the Python of Chapters 1 and 2, and nothing more: lists, loops, functions and classes. No mathematics beyond arithmetic. <a href="../appendices/appendix-a4.html#appendix-a4">Appendix A4</a> explains why <code>0.1 + 0.2</code> is not <code>0.3</code> and why an array has a <code>dtype</code> at all &mdash; read it when a comparison surprises you, which it will.</p>
+    <p class="ar">تحتاج بايثون الفصلين الأول والثاني، ولا شيء غير ذلك: القوائم والحلقات والدوال والأصناف. ولا رياضيات أبعد من الحساب. ويشرح <a href="../appendices/appendix-a4.html#appendix-a4">الملحق A4</a> لماذا <code>0.1 + 0.2</code> ليس <code>0.3</code>، ولماذا للمصفوفة <code>dtype</code> من الأصل &mdash; اقرأه حين تفاجئك مقارنة، وستفاجئك.</p>
+  </div>
+
+  <h2 id="ch3-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="../lessons/chapter-3-lesson-10.html#lesson-10">
+      <span class="n">10</span><span class="state" data-page-state="lesson-10" hidden></span>
+      <h3 id="ch3-s1"><span class="en">One Type, Many Numbers: the Array</span><span class="ar">نوعٌ واحد وأعداد كثيرة: المصفوفة</span></h3>
+      <p class="en">A loop that adjusts every mark in a class. The obvious list version lengthens the class instead of raising the marks. One line replaces the whole loop &mdash; and the array asks for something in return.</p>
+      <p class="ar">حلقةٌ تعدّل كل علامة في صفّ. نسخةُ القائمة البديهية تُطيل الصفَّ بدلًا من أن ترفع العلامات. وسطرٌ واحد يحلّ محل الحلقة كلها &mdash; والمصفوفة تطلب شيئًا في المقابل.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-3-lesson-11.html#lesson-11">
+      <span class="n">11</span><span class="state" data-page-state="lesson-11" hidden></span>
+      <h3 id="ch3-s2"><span class="en">Slices That Are Not Copies</span><span class="ar">قطعٌ ليست نسخًا</span></h3>
+      <p class="en">Slice an array exactly the way you slice a list, write into the slice, and the original table has changed. One word fixes it; knowing which kinds of indexing copy and which do not matters more.</p>
+      <p class="ar">قطّع مصفوفةً تمامًا كما تقطّع قائمة، واكتب في القطعة، فيتغيّر الجدول الأصلي. كلمةٌ واحدة تُصلح ذلك؛ والأهم أن تعرف أيَّ أنواع الفهرسة تنسخ وأيّها لا ينسخ.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-3-lesson-12.html#lesson-12">
+      <span class="n">12</span><span class="state" data-page-state="lesson-12" hidden></span>
+      <h3 id="ch3-s3"><span class="en">Shapes That Stretch: Broadcasting</span><span class="ar">أشكالٌ تتمدّد: البثّ</span></h3>
+      <p class="en">Three subject averages subtract from a table of nine marks and it works. Three <em>student</em> averages subtract just as smoothly and produce nonsense. One rule, read from the right, says which is which.</p>
+      <p class="ar">ثلاثة متوسطات مواد تُطرح من جدول فيه تسع علامات فينجح الأمر. وثلاثة متوسطات <em>طلبة</em> تُطرح بالسلاسة نفسها فتُنتج هراءً. قاعدةٌ واحدة، تُقرأ من اليمين، تفصل بين الحالتين.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-3-lesson-13.html#lesson-13">
+      <span class="n">13</span><span class="state" data-page-state="lesson-13" hidden></span>
+      <h3 id="ch3-s4"><span class="en">Summarising and Selecting: Axes &amp; Masks</span><span class="ar">التلخيص والاختيار: المحاور والأقنعة</span></h3>
+      <p class="en">Which way does <code>axis=0</code> point? Pick out every student who passed with no loop and no <code>if</code>, then find out why one missing mark turns a whole class average into <code>nan</code>.</p>
+      <p class="ar">إلى أين يشير <code>axis=0</code>؟ انتقِ كل طالب نجح بلا حلقة وبلا <code>if</code>، ثم اعرف لماذا تحوّل علامةٌ مفقودة واحدة متوسطَ صفٍّ كامل إلى <code>nan</code>.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch3-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">Each lesson has a test of its own, sat after that lesson and assuming nothing later. The two chapter tests cover all four lessons &mdash; A for the core ideas, B for the harder corners, where most of the questions cross two lessons at once. The execution traces sit inside the lessons, each at the moment you need to watch it happen.</p>
+  <p class="ar">لكل درس اختباره الخاص، يُؤدَّى بعده ولا يفترض شيئًا بعده. ويغطّي اختبارا الفصل الدروس الأربعة &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب، وفيه تجمع معظم الأسئلة بين درسين في وقت واحد. أمّا آثار التنفيذ فهي داخل الدروس، كلٌّ عند اللحظة التي تحتاج أن تشاهدها فيها.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="../tests/chapter-3-test-10.html#test-10">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 10 &mdash; the Array</span><span class="ar">اختبار 10 &mdash; المصفوفة</span></span>
+      <span class="state" data-page-state="test-10" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-3-test-11.html#test-11">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 11 &mdash; Views &amp; Copies</span><span class="ar">اختبار 11 &mdash; العروض والنسخ</span></span>
+      <span class="state" data-page-state="test-11" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-3-test-12.html#test-12">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 12 &mdash; Broadcasting</span><span class="ar">اختبار 12 &mdash; البثّ</span></span>
+      <span class="state" data-page-state="test-12" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-3-test-13.html#test-13">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 13 &mdash; Axes &amp; Masks</span><span class="ar">اختبار 13 &mdash; المحاور والأقنعة</span></span>
+      <span class="state" data-page-state="test-13" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-3-exam-a.html#chapter-03-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-03-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-3-exam-b.html#chapter-03-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-03-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="../appendices/appendix-a4.html#appendix-a4">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A4 &mdash; numbers in a computer</span><span class="ar">الملحق A4 &mdash; الأعداد في الحاسوب</span></span>
+      <span class="state" data-page-state="appendix-a4" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch3-s5"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">An array trades Python&rsquo;s willingness to hold anything for speed and for whole-table arithmetic &mdash; and every bug in this chapter is that trade collected: a shape, a type or a view behaving exactly as documented and not at all as you meant.</p>
+    <p class="ar">تستبدل المصفوفةُ باستعداد بايثون لاحتواء أي شيء سرعةً وحسابًا على الجدول كله &mdash; وكل خلل في هذا الفصل هو ثمن ذلك الاستبدال: شكلٌ أو نوعٌ أو عرضٌ يتصرّف كما هو موثَّق تمامًا، ولا كما قصدتَ أبدًا.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/home.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

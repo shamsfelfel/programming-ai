@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter 2 · Python OOP by Example" data-ar="الفصل 2 · البرمجة الكائنية بلغة بايثون">Chapter 2 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="2" data-page="chapter-2" data-path="chapters/chapter-2.html">
+<main>
+<section class="page" id="chapter-2">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Chapter 2 &middot; Week 4 &middot; Lectures 10&ndash;11</span><span class="ar">الفصل 2 &middot; الأسبوع 4 &middot; المحاضرتان 10&ndash;11</span></span>
+  <h1><span class="en">Design Patterns, Where Machine Learning Needs Them</span><span class="ar">أنماط التصميم، حيث يحتاجها تعلّم الآلة</span></h1>
+
+  <p class="lede en">Two lessons, two patterns each, and every one of them arrives because a plain function has just failed in a way that raises nothing. A step that forgets what it learned gives the same mark two different answers depending on who else sat the exam. Four steps applied by hand in two files drift out of order until the model is handed data it was never trained on. Each lesson rebuilds the broken thing as an object, and the pattern is what the rebuilt thing is called.</p>
+  <p class="lede ar">درسان، وفي كل درس نمطان، وكلٌّ منها يأتي لأنّ دالةً عادية فشلت فشلًا لا يرفع خطأً. خطوةٌ تنسى ما تعلّمته تمنح العلامةَ نفسها جوابين مختلفين تبعًا لمن جلس الامتحان معها. وأربع خطوات تُطبَّق يدويًا في ملفين يختلف ترتيبهما حتى يُسلَّم النموذجُ بياناتٍ لم يُدرَّب عليها قطّ. كل درس يعيد بناء المكسور كائنًا، والنمط هو اسم ما بُني.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need Chapter 1: classes, <code>__init__</code>, encapsulation, inheritance against composition, and polymorphism. No NumPy and no mathematics &mdash; this chapter is plain Python. No machine-learning background either; <a href="../appendices/appendix-a3.html#appendix-a3">Appendix A3</a> gives you the vocabulary without the equations, and you can read it in twenty minutes.</p>
+    <p class="ar">تحتاج الفصل الأول: الأصناف، و<code>__init__</code>، والتغليف، والوراثة في مقابل التركيب، وتعدد الأشكال. لا NumPy ولا رياضيات &mdash; هذا الفصل بايثون خالصة. ولا تحتاج خلفية في تعلّم الآلة؛ فـ<a href="../appendices/appendix-a3.html#appendix-a3">الملحق A3</a> يعطيك المفردات بلا معادلات، وتقرأه في عشرين دقيقة.</p>
+  </div>
+
+  <h2 id="ch2-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="../lessons/chapter-2-lesson-8.html#lesson-08">
+      <span class="n">08</span><span class="state" data-page-state="lesson-08" hidden></span>
+      <h3 id="ch2-s1"><span class="en">Steps That Remember: Strategy &amp; Factory</span><span class="ar">خطواتٌ تتذكّر: الاستراتيجية والمصنع</span></h3>
+      <p class="en">A function that scales marks gives the same mark two answers, depending on who else is in the list. Give the step a memory &mdash; then a family of them, and one place that builds them.</p>
+      <p class="ar">دالةٌ تُوحّد العلامات تمنح العلامةَ نفسها جوابين، تبعًا لمن معها في القائمة. امنح الخطوةَ ذاكرة &mdash; ثم عائلةً منها، ومكانًا واحدًا يبنيها.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-2-lesson-9.html#lesson-09">
+      <span class="n">09</span><span class="state" data-page-state="lesson-09" hidden></span>
+      <h3 id="ch2-s2"><span class="en">A Thing That Holds Things Like Itself: Pipelines &amp; Decorators</span><span class="ar">شيءٌ يمسك بأشياء مثله: المسارات والمزخرِفات</span></h3>
+      <p class="en">Four preparation steps, applied by hand in two different files. The two orders drift apart. Build one object that <em>is</em> a step and <em>holds</em> steps, and the order stops being something to remember.</p>
+      <p class="ar">أربع خطوات تهيئة، تُطبَّق يدويًا في ملفين مختلفين. ينفصل الترتيبان. ابنِ كائنًا واحدًا <em>هو</em> خطوة و<em>يمسك</em> بخطوات، فيكفّ الترتيب عن كونه شيئًا يُتذكَّر.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch2-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">Each lesson has a test of its own, sat after that lesson and assuming nothing later. The two chapter tests cover both lessons &mdash; A for the core ideas, B for the harder corners. The execution traces are not on a page of their own in this chapter: each sits in the lesson at the moment you need to watch it happen.</p>
+  <p class="ar">لكل درس اختباره الخاص، يُؤدَّى بعده ولا يفترض شيئًا بعده. ويغطّي اختبارا الفصل الدرسين كليهما &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب. أمّا آثار التنفيذ فليست في صفحة مستقلة في هذا الفصل: كلٌّ منها في درسه عند اللحظة التي تحتاج أن تشاهدها فيها.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="../tests/chapter-2-test-8.html#test-08">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 8 &mdash; Strategy &amp; Factory</span><span class="ar">اختبار 8 &mdash; الاستراتيجية والمصنع</span></span>
+      <span class="state" data-page-state="test-08" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-2-test-9.html#test-09">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 9 &mdash; Pipelines &amp; Decorators</span><span class="ar">اختبار 9 &mdash; المسارات والمزخرِفات</span></span>
+      <span class="state" data-page-state="test-09" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-2-exam-a.html#chapter-02-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-02-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-2-exam-b.html#chapter-02-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-02-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="../appendices/appendix-a3.html#appendix-a3">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A3 &mdash; the vocabulary, without the mathematics</span><span class="ar">الملحق A3 &mdash; المفردات، بلا رياضيات</span></span>
+      <span class="state" data-page-state="appendix-a3" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch2-s3"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">Every pattern here is the same move: when a function has to remember something between two calls, that something and the function belong in one object.</p>
+    <p class="ar">كل نمط هنا هو الحركة نفسها: إذا كان على الدالة أن تتذكّر شيئًا بين نداءين، فذلك الشيء والدالة ينتميان إلى كائن واحد.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/home.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

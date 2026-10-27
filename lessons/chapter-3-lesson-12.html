@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Shapes That Stretch · Python OOP by Example" data-ar="أشكالٌ تتمدّد · البرمجة الكائنية بلغة بايثون">Shapes That Stretch · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="3" data-page="lesson-12" data-path="lessons/chapter-3-lesson-12.html">
+<main>
+<section class="page" id="lesson-12">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 12 &middot; Week 5 &middot; Lecture 14 &middot; 90 min</span><span class="ar">الدرس 12 &middot; الأسبوع 5 &middot; المحاضرة 14 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Shapes That Stretch: Broadcasting</span><span class="ar">أشكالٌ تتمدّد: البثّ</span></h1>
+
+  <p class="lede en">By the end of this lesson you will subtract three subject averages from a table of nine marks and watch it work, subtract three <em>student</em> averages from the same table and watch it work just as smoothly while producing nonsense, and learn the one rule that tells the two apart before you run anything.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستطرح ثلاثة متوسطات مواد من جدول فيه تسع علامات وتراه ينجح، ثم تطرح ثلاثة متوسطات <em>طلبة</em> من الجدول نفسه وتراه ينجح بالسلاسة نفسها وهو يُنتج هراءً، وتتعلّم القاعدة الواحدة التي تميّز بينهما قبل أن تشغّل شيئًا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lesson 10</a> and <a href="../lessons/chapter-3-lesson-11.html#lesson-11">Lesson 11</a>. This lesson is entirely about <code>shape</code>, so if <code>(3, 3)</code> and <code>(3,)</code> do not yet read as different things, re-read <a href="../lessons/chapter-3-lesson-10.html#l10-s5">the shape section</a> first. No mathematics beyond subtraction is used.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-3-lesson-10.html#lesson-10">الدرس 10</a> و<a href="../lessons/chapter-3-lesson-11.html#lesson-11">الدرس 11</a>. فهذا الدرس عن <code>shape</code> كلّه، فإن لم تكن <code>(3, 3)</code> و<code>(3,)</code> تُقرآن شيئين مختلفين بعد فأعد قراءة <a href="../lessons/chapter-3-lesson-10.html#l10-s5">قسم الشكل</a> أولًا. ولا تُستعمل رياضيات غير الطرح.</p>
+  </div>
+
+  <h2 id="l12-h1"><span class="en">Concept 1 &mdash; A smaller shape is stretched to fit a larger one</span><span class="ar">المفهوم 1 &mdash; الشكل الأصغر يُمدَّد ليناسب الأكبر</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Three subjects were marked by three different examiners and one marked harder than the others. To compare students fairly you want every mark expressed as a distance from its own subject's average. Written as a loop that is two nested <code>for</code>s and an index you will get wrong at least once.</p>
+    <p class="ar">صحّح ثلاثَ المواد ثلاثةُ ممتحنين وصحّح أحدهم أقسى من الآخرين. ولمقارنة الطلبة بإنصاف تريد كل علامة معبَّرًا عنها بُعدًا عن متوسط مادتها. ومكتوبًا حلقةً فهو حلقتا <code>for</code> متداخلتان وفهرسٌ ستخطئه مرة على الأقل.</p>
+  </div>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+subject_mean = marks.mean(axis=0)
+print(subject_mean, subject_mean.shape)
+
+print(marks - subject_mean)
+</code></pre>
+
+  <div class="output">[60. 65. 70.] (3,)
+[[-20. -10.   0.]
+ [  0.   0.  20.]
+ [ 20.  10. -20.]]</div>
+
+  <p class="en">Three numbers were subtracted from nine, and nobody complained. The first column had 60 taken off it, the second 65, the third 70 &mdash; each column got its own subject's average, which is exactly what was wanted. That is <strong>broadcasting</strong>: when two shapes are not the same, NumPy stretches the smaller one rather than refusing.</p>
+  <p class="ar">طُرحت ثلاثة أعداد من تسعة، ولم يعترض أحد. فالعمود الأول طُرح منه 60، والثاني 65، والثالث 70 &mdash; فنال كل عمود متوسط مادته، وهو المراد بالضبط. وذلك هو <strong>البثّ</strong>: فحين لا يتطابق الشكلان تمدّد نمباي الأصغر بدل أن ترفض.</p>
+
+  <h3 id="l12-s1"><span class="en">The rule, in one line</span><span class="ar">القاعدة في سطر</span></h3>
+
+  <div class="note">
+    <h4><span class="en">Compare the shapes from the right. A dimension fits if it is equal, or 1, or absent.</span><span class="ar">قارن الشكلين من اليمين. ويناسب البُعد إن كان متساويًا أو 1 أو غائبًا.</span></h4>
+    <p class="en">Write the two shapes one above the other, right-aligned, and check each column. Equal is fine. A 1 is fine and gets repeated. Missing is fine and is treated as 1. Anything else is an error.</p>
+    <p class="ar">اكتب الشكلين أحدهما فوق الآخر محاذَيين إلى اليمين، وافحص كل عمود. فالتساوي مقبول. و1 مقبولة وتُكرَّر. والغياب مقبول ويُعامَل 1. وما عدا ذلك خطأ.</p>
+  </div>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 250" role="img" aria-labelledby="l12fig1">
+      <title id="l12fig1">right-align the shapes and check each column</title>
+      <text class="dg-t dg-b en" x="20" y="28">it fits</text>
+      <text class="dg-t dg-b ar" x="20" y="28">ينطبق</text>
+
+      <text class="dg-t dg-c dg-n" x="150" y="60" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-c dg-n" x="150" y="84" text-anchor="end">(3,)</text>
+      <path class="dg-line" d="M 20 94 L 158 94"/>
+      <text class="dg-t dg-c dg-n" x="150" y="118" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-s en" x="175" y="60">3 rows, 3 columns</text>
+      <text class="dg-t dg-s en" x="175" y="84">3 columns, no row dimension</text>
+      <text class="dg-t dg-s en" x="175" y="118">the row is reused for every row</text>
+      <text class="dg-t dg-s ar" x="175" y="60">3 صفوف و3 أعمدة</text>
+      <text class="dg-t dg-s ar" x="175" y="84">3 أعمدة بلا بُعد صفوف</text>
+      <text class="dg-t dg-s ar" x="175" y="118">يُعاد استعمال الصفّ لكل صفّ</text>
+
+      <text class="dg-t dg-b en" x="20" y="166">it does not</text>
+      <text class="dg-t dg-b ar" x="20" y="166">لا ينطبق</text>
+      <text class="dg-t dg-c dg-n" x="150" y="198" text-anchor="end">(3, 3)</text>
+      <text class="dg-t dg-c dg-n" x="150" y="222" text-anchor="end">(2,)</text>
+      <path class="dg-line" d="M 20 232 L 158 232"/>
+      <text class="dg-t dg-s en" x="175" y="198">last dimension is 3</text>
+      <text class="dg-t dg-s en" x="175" y="222">last dimension is 2 — not equal, not 1</text>
+      <text class="dg-t dg-s ar" x="175" y="198">البُعد الأخير 3</text>
+      <text class="dg-t dg-s ar" x="175" y="222">البُعد الأخير 2 — لا متساوٍ ولا 1</text>
+      <text class="dg-t dg-c dg-n" x="530" y="245" text-anchor="middle">ValueError</text>
+    </svg>
+    <figcaption><span class="en">Figure 12.1 &mdash; right-align the two shapes and read down each column. The error message quotes exactly these two shapes.</span><span class="ar">الشكل 12.1 &mdash; حاذِ الشكلين إلى اليمين واقرأ كل عمود نزولًا. ورسالةُ الخطأ تقتبس هذين الشكلين بالضبط.</span></figcaption>
+  </figure>
+
+<pre class="code bad"><code>print(marks - np.array([1., 2.]))
+</code></pre>
+
+  <div class="output">ValueError: operands could not be broadcast together with shapes (3,3) (2,)</div>
+
+  <p class="en">Read that message as a gift. It prints both shapes, in the order you wrote them, so you rarely need to work out what went wrong &mdash; you need to work out which of the two is not what you meant.</p>
+  <p class="ar">اقرأ تلك الرسالة هديةً. فهي تطبع الشكلين بالترتيب الذي كتبتهما به، فنادرًا ما تحتاج إلى استنتاج ما الخطأ &mdash; بل تحتاج إلى استنتاج أيُّهما ليس ما قصدت.</p>
+
+  <div data-trace-id="t-broadcast"></div>
+
+  <h3 id="l12-s2"><span class="en">The three shapes you will actually use</span><span class="ar">الأشكال الثلاثة التي ستستعملها فعلًا</span></h3>
+
+<pre class="code good"><code>a = np.array([[1, 2, 3],
+              [4, 5, 6]])
+
+print(a + 10)
+print(a + np.array([10, 20, 30]))
+print(a + np.array([[100],
+                    [200]]))
+</code></pre>
+
+  <div class="output">[[11 12 13]
+ [14 15 16]]
+[[11 22 33]
+ [14 25 36]]
+[[101 102 103]
+ [204 205 206]]</div>
+
+  <p class="en">A single number stretches in every direction. A <strong>row</strong> of shape <code>(3,)</code> is reused down the rows, so each column gets its own number. A <strong>column</strong> of shape <code>(2, 1)</code> is reused across the columns, so each row gets its own number. Those three cover nearly everything you will write, and the only one that needs care is telling the second apart from the third.</p>
+  <p class="ar">العددُ المفرد يتمدّد في كل اتجاه. و<strong>الصفُّ</strong> ذو الشكل <code>(3,)</code> يُعاد استعماله نزولًا على الصفوف، فينال كل عمود عددَه. و<strong>العمودُ</strong> ذو الشكل <code>(2, 1)</code> يُعاد استعماله عرضًا على الأعمدة، فينال كل صفّ عددَه. وتلك الثلاثة تغطي كل ما ستكتبه تقريبًا، والوحيد الذي يحتاج حذرًا هو تمييز الثانية عن الثالثة.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A table <code>t</code> has shape <code>(2, 3)</code>. What does <code>t + np.array([1., 2.])</code> do?</span><span class="ar">جدولٌ <code>t</code> شكله <code>(2, 3)</code>. فماذا تفعل <code>t + np.array([1., 2.])</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It raises <code>ValueError</code>: right-aligned, the last dimensions are 3 and 2, which are neither equal nor 1.</span><span class="ar">ترفع <code>ValueError</code>: فبالمحاذاة يمينًا يكون البُعدان الأخيران 3 و2، ولا متساويان ولا أحدهما 1.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It adds 1 to the first row and 2 to the second, giving shape <code>(2, 3)</code>.</span><span class="ar">تضيف 1 إلى الصفّ الأول و2 إلى الثاني فتعطي الشكل <code>(2, 3)</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It gives shape <code>(2, 2)</code>, keeping only the columns that had a number.</span><span class="ar">تعطي الشكل <code>(2, 2)</code> فتُبقي الأعمدة التي لها عدد فقط.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It gives shape <code>(2, 3)</code> by repeating the two numbers until the row is full.</span><span class="ar">تعطي الشكل <code>(2, 3)</code> بتكرار العددين حتى يمتلئ الصفّ.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is what you probably <em>meant</em>, and it is the whole lesson: two numbers for two rows have to be written as a column, <code>[:, None]</code>, shape <code>(2, 1)</code>. Flat arrays always line up with the columns. The fourth option is worth refuting explicitly &mdash; broadcasting never repeats a dimension of size 2 to fill a dimension of size 3; only a dimension of exactly 1 is stretched.</div>
+      <div class="ar">الخيار الثاني هو ما <em>قصدتَه</em> على الأرجح، وهو الدرس كله: فعددان لصفّين يجب أن يُكتبا عمودًا <code>[:, None]</code> بالشكل <code>(2, 1)</code>. فالمصفوفاتُ المسطّحة تُحاذي الأعمدة دائمًا. والخيار الرابع جديرٌ بالدحض صريحًا &mdash; فالبثُّ لا يكرّر أبدًا بُعدًا حجمه 2 ليملأ بُعدًا حجمه 3؛ ولا يُمدَّد إلا بُعدٌ حجمه 1 بالضبط.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.1 &mdash; Centre a table both ways</span><span class="ar">تمرين 12.1 &mdash; مركِز جدولًا بالاتجاهين</span></h4>
+    <p class="en">Four students, three subjects. Produce two centred tables from it: one where every mark is a distance from its own <em>subject</em> average, and one where every mark is a distance from its own <em>student</em> average. Print the shape of each average before you subtract it.</p>
+    <p class="ar">أربعة طلبة وثلاث مواد. أنتج منه جدولين مُمركَزين: واحدٌ تكون فيه كل علامة مسافةً من متوسط <em>مادتها</em>، وآخر تكون فيه كل علامة مسافةً من متوسط <em>طالبها</em>. واطبع شكل كل متوسط قبل طرحه.</p>
+
+<pre class="code"><code>t = np.array([[40., 55., 70.],
+              [60., 65., 90.],
+              [80., 75., 50.],
+              [50., 60., 65.]])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(t.mean(axis=0).shape, t.mean(axis=1, keepdims=True).shape)
+
+by_subject = t - t.mean(axis=0)
+by_student = t - t.mean(axis=1, keepdims=True)
+
+print(by_subject.round(1))
+print(by_student.round(1))
+</code></pre>
+      <div class="output">(3,) (4, 1)
+[[-17.5  -8.8   1.2]
+ [  2.5   1.2  21.2]
+ [ 22.5  11.2 -18.8]
+ [ -7.5  -3.8  -3.8]]
+[[-15.    0.   15. ]
+ [-11.7  -6.7  18.3]
+ [ 11.7   6.7 -18.3]
+ [ -8.3   1.7   6.7]]</div>
+      <p class="en">The subject average needs no help: <code>(3,)</code> right-aligns with the three columns, which is what a per-subject number is. The student average needs saying out loud, and this table is the one where getting it wrong is cheap &mdash; <code>t - t.mean(axis=1)</code> raises <code>ValueError: operands could not be broadcast together with shapes (4,3) (4,)</code>, because four rows cannot line up against three columns.</p>
+      <p class="ar">متوسطُ المادة لا يحتاج عونًا: فـ <code>(3,)</code> تُحاذي الأعمدة الثلاثة يمينًا، وذلك ما يكون العددُ لكل مادة. وأما متوسط الطالب فيحتاج أن يُقال جهرًا، وهذا الجدول هو الذي يكون الخطأُ فيه رخيصًا &mdash; فـ <code>t - t.mean(axis=1)</code> ترفع <code>ValueError: operands could not be broadcast together with shapes (4,3) (4,)</code>، لأن أربعة صفوف لا تُحاذي ثلاثة أعمدة.</p>
+      <p class="en">Now delete one row and run it again. With a square table the same mistake produces nine numbers and no error at all, which is <a href="#l12-h2">the next concept</a>.</p>
+      <p class="ar">واحذف الآن صفًّا واحدًا وأعِد التشغيل. فعلى جدولٍ مربّع يُنتج الخطأُ نفسه تسعةَ أعداد ولا خطأ إطلاقًا، وذلك هو <a href="#l12-h2">المفهوم التالي</a>.</p>
+    </details>
+  </section>
+
+  <h2 id="l12-h2"><span class="en">Concept 2 &mdash; The shape that fits when it should not</span><span class="ar">المفهوم 2 &mdash; الشكل الذي ينطبق حين لا ينبغي</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Now do the other comparison. Instead of asking how each mark compares with its subject, ask how it compares with that <em>student's</em> own average &mdash; who is strong at maths relative to themselves. Change one number and run it.</p>
+    <p class="ar">والآن افعل المقارنة الأخرى. فبدل السؤال كيف تقارَن كل علامة بمادتها، اسأل كيف تقارَن بمتوسط ذلك <em>الطالب</em> نفسه &mdash; من هو قويٌّ في الرياضيات نسبةً إلى نفسه. غيّر عددًا واحدًا وشغّله.</p>
+  </div>
+
+<pre class="code bad"><code>student_mean = marks.mean(axis=1)
+print(student_mean, student_mean.shape)
+
+print(marks - student_mean)
+</code></pre>
+
+  <div class="output">[55.         71.66666667 68.33333333] (3,)
+[[-15.         -16.66666667   1.66666667]
+ [  5.          -6.66666667  21.66666667]
+ [ 25.           3.33333333 -18.33333333]]</div>
+
+  <h3 id="l12-s3"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">Nine numbers came out, no error was raised, and every one of them is wrong. The row of student averages has shape <code>(3,)</code>, exactly like the row of subject averages did, so the rule applied it the only way it knows: <strong>across each row</strong>. Student 1's average was subtracted from the first column &mdash; from student 1's maths, student 2's maths and student 3's maths &mdash; and student 2's average from the second column, and so on. Each number is a real subtraction between two unrelated quantities.</p>
+  <p class="ar">خرجت تسعة أعداد ولم يُرفع أي خطأ وكلُّها خطأ. فصفُّ متوسطات الطلبة شكله <code>(3,)</code>، تمامًا كصفّ متوسطات المواد، فطبّقته القاعدة بالطريقة الوحيدة التي تعرفها: <strong>عرضًا على كل صفّ</strong>. فطُرح متوسط الطالب 1 من العمود الأول &mdash; من رياضيات الطالب 1 ورياضيات الطالب 2 ورياضيات الطالب 3 &mdash; وطُرح متوسط الطالب 2 من العمود الثاني وهكذا. فكل عدد طرحٌ حقيقي بين كمّيتين لا علاقة بينهما.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">A shape of <code>(3,)</code> does not say whether its three numbers are <em>per column</em> or <em>per row</em>. The table is square, so both readings fit the rule, and NumPy always picks the same one. Broadcasting cannot know what you meant; it only knows what shape you handed it.</p>
+    <p class="ar">الشكلُ <code>(3,)</code> لا يقول هل أعداده الثلاثة <em>لكل عمود</em> أم <em>لكل صفّ</em>. والجدول مربّع، فالقراءتان تنطبقان على القاعدة، وتختار نمباي الواحدةَ نفسها دائمًا. فالبثُّ لا يمكنه معرفة ما قصدت؛ إنما يعرف أي شكل سلّمته.</p>
+  </div>
+
+  <h3 id="l12-s4"><span class="en">The fix: say which direction you meant</span><span class="ar">الإصلاح: قل أي اتجاه قصدت</span></h3>
+
+  <p class="en">Turn the row of three into a <em>column</em> of three, so its shape says "one number per row" out loud.</p>
+  <p class="ar">حوّل صفَّ الثلاثة <em>عمودًا</em> من ثلاثة، فيقول شكله «عددٌ لكل صفّ» بصوت مسموع.</p>
+
+<pre class="code good"><code>print(student_mean.shape)
+print(student_mean[:, None].shape)
+
+print(marks - student_mean[:, None])
+</code></pre>
+
+  <div class="output">(3,)
+(3, 1)
+[[-15.           0.          15.        ]
+ [-11.66666667  -6.66666667  18.33333333]
+ [ 11.66666667   6.66666667 -18.33333333]]</div>
+
+  <p class="en"><code>[:, None]</code> means "keep every element, and add a new dimension of length 1 at the end". <code>(3,)</code> becomes <code>(3, 1)</code>, which right-aligned against <code>(3, 3)</code> matches 3 with 3 and stretches the 1 &mdash; across the columns, which is what you wanted. Check the first row of the result: &minus;15, 0, +15 for marks of 40, 55 and 70 around an average of 55. That is a student compared with themselves.</p>
+  <p class="ar"><code>[:, None]</code> تعني «أبقِ كل عنصر، وأضف بُعدًا جديدًا طوله 1 في النهاية». فتصير <code>(3,)</code> هي <code>(3, 1)</code>، ومحاذاةً إلى اليمين أمام <code>(3, 3)</code> تطابق 3 مع 3 وتمدّد الـ1 &mdash; عرضًا على الأعمدة، وهو ما أردت. وافحص الصفّ الأول من النتيجة: &minus;15 و0 و+15 لعلامات 40 و55 و70 حول متوسط 55. وذلك طالبٌ مقارَنٌ بنفسه.</p>
+
+  <div class="note">
+    <h4><span class="en">Three ways to write the same thing</span><span class="ar">ثلاث طرق لكتابة الشيء نفسه</span></h4>
+    <p class="en"><code>student_mean[:, None]</code>, <code>student_mean.reshape(-1, 1)</code> and <code>marks.mean(axis=1, keepdims=True)</code> all give shape <code>(3, 1)</code>. The last is the best of the three, because it never lets the wrong shape exist in the first place &mdash; the dimension is kept at the moment it would have been dropped, rather than put back afterwards. <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a> uses it properly.</p>
+    <p class="ar"><code>student_mean[:, None]</code> و<code>student_mean.reshape(-1, 1)</code> و<code>marks.mean(axis=1, keepdims=True)</code> تعطي كلها الشكل <code>(3, 1)</code>. وآخرها أفضلها، لأنه لا يدع الشكل الخطأ يوجد أصلًا &mdash; فيُحفَظ البُعد في اللحظة التي كان سيسقط فيها، بدل إعادته بعدها. ويستعمله <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a> كما ينبغي.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.2 &mdash; Scale each subject to 0&ndash;1</span><span class="ar">تمرين 12.2 &mdash; قِس كل مادة إلى 0&ndash;1</span></h4>
+    <p class="en">Put every mark on a 0-to-1 scale <em>within its own subject</em>, so the weakest mark in each column becomes 0 and the strongest becomes 1. Two lines, no loop. This is the <code>MinMaxScaler</code> of <a href="../lessons/chapter-2-lesson-8.html#lesson-08">Lesson 8</a>, done to a whole table at once.</p>
+    <p class="ar">ضع كل علامة على مقياس من 0 إلى 1 <em>داخل مادتها</em>، فتصير أضعف علامة في كل عمود 0 وأقواها 1. سطران بلا حلقة. وهذا هو <code>MinMaxScaler</code> من <a href="../lessons/chapter-2-lesson-8.html#lesson-08">الدرس 8</a>، مطبَّقًا على جدول كامل دفعةً.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# expected:
+# [[0.  0.  0.5]
+#  [0.5 0.5 1. ]
+#  [1.  1.  0. ]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>low = marks.min(axis=0)
+high = marks.max(axis=0)
+print((marks - low) / (high - low))
+</code></pre>
+      <div class="output">[[0.  0.  0.5]
+ [0.5 0.5 1. ]
+ [1.  1.  0. ]]</div>
+      <p class="en">Both <code>low</code> and <code>high</code> have shape <code>(3,)</code> and both broadcast down the rows, so each column is scaled by its own two numbers. Note the third column: 70 becomes 0.5 because that subject ran from 50 to 90, while the same 70 would be 1.0 in the first column. That is the point of scaling per subject, and it is also why <a href="../lessons/chapter-2-lesson-8.html#l8-s3">those two numbers have to be stored</a> if a new student's mark is to be placed on the same scale later.</p>
+      <p class="ar">لكلٍّ من <code>low</code> و<code>high</code> الشكل <code>(3,)</code> وكلاهما يُبثّ نزولًا على الصفوف، فيُقاس كل عمود برقميه. ولاحظ العمود الثالث: فتصير 70 هي 0.5 لأن تلك المادة امتدت من 50 إلى 90، بينما تكون 70 نفسها 1.0 في العمود الأول. وذلك مقصد التقييس لكل مادة، وهو أيضًا سبب <a href="../lessons/chapter-2-lesson-8.html#l8-s3">وجوب تخزين ذينك الرقمين</a> إن كانت علامةُ طالب جديد ستُوضع على المقياس نفسه لاحقًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 12.3 &mdash; Read the error, then fix it</span><span class="ar">تمرين 12.3 &mdash; اقرأ الخطأ ثم أصلحه</span></h4>
+    <p class="en">A colleague has four students and three subjects, and wants to add a bonus per student. Their code raises an error. Read the shapes in the message and fix the line without changing <code>bonus</code> itself.</p>
+    <p class="ar">لدى زميل أربعة طلبة وثلاث مواد، ويريد إضافة مكافأة لكل طالب. وكودُه يرفع خطأً. اقرأ الشكلين في الرسالة وأصلح السطر دون تغيير <code>bonus</code> نفسه.</p>
+
+<pre class="code bad"><code>table = np.zeros((4, 3))
+bonus = np.array([1., 2., 3., 4.])
+
+print(table + bonus)
+</code></pre>
+    <div class="output">ValueError: operands could not be broadcast together with shapes (4,3) (4,)</div>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(table + bonus[:, None])
+</code></pre>
+      <div class="output">[[1. 1. 1.]
+ [2. 2. 2.]
+ [3. 3. 3.]
+ [4. 4. 4.]]</div>
+      <p class="en">The message said <code>(4,3)</code> and <code>(4,)</code>: right-aligned, the last dimensions are 3 and 4, which are neither equal nor 1. Making the bonus a column, <code>(4, 1)</code>, aligns 4 with 4 and stretches the 1 across the three subjects. Worth noticing: this table is 4&times;3 rather than square, so the mistake from Concept 2 is <em>impossible</em> here &mdash; the error is a gift that a square table would not have given you.</p>
+      <p class="ar">قالت الرسالة <code>(4,3)</code> و<code>(4,)</code>: فمحاذَيين إلى اليمين يكون البُعدان الأخيران 3 و4، وليسا متساويين ولا 1. وجعلُ المكافأة عمودًا <code>(4, 1)</code> يحاذي 4 مع 4 ويمدّد الـ1 على المواد الثلاث. ويجدر الانتباه: فهذا الجدول 4&times;3 لا مربّع، فخطأُ المفهوم 2 <em>مستحيل</em> هنا &mdash; والخطأُ هديةٌ ما كان جدولٌ مربّع ليعطيكها.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">An array of shape <code>(5, 3)</code> is added to an array of shape <code>(3,)</code>. What happens?</span><span class="ar">تُجمع مصفوفةٌ شكلها <code>(5, 3)</code> مع مصفوفة شكلها <code>(3,)</code>. فماذا يحدث؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It works: right-aligned the last dimensions are 3 and 3, and the missing one counts as 1, so the three numbers are reused down all five rows. The result has shape <code>(5, 3)</code>.</span><span class="ar">تنجح: فمحاذَيين إلى اليمين يكون البُعدان الأخيران 3 و3، والغائب يُحسب 1، فتُعاد الأعداد الثلاثة نزولًا على الصفوف الخمسة. والنتيجة شكلها <code>(5, 3)</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code>, because 5 and 3 are different.</span><span class="ar"><code>ValueError</code>، لأن 5 و3 مختلفان.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It works, and the three numbers are reused across the columns, one per row.</span><span class="ar">تنجح، وتُعاد الأعداد الثلاثة عرضًا على الأعمدة، واحدًا لكل صفّ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The result has shape <code>(3,)</code>, because the smaller shape wins.</span><span class="ar">النتيجة شكلها <code>(3,)</code>، لأن الشكل الأصغر يفوز.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Shapes are compared <strong>from the right</strong>, so 5 is never compared with 3 &mdash; the 5 has nothing opposite it and is simply kept. The third answer is the one to understand rather than just reject: that is what you would get from shape <code>(5, 1)</code>, and it is the whole subject of Concept 2. With a 5&times;3 table the two readings have different shapes and a mistake raises an error; with a square table they do not, and it does not.</div>
+      <div class="ar">تُقارَن الأشكال <strong>من اليمين</strong>، فلا تُقارَن 5 بـ3 أبدًا &mdash; فالـ5 لا شيء يقابلها وتُحفَظ ببساطة. والجواب الثالث يُفهَم لا يُرفض فحسب: فذلك ما ستحصل عليه من الشكل <code>(5, 1)</code>، وهو موضوع المفهوم 2 كلّه. ومع جدول 5&times;3 تختلف القراءتان شكلًا فيرفع الخطأُ خطأً؛ ومع جدول مربّع لا تختلفان ولا يرفع.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why is subtracting <code>marks.mean(axis=1)</code> from a square <code>marks</code> table worse than a crash?</span><span class="ar">لماذا طرحُ <code>marks.mean(axis=1)</code> من جدول <code>marks</code> مربّع أسوأ من الانهيار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because the shapes do fit, so it runs and returns a full table of plausible-looking numbers, each one a subtraction between a mark and an unrelated student's average.</span><span class="ar">لأن الشكلين ينطبقان، فيعمل ويُعيد جدولًا كاملًا من أعداد تبدو معقولة، كلٌّ منها طرحٌ بين علامة ومتوسط طالب لا علاقة له.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because it is slower than the correct version.</span><span class="ar">لأنه أبطأ من النسخة الصحيحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because it changes <code>marks</code> in place, so the original is lost.</span><span class="ar">لأنه يغيّر <code>marks</code> في مكانها، فيُفقد الأصل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It is not worse; the numbers are correct, just transposed.</span><span class="ar">ليس أسوأ؛ فالأعداد صحيحة لكنها منقولة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A crash tells you on the line that caused it. This tells you nothing, and the output has the right shape and a believable range, so it survives a glance at the first few rows. The fourth answer is worth refuting precisely: the values are not a transposed version of the right answer, they are arithmetic between quantities that have nothing to do with each other &mdash; there is no rearrangement that recovers the intended result. The habit that prevents all of it is to print <code>.shape</code> of both operands before writing a line like this.</div>
+      <div class="ar">الانهيارُ يخبرك في السطر الذي سبّبه. وهذا لا يخبرك بشيء، ومُخرَجه بالشكل الصحيح وبمدى قابل للتصديق، فينجو من نظرة إلى الصفوف الأولى. والجواب الرابع يستحق دحضًا دقيقًا: فالقيم ليست نسخة منقولة من الجواب الصحيح، بل حسابٌ بين كمّيات لا علاقة بينها &mdash; ولا إعادةَ ترتيب تستعيد النتيجة المقصودة. والعادةُ التي تمنع ذلك كله أن تطبع <code>.shape</code> للطرفين قبل كتابة سطر كهذا.</div>
+    </div>
+  </div>
+
+  <h3 id="l12-s5"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l12-s6"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>Compare shapes from the right.</strong> A dimension fits if it is equal, or 1, or absent. Anything else raises, and the message prints both shapes.</span><span class="ar"><strong>قارن الأشكال من اليمين.</strong> فيناسب البُعد إن كان متساويًا أو 1 أو غائبًا. وما عدا ذلك يرفع خطأً، والرسالة تطبع الشكلين.</span></li>
+      <li><span class="en"><strong>A row <code>(3,)</code> is reused down the rows;</strong> a column <code>(3, 1)</code> is reused across the columns. Those two are the whole subject.</span><span class="ar"><strong>الصفُّ <code>(3,)</code> يُعاد نزولًا على الصفوف؛</strong> والعمودُ <code>(3, 1)</code> يُعاد عرضًا على الأعمدة. وهذان هما الموضوع كله.</span></li>
+      <li><span class="en"><strong>A shape of <code>(3,)</code> does not say which direction you meant,</strong> and on a square table both readings fit the rule &mdash; so the wrong one runs silently.</span><span class="ar"><strong>الشكلُ <code>(3,)</code> لا يقول أي اتجاه قصدت،</strong> وعلى جدول مربّع تنطبق القراءتان على القاعدة &mdash; فتُنفَّذ الخاطئة بصمت.</span></li>
+      <li><span class="en"><strong><code>[:, None]</code> turns a row into a column,</strong> and <code>keepdims=True</code> is better still because it never lets the ambiguous shape exist.</span><span class="ar"><strong><code>[:, None]</code> تحوّل الصفَّ عمودًا،</strong> و<code>keepdims=True</code> أفضل منها لأنها لا تدع الشكل الملتبس يوجد أصلًا.</span></li>
+      <li><span class="en"><strong>Print <code>.shape</code> of both operands</strong> before any line that combines two arrays of different sizes. It costs one line and it is the only reliable defence against a silent result.</span><span class="ar"><strong>اطبع <code>.shape</code> للطرفين</strong> قبل أي سطر يجمع مصفوفتين مختلفتي الحجم. فهو يكلّف سطرًا واحدًا وهو الدفاع الموثوق الوحيد ضد نتيجة صامتة.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Lesson 13</a> is about the <code>axis=0</code> and <code>axis=1</code> that produced those averages, and about selecting rows with a mask.</span><span class="ar"><strong>التالي:</strong> <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الدرس 13</a> عن <code>axis=0</code> و<code>axis=1</code> اللتين أنتجتا تلك المتوسطات، وعن اختيار الصفوف بقناع.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-03.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

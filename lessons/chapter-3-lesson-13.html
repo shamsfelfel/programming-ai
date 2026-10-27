@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Axes &amp; Masks · Python OOP by Example" data-ar="المحاور والأقنعة · البرمجة الكائنية بلغة بايثون">Axes &amp; Masks · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="3" data-page="lesson-13" data-path="lessons/chapter-3-lesson-13.html">
+<main>
+<section class="page" id="lesson-13">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 13 &middot; Week 5 &middot; Lecture 15 &middot; 90 min</span><span class="ar">الدرس 13 &middot; الأسبوع 5 &middot; المحاضرة 15 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Summarising and Selecting: Axes and Masks</span><span class="ar">التلخيص والاختيار: المحاور والأقنعة</span></h1>
+
+  <p class="lede en">By the end of this lesson you will know which way <code>axis=0</code> points without guessing, pick out every student who passed without writing a loop or an <code>if</code>, and understand why a single missing mark turns a whole class average into <code>nan</code>.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستعرف أي اتجاه يشير إليه <code>axis=0</code> بلا تخمين، وستنتقي كل طالب نجح بلا حلقة ولا <code>if</code>، وستفهم لماذا تحوّل علامةٌ مفقودة واحدة متوسطَ صفٍّ كامل إلى <code>nan</code>.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-3-lesson-12.html#lesson-12">Lesson 12</a>, which produced the averages this lesson explains, and read <a href="../appendices/appendix-a4.html#a4-h4">Appendix A4 §4</a> on <code>nan</code> before the last section. This is the final lesson of the chapter; the two chapter tests come after it.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-3-lesson-12.html#lesson-12">الدرس 12</a> الذي أنتج المتوسطات التي يشرحها هذا الدرس، واقرأ <a href="../appendices/appendix-a4.html#a4-h4">الملحق A4 §4</a> عن <code>nan</code> قبل القسم الأخير. وهذا آخر دروس الفصل؛ واختبارا الفصل بعده.</p>
+  </div>
+
+  <h2 id="l13-h1"><span class="en">Concept 1 &mdash; The axis you name is the one that disappears</span><span class="ar">المفهوم 1 &mdash; المحور الذي تسمّيه هو الذي يختفي</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">You want two summaries of the same table: how each subject did, and how each student did. Both are one call to <code>mean</code>, differing by a single digit, and that digit is the one everybody guesses wrong.</p>
+    <p class="ar">تريد ملخّصين للجدول نفسه: كيف أبلت كل مادة، وكيف أبلى كل طالب. وكلاهما استدعاءٌ واحد لـ <code>mean</code> يختلفان برقم واحد، وذلك الرقم هو ما يخمّنه الجميع خطأً.</p>
+  </div>
+
+<pre class="code good"><code>import numpy as np
+
+marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+print(marks.shape)
+print(marks.mean())
+print(marks.mean(axis=0), marks.mean(axis=0).shape)
+print(marks.mean(axis=1), marks.mean(axis=1).shape)
+</code></pre>
+
+  <div class="output">(3, 3)
+65.0
+[60. 65. 70.] (3,)
+[55.         71.66666667 68.33333333] (3,)</div>
+
+  <div class="note">
+    <h4><span class="en">The rule that makes this stop being a guess</span><span class="ar">القاعدة التي تجعل هذا يكفّ عن كونه تخمينًا</span></h4>
+    <p class="en">The shape is <code>(rows, columns)</code>, so axis 0 is rows and axis 1 is columns. <strong>The axis you name is the one that is collapsed away.</strong> <code>axis=0</code> eats the rows, which means it runs <em>down</em> each column and leaves one number per column &mdash; a subject average. <code>axis=1</code> eats the columns, running <em>across</em> each row, leaving one number per student.</p>
+    <p class="ar">الشكلُ <code>(الصفوف، الأعمدة)</code>، فالمحور 0 هو الصفوف والمحور 1 هو الأعمدة. و<strong>المحورُ الذي تسمّيه هو الذي يُطوى</strong>. فـ <code>axis=0</code> يأكل الصفوف، ومعناه أنه يمشي <em>نزولًا</em> في كل عمود ويترك عددًا لكل عمود &mdash; متوسطَ مادة. و<code>axis=1</code> يأكل الأعمدة، فيمشي <em>عرضًا</em> في كل صفّ، تاركًا عددًا لكل طالب.</p>
+    <p class="en">The reliable check is the shape, not the intuition: <code>(3, 3)</code> with axis 0 removed is <code>(3,)</code> &mdash; three numbers, one per surviving column.</p>
+    <p class="ar">والفحصُ الموثوق هو الشكل لا الحدس: فـ <code>(3, 3)</code> بإزالة المحور 0 تصير <code>(3,)</code> &mdash; ثلاثة أعداد، واحدٌ لكل عمود باقٍ.</p>
+  </div>
+
+  <div data-trace-id="t-axis"></div>
+
+  <p class="en">The same axis argument works on every reduction, and they all behave identically:</p>
+  <p class="ar">ووسيطُ المحور نفسه يعمل على كل اختزال، وكلُّها تتصرف تمامًا:</p>
+
+<pre class="code good"><code>print(marks.sum(axis=0))
+print(marks.min(axis=1))
+print(marks.max())
+print(marks.std(axis=0).round(2))
+</code></pre>
+
+  <div class="output">[180. 195. 210.]
+[40. 60. 50.]
+90.0
+[16.33  8.16 16.33]</div>
+
+  <h3 id="l13-s1"><span class="en"><code>keepdims</code>, and why it exists</span><span class="ar"><code>keepdims</code> ولماذا توجد</span></h3>
+
+  <p class="en"><a href="../lessons/chapter-3-lesson-12.html#l12-h2">Lesson 12's silent disaster</a> happened because <code>mean(axis=1)</code> gave shape <code>(3,)</code>, which no longer says which direction it came from. <code>keepdims=True</code> leaves the collapsed dimension in place as a 1, so the shape remembers.</p>
+  <p class="ar">وقعت <a href="../lessons/chapter-3-lesson-12.html#l12-h2">كارثةُ الدرس 12 الصامتة</a> لأن <code>mean(axis=1)</code> أعطت الشكل <code>(3,)</code> الذي لم يعد يقول من أي اتجاه جاء. و<code>keepdims=True</code> تُبقي البُعدَ المطويّ في موضعه 1، فيتذكّر الشكل.</p>
+
+<pre class="code good"><code>print(marks.mean(axis=1).shape)
+print(marks.mean(axis=1, keepdims=True).shape)
+
+print(marks - marks.mean(axis=1, keepdims=True))
+</code></pre>
+
+  <div class="output">(3,)
+(3, 1)
+[[-15.           0.          15.        ]
+ [-11.66666667  -6.66666667  18.33333333]
+ [ 11.66666667   6.66666667 -18.33333333]]</div>
+
+  <p class="en">That is the same correct answer as <code>[:, None]</code> gave, reached without the ambiguous shape ever existing. Make it a habit: if a reduction's result is going to be combined with the original array, ask for <code>keepdims=True</code>.</p>
+  <p class="ar">وذلك هو الجوابُ الصحيح نفسه الذي أعطته <code>[:, None]</code>، مبلوغًا دون أن يوجد الشكلُ الملتبس أصلًا. واجعلها عادة: إن كانت نتيجةُ اختزال ستُدمج بالمصفوفة الأصلية فاطلب <code>keepdims=True</code>.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">For the usual three-by-three table of marks, what is <code>(marks &gt;= 60).sum(axis=1)</code>?</span><span class="ar">في جدول العلامات المعتاد ثلاثة في ثلاثة، ما <code>(marks &gt;= 60).sum(axis=1)</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">How many subjects each student passed &mdash; one number per student, because naming axis 1 collapses the columns.</span><span class="ar">كم مادةً نجح فيها كل طالب &mdash; عددٌ لكل طالب، لأن تسمية المحور 1 تَطبِق الأعمدة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">How many students passed each subject &mdash; one number per subject.</span><span class="ar">كم طالبًا نجح في كل مادة &mdash; عددٌ لكل مادة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">One number: how many of the nine marks were passes.</span><span class="ar">عددٌ واحد: كم من العلامات التسع كانت ناجحة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Three <code>True</code>/<code>False</code> values: whether each student passed at all.</span><span class="ar">ثلاث قيم <code>True</code>/<code>False</code>: هل نجح كل طالب أصلًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Two rules in sequence, and both have to be right. The comparison gives a <code>(3, 3)</code> mask, and the axis then says which direction to count in &mdash; the axis you name is the one that disappears, so axis 1 leaves one number per row. The second option is what <code>axis=0</code> gives, and on a square table both are three numbers, so the shape will not tell you which one you asked for. The fourth option is <code>.any(axis=1)</code>: counting and asking are different questions.</div>
+      <div class="ar">قاعدتان بالتتابع، وكلتاهما يجب أن تصحّ. فالمقارنةُ تعطي قناعًا <code>(3, 3)</code>، ثم يقول المحورُ في أي اتجاه يُعدّ &mdash; فالمحور الذي تسمّيه هو الذي يختفي، فيترك المحور 1 عددًا لكل صفّ. والخيار الثاني هو ما تعطيه <code>axis=0</code>، وعلى جدول مربّع كلاهما ثلاثة أعداد، فلن يخبرك الشكل أيّهما طلبت. والخيار الرابع هو <code>.any(axis=1)</code>: فالعدُّ والسؤال سؤالان مختلفان.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.1 &mdash; A shortlist with two conditions</span><span class="ar">تمرين 13.1 &mdash; قائمةٌ قصيرة بشرطين</span></h4>
+    <p class="en">Four students, three subjects, and one mark never arrived. Select the rows of students who scored 60 or more in the first subject <strong>and</strong> have a complete set of marks. No loop, no <code>if</code>, and no <code>np.isnan</code> &mdash; the chapter has already given you a way to exclude a gap.</p>
+    <p class="ar">أربعة طلبة وثلاث مواد وعلامةٌ لم تصل أبدًا. اختر صفوف الطلبة الذين نالوا 60 أو أكثر في المادة الأولى <strong>و</strong>لديهم علامات كاملة. بلا حلقة ولا <code>if</code> ولا <code>np.isnan</code> &mdash; فقد أعطاك الفصل سبيلًا لاستثناء الفراغ.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., np.nan, 90.],
+                  [80., 75., 50.],
+                  [65., 70., 72.]])
+# expected:
+# [[80. 75. 50.]
+#  [65. 70. 72.]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>complete = (marks &gt;= 0).all(axis=1)
+strong = marks[:, 0] &gt;= 60
+
+print(complete)
+print(strong)
+print(marks[complete &amp; strong])
+</code></pre>
+      <div class="output">[ True False  True  True]
+[False  True  True  True]
+[[80. 75. 50.]
+ [65. 70. 72.]]</div>
+      <p class="en">The trick is the one fact about <code>nan</code> that is easy to resent and useful here: every comparison against it is <code>False</code>. So <code>marks &gt;= 0</code> is false at the gap, and requiring it of every mark in the row excludes exactly the students with a missing mark. <code>np.isnan(marks).any(axis=1)</code> is the version that says what it means, and you should prefer it in real code; this one is worth doing once to make the rule stick.</p>
+      <p class="ar">والحيلةُ هي الواقعةُ الوحيدة عن <code>nan</code> التي يسهل الاستياء منها وهي مفيدة هنا: فكلُّ مقارنة بها <code>False</code>. فـ <code>marks &gt;= 0</code> كاذبةٌ عند الفراغ، واشتراطُها في كل علامة في الصفّ يستثني بالضبط الطلبةَ ذوي العلامة المفقودة. و<code>np.isnan(marks).any(axis=1)</code> هي النسخة التي تقول ما تعني، وينبغي أن تُفضّلها في الشفرة الحقيقية؛ وهذه جديرةٌ بأن تُفعل مرة ليثبت القاعدة.</p>
+      <p class="en">Two masks, one per row each, combined with <code>&amp;</code> &mdash; and note that both had to be reduced to one answer per row before they could meet. <code>complete</code> came from a reduction across the columns and <code>strong</code> from a single column; they are the same shape, <code>(4,)</code>, which is what makes the <code>&amp;</code> legal and the row selection correct.</p>
+      <p class="ar">قناعان، في كلٍّ مدخلٌ لكل صفّ، مجموعان بـ <code>&amp;</code> &mdash; ولاحظ أن كليهما وجب أن يُخفَّض إلى جوابٍ لكل صفّ قبل أن يتلاقيا. فـ <code>complete</code> جاء من تخفيضٍ على الأعمدة و<code>strong</code> من عمودٍ واحد؛ وهما بالشكل نفسه <code>(4,)</code>، وذلك ما يجعل <code>&amp;</code> مشروعةً واختيارَ الصفوف صحيحًا.</p>
+    </details>
+  </section>
+
+  <h2 id="l13-h2"><span class="en">Concept 2 &mdash; A mask is a question answered for every element</span><span class="ar">المفهوم 2 &mdash; القناع سؤالٌ مُجابٌ لكل عنصر</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">List every mark of 60 or more, count them, and cap anything above 95. Written with a loop that is three loops and two counters; written with masks it is three lines with no <code>if</code> anywhere.</p>
+    <p class="ar">اسرد كل علامة 60 فأكثر، وعدّها، واحصر ما فوق 95. ومكتوبًا بحلقة فهو ثلاث حلقات وعدّادان؛ ومكتوبًا بالأقنعة فهو ثلاثة أسطر بلا <code>if</code> في أي موضع.</p>
+  </div>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+passed = marks &gt;= 60
+print(passed)
+print(marks[passed])
+print(passed.sum())
+</code></pre>
+
+  <div class="output">[False False  True  True  True]
+[ 70  85 100]
+3</div>
+
+  <p class="en">Three separate ideas, each worth stating. A comparison produces a <strong>mask</strong> &mdash; one <code>True</code> or <code>False</code> per element, the same shape as the array. Indexing with a mask <strong>selects</strong> the elements where it is <code>True</code>. And summing a mask <strong>counts</strong> them, because <code>True</code> adds as 1 &mdash; which is why you will see <code>.sum()</code> used to count things all through the rest of this course.</p>
+  <p class="ar">ثلاث أفكار منفصلة، كلٌّ جديرة بالقول. فالمقارنةُ تُنتج <strong>قناعًا</strong> &mdash; <code>True</code> أو <code>False</code> لكل عنصر، بشكل المصفوفة نفسه. والفهرسةُ بقناع <strong>تختار</strong> العناصر التي هو فيها <code>True</code>. وجمعُ القناع <strong>يعدّها</strong>، لأن <code>True</code> تُجمع 1 &mdash; ولهذا سترى <code>.sum()</code> مستعملةً للعدّ في بقية هذا المقرر كله.</p>
+
+  <h3 id="l13-s2"><span class="en">Combining conditions: <code>&amp;</code> and <code>|</code>, never <code>and</code></span><span class="ar">جمع الشروط: <code>&amp;</code> و<code>|</code> ولا <code>and</code> أبدًا</span></h3>
+
+<pre class="code good"><code>print(marks[(marks &gt; 50) &amp; (marks &lt; 90)])
+print(marks[(marks &lt; 50) | (marks &gt; 90)])
+
+print(marks[(marks &gt; 50) and (marks &lt; 90)])
+</code></pre>
+
+  <div class="output">[55 70 85]
+[ 40 100]
+ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()</div>
+
+  <p class="en">The error is being helpful, if you read it slowly. <code>and</code> wants to decide whether the whole left side is true or false, so that it can decide whether to look at the right side &mdash; and an array of five answers is neither. <code>&amp;</code> has no such ambition: it combines the two masks element by element. <strong>The brackets are not optional</strong>: <code>&amp;</code> binds more tightly than <code>&gt;</code>, so without them Python tries <code>50 &amp; marks</code> first.</p>
+  <p class="ar">الخطأُ يساعدك إن قرأته متمهلًا. فـ <code>and</code> تريد أن تقرّر هل الطرف الأيسر كله صحيح أم خطأ، لتقرّر هل تنظر إلى الأيمن &mdash; ومصفوفةٌ بخمسة أجوبة ليست هذا ولا ذاك. أما <code>&amp;</code> فلا طموح لها في ذلك: إنما تجمع القناعين عنصرًا عنصرًا. و<strong>القوسان ليسا اختياريين</strong>: فـ <code>&amp;</code> أشدُّ ارتباطًا من <code>&gt;</code>، فبلا قوسين تجرّب بايثون <code>50 &amp; marks</code> أولًا.</p>
+
+  <h3 id="l13-s3"><span class="en">Selecting rows of a table</span><span class="ar">اختيار صفوف جدول</span></h3>
+
+  <p class="en">This is the form you will use for the rest of the course: build a mask from one column, then use it to pick whole rows.</p>
+  <p class="ar">وهذه هي الصيغة التي ستستعملها بقية المقرر: ابنِ قناعًا من عمود ثم استعمله لانتقاء صفوف كاملة.</p>
+
+<pre class="code good"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+
+strong = marks[:, 0] &gt;= 60
+print(strong)
+print(marks[strong])
+print(marks[strong].shape)
+</code></pre>
+
+  <div class="output">[False  True  True]
+[[60. 65. 90.]
+ [80. 75. 50.]]
+(2, 3)</div>
+
+  <p class="en">The mask has one entry per <em>row</em>, because it was built from a column, and indexing the table with it keeps those rows whole. Note the result is <code>(2, 3)</code>, not a flat list of six numbers &mdash; the rows stayed rows, so a student's three subjects are still together.</p>
+  <p class="ar">للقناع مدخلٌ لكل <em>صفّ</em>، لأنه بُني من عمود، وفهرسةُ الجدول به تُبقي تلك الصفوف كاملة. ولاحظ أن النتيجة <code>(2, 3)</code> لا قائمةً مسطّحة من ستة أعداد &mdash; فقد بقيت الصفوف صفوفًا، فمواد الطالب الثلاث لا تزال معًا.</p>
+
+  <h3 id="l13-s4"><span class="en"><code>np.where</code>: choose per element</span><span class="ar"><code>np.where</code>: اختر لكل عنصر</span></h3>
+
+<pre class="code good"><code>flat = np.array([40, 55, 70, 85, 100])
+
+print(np.where(flat &gt;= 60, "pass", "fail"))
+print(np.where(flat &gt; 90, 90, flat))
+</code></pre>
+
+  <div class="output">['fail' 'fail' 'pass' 'pass' 'pass']
+[40 55 70 85 90]</div>
+
+  <p class="en">Read it as "where the mask is true take the second argument, otherwise the third" &mdash; an <code>if</code>/<code>else</code> applied to every element at once. It returns a new array, which is the difference from <code>flat[flat &gt; 90] = 90</code> in <a href="../lessons/chapter-3-lesson-11.html#l11-s3">Lesson 11</a>, which writes into the original.</p>
+  <p class="ar">اقرأها «حيث يكون القناع صحيحًا خذ الوسيط الثاني، وإلا فالثالث» &mdash; وهي <code>if</code>/<code>else</code> مطبَّقة على كل عنصر دفعةً. وتُعيد مصفوفة جديدة، وذلك هو الفرق عن <code>flat[flat &gt; 90] = 90</code> في <a href="../lessons/chapter-3-lesson-11.html#l11-s3">الدرس 11</a> التي تكتب في الأصل.</p>
+
+  <h3 id="l13-s5"><span class="en">One missing mark poisons the average</span><span class="ar">علامةٌ مفقودة واحدة تسمّم المتوسط</span></h3>
+
+<pre class="code bad"><code>marks = np.array([40., np.nan, 70.])
+
+print(marks.mean())
+print(np.nanmean(marks))
+print(np.isnan(marks).sum())
+</code></pre>
+
+  <div class="output">nan
+55.0
+1</div>
+
+  <p class="en">An array has one type, so a missing mark cannot be <code>None</code> in a float array; it is <code>nan</code>. Any arithmetic touching it gives <code>nan</code>, so one gap turns the whole class average into <code>nan</code> &mdash; loudly, which is the kindness. An average that quietly skipped the gap would be the average of a different class from the one you asked about. Decide deliberately: <code>np.nanmean</code> to skip, or find them with <code>np.isnan</code> and deal with them. <strong>Never <code>marks == np.nan</code></strong>, which is <code>False</code> everywhere and finds nothing, silently.</p>
+  <p class="ar">للمصفوفة نوعٌ واحد، فلا تكون العلامةُ المفقودة <code>None</code> في مصفوفة عشرية؛ بل <code>nan</code>. وأي حساب يمسّها يعطي <code>nan</code>، فتحوّل فجوةٌ واحدة متوسطَ الصفّ كله إلى <code>nan</code> &mdash; بصوت عالٍ، وذلك هو اللطف. فمتوسطٌ يتخطى الفجوة بصمت سيكون متوسط صفٍّ غير الذي سألت عنه. قرّر متعمدًا: <code>np.nanmean</code> للتخطي، أو جدها بـ <code>np.isnan</code> وعالجها. و<strong>لا تكتب <code>marks == np.nan</code> أبدًا</strong>، فهي <code>False</code> في كل موضع ولا تجد شيئًا بصمت.</p>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.2 &mdash; Who passed everything?</span><span class="ar">تمرين 13.2 &mdash; من نجح في كل شيء؟</span></h4>
+    <p class="en">Select the rows of students who scored 60 or more in <em>every</em> subject. One mask, built with a reduction, then used to index. Think about which axis.</p>
+    <p class="ar">اختر صفوف الطلبة الذين نالوا 60 فأكثر في <em>كل</em> مادة. قناعٌ واحد يُبنى باختزال ثم يُستعمل للفهرسة. وفكّر في أي محور.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# expected:
+# [[60. 65. 90.]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>all_passed = (marks &gt;= 60).all(axis=1)
+print(all_passed)
+print(marks[all_passed])
+</code></pre>
+      <div class="output">[False  True False]
+[[60. 65. 90.]]</div>
+      <p class="en">Two steps worth separating. <code>marks &gt;= 60</code> is a <code>(3, 3)</code> mask, one answer per mark. <code>.all(axis=1)</code> then collapses the columns, asking "were they all true across this row?" and leaving one answer per student &mdash; shape <code>(3,)</code>. Use <code>.any(axis=1)</code> instead and you get students who passed <em>at least one</em>; use <code>axis=0</code> and you get an answer per subject, which is a different question entirely.</p>
+      <p class="ar">خطوتان تستحقان الفصل. فـ <code>marks &gt;= 60</code> قناعٌ <code>(3, 3)</code>، جوابٌ لكل علامة. ثم تطوي <code>.all(axis=1)</code> الأعمدةَ سائلةً «أكانت كلها صحيحة عرض هذا الصفّ؟» وتترك جوابًا لكل طالب &mdash; شكله <code>(3,)</code>. واستعمل <code>.any(axis=1)</code> بدلًا منها تنل الطلبة الناجحين في <em>واحدة على الأقل</em>؛ واستعمل <code>axis=0</code> تنل جوابًا لكل مادة، وذلك سؤال مختلف تمامًا.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 13.3 &mdash; A report with no loops</span><span class="ar">تمرين 13.3 &mdash; تقريرٌ بلا حلقات</span></h4>
+    <p class="en">From the table, print: the hardest subject (lowest average), how many marks in the whole table are below 60, and the class average with any missing marks skipped.</p>
+    <p class="ar">من الجدول، اطبع: أصعب مادة (أدنى متوسط)، وكم علامة في الجدول كله دون 60، ومتوسطَ الصفّ مع تخطي أي علامات مفقودة.</p>
+
+<pre class="code"><code>subjects = np.array(["maths", "arabic", "science"])
+marks = np.array([[40., 55., 70.],
+                  [60., np.nan, 90.],
+                  [80., 75., 50.]])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>means = np.nanmean(marks, axis=0)
+print("hardest subject:", subjects[means.argmin()], means.round(1))
+print("marks below 60:", (marks &lt; 60).sum())
+print("class average:", round(np.nanmean(marks), 2))
+</code></pre>
+      <div class="output">hardest subject: maths [60. 65. 70.]
+marks below 60: 3
+class average: 65.0</div>
+      <p class="en">Three things to take away. <code>argmin</code> gives the <em>position</em> of the smallest, not the value, which is exactly what you need to look up a name in another array. <code>(marks &lt; 60).sum()</code> counts over the whole table at once because no axis was named. And the <code>nan</code> is simply not counted by <code>&lt; 60</code> &mdash; a comparison against <code>nan</code> is <code>False</code>, so the missing mark is neither a pass nor a fail, which is honest.</p>
+      <p class="ar">ثلاثة أمور تأخذها. فـ <code>argmin</code> تعطي <em>موضع</em> الأصغر لا قيمته، وهو بالضبط ما تحتاجه للبحث عن اسم في مصفوفة أخرى. و<code>(marks &lt; 60).sum()</code> تعدّ على الجدول كله دفعةً لأنه لم يُسمَّ محور. و<code>nan</code> لا تُعدّ ببساطة بـ <code>&lt; 60</code> &mdash; فالمقارنة بـ <code>nan</code> هي <code>False</code>، فالعلامةُ المفقودة ليست نجاحًا ولا رسوبًا، وذلك صادق.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A table has shape <code>(30, 4)</code> &mdash; thirty students, four subjects. Which call gives one average per subject?</span><span class="ar">جدولٌ شكله <code>(30, 4)</code> &mdash; ثلاثون طالبًا وأربع مواد. فأي استدعاء يعطي متوسطًا لكل مادة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>marks.mean(axis=0)</code> &mdash; it collapses the rows, leaving shape <code>(4,)</code>: one number per surviving column.</span><span class="ar"><code>marks.mean(axis=0)</code> &mdash; يطوي الصفوف تاركًا الشكل <code>(4,)</code>: عددٌ لكل عمود باقٍ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks.mean(axis=1)</code>, because subjects are the second dimension.</span><span class="ar"><code>marks.mean(axis=1)</code>، لأن المواد هي البُعد الثاني.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks.mean()</code>, which averages each column by default.</span><span class="ar"><code>marks.mean()</code>، وهي تعدّل كل عمود افتراضيًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Either axis, since the result is the same four numbers.</span><span class="ar">أيُّ محور، إذ النتيجة الأعداد الأربعة نفسها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second answer is the intuition almost everyone has, and it is exactly backwards: naming an axis <em>removes</em> it rather than keeping it. The shape is the check that never lies &mdash; <code>(30, 4)</code> with axis 0 gone is <code>(4,)</code>, four numbers, one per subject, while axis 1 would give <code>(30,)</code>, one per student. This table is not square, so a mistake here produces an obviously wrong length; on a square table it would not, which is <a href="../lessons/chapter-3-lesson-12.html#l12-h2">Lesson 12's disaster</a>.</div>
+      <div class="ar">الجواب الثاني هو حدسُ الجميع تقريبًا، وهو مقلوب بالضبط: فتسميةُ محور <em>تزيله</em> لا تُبقيه. والشكلُ هو الفحص الذي لا يكذب &mdash; فـ <code>(30, 4)</code> بذهاب المحور 0 تصير <code>(4,)</code>، أربعة أعداد لكل مادة، بينما المحور 1 سيعطي <code>(30,)</code>، واحدًا لكل طالب. وهذا الجدول ليس مربّعًا، فالخطأ هنا يُنتج طولًا خاطئًا بيّنًا؛ وعلى جدول مربّع لن يفعل، وتلك <a href="../lessons/chapter-3-lesson-12.html#l12-h2">كارثةُ الدرس 12</a>.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>marks[(marks &gt; 50) and (marks &lt; 90)]</code> raise a <code>ValueError</code> when <code>&amp;</code> works?</span><span class="ar">لماذا ترفع <code>marks[(marks &gt; 50) and (marks &lt; 90)]</code> خطأ <code>ValueError</code> بينما تعمل <code>&amp;</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because <code>and</code> must decide whether the whole left array is true or false before it looks at the right, and an array of several answers is neither. <code>&amp;</code> combines the two masks element by element and never asks that question.</span><span class="ar">لأن <code>and</code> يجب أن تقرّر هل المصفوفة اليسرى كلها صحيحة أم خاطئة قبل أن تنظر إلى اليمنى، ومصفوفةٌ بأجوبة عدة ليست هذا ولا ذاك. أما <code>&amp;</code> فتجمع القناعين عنصرًا عنصرًا ولا تسأل ذلك السؤال أبدًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>and</code> only works on numbers, not on booleans.</span><span class="ar">لأن <code>and</code> لا تعمل إلا على الأعداد لا على القيم المنطقية.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because the brackets are in the wrong place; <code>marks &gt; 50 and marks &lt; 90</code> would work.</span><span class="ar">لأن القوسين في الموضع الخطأ؛ و<code>marks &gt; 50 and marks &lt; 90</code> ستعمل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>and</code> is reserved for <code>if</code> statements.</span><span class="ar">لأن <code>and</code> محجوزة لجمل <code>if</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The message names the problem precisely once you know what to look for: "the truth value of an array with more than one element is ambiguous". It is asking you for <em>one</em> answer and you have given it five. Note the brackets round each comparison are still required with <code>&amp;</code> &mdash; <code>&amp;</code> binds more tightly than <code>&gt;</code>, so leaving them off makes Python attempt <code>50 &amp; marks</code>.</div>
+      <div class="ar">الرسالةُ تسمّي المشكلة بدقة متى عرفت ما تبحث عنه: «قيمةُ الصدق لمصفوفة بأكثر من عنصر ملتبسة». فهي تطلب منك جوابًا <em>واحدًا</em> وقد أعطيتها خمسة. ولاحظ أن القوسين حول كل مقارنة لا يزالان لازمَين مع <code>&amp;</code> &mdash; فـ <code>&amp;</code> أشدُّ ارتباطًا من <code>&gt;</code>، فتركُهما يجعل بايثون تحاول <code>50 &amp; marks</code>.</div>
+    </div>
+  </div>
+
+  <h3 id="l13-s6"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l13-s7"><span class="en">The chapter in seven lines</span><span class="ar">الفصل في سبعة أسطر</span></h3>
+    <ul>
+      <li><span class="en"><strong>The axis you name is the one that disappears.</strong> <code>axis=0</code> collapses rows and gives a number per column; <code>axis=1</code> collapses columns and gives a number per row. Check the shape, never the intuition.</span><span class="ar"><strong>المحور الذي تسمّيه هو الذي يختفي.</strong> فـ <code>axis=0</code> يطوي الصفوف ويعطي عددًا لكل عمود؛ و<code>axis=1</code> يطوي الأعمدة ويعطي عددًا لكل صفّ. افحص الشكل لا الحدس.</span></li>
+      <li><span class="en"><strong><code>keepdims=True</code> when the result will be combined with the original,</strong> so the ambiguous <code>(3,)</code> shape never exists.</span><span class="ar"><strong><code>keepdims=True</code> حين ستُدمج النتيجة بالأصل،</strong> فلا يوجد الشكلُ الملتبس <code>(3,)</code> أبدًا.</span></li>
+      <li><span class="en"><strong>A comparison gives a mask; a mask selects; summing a mask counts.</strong> Those three replace almost every loop you would have written.</span><span class="ar"><strong>المقارنة تعطي قناعًا؛ والقناع يختار؛ وجمع القناع يعدّ.</strong> وتلك الثلاثة تحلّ محلّ كل حلقة كنت ستكتبها تقريبًا.</span></li>
+      <li><span class="en"><strong><code>&amp;</code> and <code>|</code> with brackets, never <code>and</code> and <code>or</code>.</strong> The error message is telling you it was asked for one answer and given many.</span><span class="ar"><strong><code>&amp;</code> و<code>|</code> بقوسين، ولا <code>and</code> ولا <code>or</code> أبدًا.</strong> ورسالةُ الخطأ تقول لك إنها سُئلت جوابًا واحدًا فأُعطيت كثيرًا.</span></li>
+      <li><span class="en"><strong>A mask built from one column selects whole rows,</strong> which is how you will filter tables for the rest of the course.</span><span class="ar"><strong>القناع المبني من عمود يختار صفوفًا كاملة،</strong> وبه سترشّح الجداول في بقية المقرر.</span></li>
+      <li><span class="en"><strong>One <code>nan</code> makes the whole average <code>nan</code>,</strong> which is loud and therefore kind. Skip with <code>np.nanmean</code>, find with <code>np.isnan</code>, and never compare with <code>==</code>.</span><span class="ar"><strong><code>nan</code> واحدة تجعل المتوسط كله <code>nan</code>،</strong> وذلك صاخبٌ ولذلك لطيف. تخطَّ بـ <code>np.nanmean</code>، وجِد بـ <code>np.isnan</code>، ولا تقارن بـ <code>==</code> أبدًا.</span></li>
+      <li><span class="en"><strong>Next:</strong> everything in this chapter was one table of numbers of one type. <a href="../index.html#home-h2">Chapter 6</a> puts names on the columns and lets each one be a different type, and the whole of this chapter keeps working underneath it.</span><span class="ar"><strong>التالي:</strong> كل ما في هذا الفصل كان جدولًا واحدًا من أعداد بنوع واحد. ويضع <a href="../index.html#home-h2">الفصل 6</a> أسماءً على الأعمدة ويدع كلًّا منها نوعًا مختلفًا، ويظل هذا الفصل كله يعمل تحته.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-03.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

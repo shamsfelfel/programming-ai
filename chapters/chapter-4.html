@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter 4 · Python OOP by Example" data-ar="الفصل 4 · البرمجة الكائنية بلغة بايثون">Chapter 4 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="4" data-page="chapter-4" data-path="chapters/chapter-4.html">
+<main>
+<section class="page" id="chapter-4">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Chapter 4 &middot; Week 6 &middot; Lectures 16&ndash;18</span><span class="ar">الفصل 4 &middot; الأسبوع 6 &middot; المحاضرات 16&ndash;18</span></span>
+  <h1><span class="en">Dot, Distance and <code>@</code>: the Arithmetic Under a Model</span><span class="ar">الضرب الداخلي والمسافة و<code>@</code>: الحساب الذي تحت النموذج</span></h1>
+
+  <p class="lede en">Three lessons that replace loops with operators, and one example that runs through all three. A new patient arrives with a fever, and the clinic asks which past patient they most resemble. The answer comes back as the one person with no fever at all &mdash; because blood pressure is recorded around 120 and temperature around 37, so pressure decides the question on its own. Nothing raises. Nothing warns. Scale the columns and the answer changes.</p>
+  <p class="lede ar">ثلاثة دروس تستبدل بالحلقات مُعاملات، ومثالٌ واحد يمرّ بالثلاثة. يصل مريضٌ جديد محمومًا، وتسأل العيادة: بأيّ مريض سابق يشبه أكثر؟ فيعود الجواب بالشخص الوحيد الذي لا حُمّى له أصلًا &mdash; لأن ضغط الدم يُسجَّل حول 120 والحرارة حول 37، فيحسم الضغطُ السؤال وحده. لا خطأ يُرفع، ولا تحذير. وحّد الأعمدة فيتغيّر الجواب.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need Chapter 3: arrays, shapes, broadcasting, axes and masks. The mathematics is not derived here &mdash; a lesson states a result and points at where it is explained. <a href="../appendices/appendix-a5.html#appendix-a5">Appendix A5</a> teaches you to read the notation, subscripts and &Sigma; included, and <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> covers vectors and matrices properly. Both are self-study and neither is examined.</p>
+    <p class="ar">تحتاج الفصل الثالث: المصفوفات والأشكال والبثّ والمحاور والأقنعة. والرياضيات لا تُشتقّ هنا &mdash; يذكر الدرس النتيجة ويشير إلى موضع شرحها. فـ<a href="../appendices/appendix-a5.html#appendix-a5">الملحق A5</a> يعلّمك قراءة الرموز، بما فيها الدلائل السفلية و&Sigma;، و<a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> يغطّي المتجهات والمصفوفات كما ينبغي. وكلاهما للدراسة الذاتية ولا يُمتحن فيهما.</p>
+  </div>
+
+  <h2 id="ch4-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="../lessons/chapter-4-lesson-14.html#lesson-14">
+      <span class="n">14</span><span class="state" data-page-state="lesson-14" hidden></span>
+      <h3 id="ch4-s1"><span class="en">Weighted Totals and Distances</span><span class="ar">المجاميع الموزونة والمسافات</span></h3>
+      <p class="en">A weighted-average loop becomes a single character. Then measure how far apart two patients are without a loop either &mdash; and watch the answer to &ldquo;who is most similar?&rdquo; change with the units you happened to measure in.</p>
+      <p class="ar">حلقةُ المعدّل الموزون تصير حرفًا واحدًا. ثم قِس كم يبعد مريضان أحدهما عن الآخر بلا حلقة أيضًا &mdash; وشاهد جواب «من الأشبه؟» يتغيّر تبعًا للوحدات التي صادف أن قِستَ بها.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-4-lesson-15.html#lesson-15">
+      <span class="n">15</span><span class="state" data-page-state="lesson-15" hidden></span>
+      <h3 id="ch4-s2"><span class="en">Tables That Multiply: <code>@</code> and the Shapes That Fit</span><span class="ar">جداولُ تضرب: <code>@</code> والأشكال التي تنطبق</span></h3>
+      <p class="en">Mark a whole class with one operator. Read the shape rule that says in advance whether a line will work, and meet the mistake that hands you a table where you wanted a column, with nothing raised.</p>
+      <p class="ar">صحّح صفًّا كاملًا بمُعامل واحد. اقرأ قاعدة الأشكال التي تقول سلفًا هل سينجح السطر، والقَ الخطأ الذي يسلّمك جدولًا حيث أردت عمودًا، بلا خطأ يُرفع.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-4-lesson-16.html#lesson-16">
+      <span class="n">16</span><span class="state" data-page-state="lesson-16" hidden></span>
+      <h3 id="ch4-s3"><span class="en">Removing the Loop, and Random Numbers You Can Repeat</span><span class="ar">إزالةُ الحلقة، وأعدادٌ عشوائية يمكن تكرارها</span></h3>
+      <p class="en">A stopwatch on a loop over a million rows, and on the three lines that replace it. A recipe for converting any loop you meet, the loops worth keeping, and a train/test split that gives the same answer tomorrow.</p>
+      <p class="ar">ساعةُ إيقاف على حلقةٍ تمرّ بمليون صفّ، وعلى الأسطر الثلاثة التي تحلّ محلها. ووصفةٌ لتحويل أي حلقة تلقاها، والحلقات التي يُستحسن إبقاؤها، وتقسيمٌ للتدريب والاختبار يعطي الجواب نفسه غدًا.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch4-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">Each lesson has a test of its own, sat after that lesson and assuming nothing later. The two chapter tests cover all three lessons &mdash; A for the core ideas, B for the harder corners. The execution traces sit inside the lessons: one per lesson, at the moment you need to watch it happen.</p>
+  <p class="ar">لكل درس اختباره الخاص، يُؤدَّى بعده ولا يفترض شيئًا بعده. ويغطّي اختبارا الفصل الدروس الثلاثة &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب. أمّا آثار التنفيذ فهي داخل الدروس: واحدٌ لكل درس، عند اللحظة التي تحتاج أن تشاهده فيها.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="../tests/chapter-4-test-14.html#test-14">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 14 &mdash; Totals &amp; Distances</span><span class="ar">اختبار 14 &mdash; المجاميع والمسافات</span></span>
+      <span class="state" data-page-state="test-14" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-4-test-15.html#test-15">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 15 &mdash; <code>@</code> and Shapes</span><span class="ar">اختبار 15 &mdash; <code>@</code> والأشكال</span></span>
+      <span class="state" data-page-state="test-15" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-4-test-16.html#test-16">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 16 &mdash; Vectorising &amp; Randomness</span><span class="ar">اختبار 16 &mdash; التحويل المتجهي والعشوائية</span></span>
+      <span class="state" data-page-state="test-16" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-4-exam-a.html#chapter-04-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-04-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-4-exam-b.html#chapter-04-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-04-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="../appendices/appendix-a5.html#appendix-a5">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A5 &mdash; reading mathematical notation</span><span class="ar">الملحق A5 &mdash; قراءة الرموز الرياضية</span></span>
+      <span class="state" data-page-state="appendix-a5" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="../appendices/appendix-a6.html#appendix-a6">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A6 &mdash; vectors and matrices</span><span class="ar">الملحق A6 &mdash; المتجهات والمصفوفات</span></span>
+      <span class="state" data-page-state="appendix-a6" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch4-s4"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">Every line here is a loop you did not write, and the price of that is paid in silence: a wrong shape, or a column measured in the wrong units, is now a confident wrong answer rather than an error.</p>
+    <p class="ar">كل سطر هنا حلقةٌ لم تكتبها، وثمن ذلك يُدفع في صمت: فالشكل الخطأ، أو عمودٌ مقيسٌ بوحدات خطأ، صار جوابًا خطأً واثقًا لا خطأً يُرفع.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/home.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

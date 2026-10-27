@@ -1,0 +1,520 @@
+<section class="page" id="appendix-a5">
+
+
+  <span class="kicker"><span class="en">Appendix A5 &middot; self-study &middot; not examined</span><span class="ar">الملحق A5 &middot; دراسة ذاتية &middot; غير ممتحَن فيه</span></span>
+  <h1><span class="en">Reading Mathematical Notation</span><span class="ar">قراءة الرموز الرياضية</span></h1>
+
+  <p class="lede en">Chapters 4 and 5 put you in front of formulas: a &Sigma; with something written above it and below it, a bold <strong>x</strong>, an <em>A</em> carrying two subscripts, a Greek letter nobody introduced. None of it is difficult and all of it is unfamiliar, which are two different problems. This appendix solves the second one only. It teaches a single skill &mdash; reading a line of notation and writing the NumPy that does it &mdash; and it teaches no mathematics at all.</p>
+  <p class="lede ar">يضعك الفصلان الرابع والخامس أمام صيغ: &Sigma; كُتب فوقها شيء وتحتها شيء، و<strong>x</strong> غليظة، و<em>A</em> تحمل دليلين، وحرفًا يونانيًا لم يقدّمه أحد. وليس شيءٌ من ذلك صعبًا، وكلُّه غير مألوف، وهاتان مشكلتان لا مشكلة واحدة. ويحلّ هذا الملحق الثانية وحدها. فهو يعلّم مهارة واحدة &mdash; أن تقرأ سطر رموز فتكتب سطر نمباي الذي يؤدّيه &mdash; ولا يعلّم رياضيات إطلاقًا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">How to use this appendix</span><span class="ar">كيف تستخدم هذا الملحق</span></h4>
+    <p class="en">Read it once, in one sitting, before <a href="#lesson-14">Chapter 4</a>. A motivated reader needs forty to sixty minutes. <strong>Nothing on this page is ever examined:</strong> no lesson test and no chapter test asks about any of it, and a student who skips the whole appendix can still pass every test in the course. It exists for one reason &mdash; so that the notation in a textbook, or on a page of scikit-learn documentation, stops being a wall and becomes a sentence you can translate.</p>
+    <p class="ar">اقرأه مرة واحدة في جلسة واحدة قبل الفصل الرابع. ويحتاج القارئ المجدّ أربعين إلى ستين دقيقة. <strong>ولا شيء في هذه الصفحة ممتحَن فيه قطّ:</strong> فلا اختبار درس ولا اختبار فصل يسأل عن شيء منه، والطالب الذي يتخطى الملحق كله يستطيع مع ذلك أن ينجح في كل اختبار في المقرر. وهو موجود لسبب واحد &mdash; أن تكفّ الرموز في كتاب، أو في صفحة من توثيق scikit-learn، عن كونها حائطًا فتصير جملةً تستطيع ترجمتها.</p>
+    <p class="en">The mathematics itself &mdash; what it <em>means</em> to multiply two tables of numbers, and why anybody wants to &mdash; is <a href="#appendix-a6">Appendix A6</a>, which is a separate read. Here we only learn to pronounce the symbols. You need <a href="#lesson-10">Lecture 12</a> behind you, because every answer in this appendix is a NumPy array.</p>
+    <p class="ar">أما الرياضيات نفسها &mdash; ما <em>يعنيه</em> ضربُ جدولَي أعداد، ولماذا يريده أحد &mdash; فهي <a href="#appendix-a6">الملحق A6</a>، وقراءته منفصلة. وههنا نتعلم نطق الرموز فحسب. وتحتاج أن تكون قد أنهيت <a href="#lesson-10">المحاضرة 12</a>، لأن كل جواب في هذا الملحق مصفوفةُ نمباي.</p>
+  </div>
+
+  <h2 id="a5-h1"><span class="en">A5.1 &mdash; Subscripts: x<sub>1</sub>, x<sub>i</sub>, and counting from 1 instead of 0</span><span class="ar">A5.1 &mdash; الأدلّة السفلية: x<sub>1</sub> وx<sub>i</sub>، والعدّ من 1 لا من 0</span></h2>
+
+  <p class="en">A subscript is a label, not an operation. When a page writes x<sub>1</sub>, x<sub>2</sub>, x<sub>3</sub>, it is naming the first, second and third value of one list of numbers which, taken whole, is called <em>x</em>. And x<sub>i</sub> is &ldquo;the i-th one&rdquo;, where <em>i</em> stands in for whichever one you happen to be talking about.</p>
+  <p class="ar">الدليل السفلي اسمٌ لا عملية. فحين تكتب صفحةٌ x<sub>1</sub> وx<sub>2</sub> وx<sub>3</sub> فإنها تسمّي القيمة الأولى والثانية والثالثة من قائمة أعداد واحدة تُسمّى كلُّها <em>x</em>. وx<sub>i</sub> هي «القيمة ذات الدليل i»، و<em>i</em> نائبةٌ عن أيّها تتحدث.</p>
+
+  <p class="en">One thing here will bite you, and it is not a subtle thing: <strong>mathematics counts from 1 and Python counts from 0.</strong> x<sub>1</sub> is the first value, which NumPy calls <code>x[0]</code>. The index you type is therefore always one lower than the subscript on the page.</p>
+  <p class="ar">وثمّة شيء واحد ههنا سيعضّك، وليس شيئًا خفيًّا: <strong>الرياضيات تعدّ من 1 وبايثون تعدّ من 0.</strong> فـx<sub>1</sub> هي القيمة الأولى، وتسمّيها نمباي <code>x[0]</code>. فالدليل الذي تكتبه أقلُّ دائمًا بواحد من الدليل المكتوب في الصفحة.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">On the page</span><span class="ar">في الصفحة</span></th>
+        <th><span class="en">In words</span><span class="ar">بالكلام</span></th>
+        <th><span class="en">In NumPy</span><span class="ar">في نمباي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>x<sub>1</sub></td><td><span class="en">the first value</span><span class="ar">القيمة الأولى</span></td><td><code>x[0]</code></td></tr>
+      <tr><td>x<sub>2</sub></td><td><span class="en">the second value</span><span class="ar">القيمة الثانية</span></td><td><code>x[1]</code></td></tr>
+      <tr><td>x<sub>i</sub></td><td><span class="en">the i-th value</span><span class="ar">القيمة ذات الدليل i</span></td><td><code>x[i - 1]</code></td></tr>
+      <tr><td>x<sub>n</sub></td><td><span class="en">the last value, when n is how many there are</span><span class="ar">القيمة الأخيرة، إذا كان n عددها</span></td><td><code>x[n - 1]</code>, <code>x[-1]</code></td></tr>
+    </tbody>
+  </table>
+
+<pre class="code"><code>import numpy as np
+
+marks = np.array([62, 75, 48, 91])
+
+print(marks[0])
+print(marks[2])
+</code></pre>
+
+  <div class="output">62
+48</div>
+
+  <p class="en">Four papers of one student. x<sub>1</sub> is 62 and x<sub>3</sub> is 48, and the two lines that printed them say <code>0</code> and <code>2</code>. Nothing deeper is going on: the page counts positions and the array counts offsets from the start.</p>
+  <p class="ar">أربع أوراق لطالب واحد. فـx<sub>1</sub> هي 62 وx<sub>3</sub> هي 48، والسطران اللذان طبعاهما يقولان <code>0</code> و<code>2</code>. ولا شيء أعمق من ذلك: فالصفحة تعدّ المواضع والمصفوفة تعدّ الإزاحات عن البداية.</p>
+
+<pre class="code"><code>n = marks.size
+
+print(n)
+print(marks[n - 1])
+
+try:
+    print(marks[n])
+except IndexError as e:
+    print("IndexError:", e)
+</code></pre>
+
+  <div class="output">4
+91
+IndexError: index 4 is out of bounds for axis 0 with size 4</div>
+
+  <p class="en">In notation <em>n</em> is nearly always how many values there are, so the last one is x<sub>n</sub> &mdash; and <code>marks[n]</code> is one step past the end. This is the lucky case, because NumPy says so loudly. The unlucky case is a subscript that is off by one and still lands <em>inside</em> the array: you get a wrong mark, in silence, and nothing anywhere complains.</p>
+  <p class="ar">في الرموز يكون <em>n</em> في الغالب الأعمّ عددَ القيم، فالأخيرة هي x<sub>n</sub> &mdash; و<code>marks[n]</code> خطوةٌ بعد النهاية. وهذه هي الحالة المحظوظة، لأن نمباي تصرّح بها عاليًا. أما الحالة المنكودة فدليلٌ أخطأ بواحد ومع ذلك وقع <em>داخل</em> المصفوفة: فتحصل على علامة خطأ، بصمت، ولا شيء في أي مكان يعترض.</p>
+
+  <div class="note">
+    <h4><span class="en">Translate the range, not the symbol</span><span class="ar">ترجم المدى لا الرمز</span></h4>
+    <p class="en">The habit that removes this whole class of mistake is to translate the <em>range</em> in one go instead of translating symbol by symbol. &ldquo;For i from 1 to n&rdquo; means &ldquo;every value&rdquo;, and &ldquo;every value&rdquo; in NumPy is the array itself, with no index written anywhere. Most formulas you will meet need no index in code at all &mdash; which is the subject of the next section.</p>
+    <p class="ar">والعادةُ التي تُزيل هذا الصنف من الخطأ كلَّه هي أن تترجم <em>المدى</em> جملةً واحدة بدل الترجمة رمزًا رمزًا. فـ«لكل i من 1 إلى n» تعني «كل القيم»، و«كل القيم» في نمباي هي المصفوفة نفسها بلا دليل مكتوب في أي موضع. وأكثرُ الصيغ التي ستقابلها لا تحتاج دليلًا في الكود إطلاقًا &mdash; وذلك موضوع القسم التالي.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A formula you are copying ends with x<sub>4</sub>, and the array in your program is called <code>marks</code>. Which expression is x<sub>4</sub>?</span><span class="ar">الصيغةُ التي تنقلها تنتهي بـ x<sub>4</sub>، والمصفوفة في برنامجك اسمها <code>marks</code>. فأيُّ تعبير هو x<sub>4</sub>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>marks[3]</code> &mdash; the fourth value, because the index is one lower than the subscript.</span><span class="ar"><code>marks[3]</code> &mdash; القيمة الرابعة، لأن الدليل أقلُّ بواحد من الدليل السفلي.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks[4]</code> &mdash; the subscript is 4, so the index is 4.</span><span class="ar"><code>marks[4]</code> &mdash; الدليل السفلي 4 فالدليل 4.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks[-4]</code> &mdash; count four back from the end.</span><span class="ar"><code>marks[-4]</code> &mdash; عُدّ أربعةً من النهاية.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>marks[1:4]</code> &mdash; everything up to the fourth.</span><span class="ar"><code>marks[1:4]</code> &mdash; كلُّ شيء حتى الرابعة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">A subscript is a position counted from one; an index is an offset counted from zero. The second answer is the dangerous one, and not because it raises an error: in an array of exactly four marks it does, but in an array of thirty it returns the fifth student's mark and your program reports a number that is simply wrong. The fourth answer is a different kind of wrong &mdash; a slice is three values, and a formula that says x<sub>4</sub> wants one.</div>
+      <div class="ar">الدليل السفلي موضعٌ معدود من واحد؛ والدليل إزاحةٌ معدودة من صفر. والجواب الثاني هو الخطر، وليس لأنه يرفع خطأً: ففي مصفوفة من أربع علامات بالضبط يرفعه، أما في مصفوفة من ثلاثين فيُعيد علامة الطالب الخامس فيُبلّغ برنامجك رقمًا خطأً بلا أكثر. والجواب الرابع خطأٌ من نوع آخر &mdash; فالقطعة ثلاث قيم، والصيغة التي تقول x<sub>4</sub> تريد قيمةً واحدة.</div>
+    </div>
+  </div>
+
+  <h2 id="a5-h2"><span class="en">A5.2 &mdash; &Sigma;: a sum is a loop you do not write</span><span class="ar">A5.2 &mdash; &Sigma;: المجموع حلقةٌ لا تكتبها</span></h2>
+
+  <p class="en">&Sigma; is a capital Greek sigma, and it carries one instruction: <strong>add these up</strong>. It arrives wearing three decorations, and each one answers a single question.</p>
+  <p class="ar">&Sigma; سيغما يونانية كبيرة، وتحمل أمرًا واحدًا: <strong>اجمع هذه</strong>. وتأتي بثلاث زينات، وكلُّ واحدة تجيب سؤالًا واحدًا.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Where it is written</span><span class="ar">موضعها</span></th>
+        <th><span class="en">The question it answers</span><span class="ar">السؤال الذي تجيبه</span></th>
+        <th><span class="en">Typically</span><span class="ar">نموذجيًا</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="en">under the &Sigma;</span><span class="ar">تحت الـ&Sigma;</span></td>
+        <td><span class="en">What varies, and where does it start?</span><span class="ar">ما المتغيّر، ومن أين يبدأ؟</span></td>
+        <td><em>i</em> = 1</td>
+      </tr>
+      <tr>
+        <td><span class="en">above the &Sigma;</span><span class="ar">فوق الـ&Sigma;</span></td>
+        <td><span class="en">Where does it stop? The last value is included.</span><span class="ar">وأين يتوقف؟ والقيمة الأخيرة داخلة.</span></td>
+        <td><em>n</em></td>
+      </tr>
+      <tr>
+        <td><span class="en">to the right of the &Sigma;</span><span class="ar">يمين الـ&Sigma;</span></td>
+        <td><span class="en">What is added each time round?</span><span class="ar">وما الذي يُضاف في كل دورة؟</span></td>
+        <td>x<sub>i</sub></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="en">So &Sigma; from i = 1 to n of x<sub>i</sub> reads out loud as: &ldquo;add x<sub>1</sub>, then x<sub>2</sub>, and so on to the last one&rdquo;. Three quarters of the symbol is bookkeeping for a loop, and NumPy runs that loop for you, so three quarters of the symbol disappears in translation. What is left is <code>x.sum()</code>.</p>
+  <p class="ar">فـ&Sigma; من i = 1 إلى n لـx<sub>i</sub> تُقرأ عاليًا: «اجمع x<sub>1</sub> ثم x<sub>2</sub> وهكذا إلى الأخيرة». وثلاثةُ أرباع الرمز مسكُ دفاتر لحلقة، ونمباي تُجري تلك الحلقة عنك، فتختفي ثلاثة أرباع الرمز في الترجمة. والباقي هو <code>x.sum()</code>.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">On the page</span><span class="ar">في الصفحة</span></th>
+        <th><span class="en">In words</span><span class="ar">بالكلام</span></th>
+        <th><span class="en">In NumPy</span><span class="ar">في نمباي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>&Sigma; x<sub>i</sub></td>
+        <td><span class="en">add up every value</span><span class="ar">اجمع كل القيم</span></td>
+        <td><code>x.sum()</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma; a<sub>i</sub>b<sub>i</sub></td>
+        <td><span class="en">multiply the pairs, then add the products</span><span class="ar">اضرب الأزواج ثم اجمع الحواصل</span></td>
+        <td><code>(a * b).sum()</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma; x<sub>i</sub><sup>2</sup></td>
+        <td><span class="en">square each value, then add the squares</span><span class="ar">ربّع كل قيمة ثم اجمع المربعات</span></td>
+        <td><code>(x ** 2).sum()</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+<pre class="code"><code>import numpy as np
+
+marks   = np.array([62.0, 75.0, 48.0, 91.0])
+weights = np.array([0.2, 0.3, 0.2, 0.3])
+
+print(marks.sum())
+print((marks * weights).sum())
+print((marks ** 2).sum())
+</code></pre>
+
+  <div class="output">276.0
+71.8
+20054.0</div>
+
+  <p class="en">The middle line is the one to stare at. <code>marks * weights</code> adds nothing at all: it builds a third array, of four products, <code>[12.4 22.5  9.6 27.3]</code>, and <code>.sum()</code> then adds those four. Spoken aloud it is a weighted total; written as notation it is &Sigma; a<sub>i</sub>b<sub>i</sub>; written in NumPy it is one line with no loop, no index and no <em>i</em> anywhere.</p>
+  <p class="ar">والسطر الأوسط هو ما يستحق التحديق. فـ<code>marks * weights</code> لا تجمع شيئًا إطلاقًا: إنما تبني مصفوفةً ثالثة من أربعة حواصل، <code>[12.4 22.5  9.6 27.3]</code>، ثم تجمع <code>.sum()</code> تلك الأربعة. ومنطوقةً هي مجموعٌ موزون؛ ومكتوبةً رموزًا هي &Sigma; a<sub>i</sub>b<sub>i</sub>؛ ومكتوبةً نمباي هي سطرٌ واحد بلا حلقة ولا دليل ولا <em>i</em> في أي موضع.</p>
+
+  <div class="note">
+    <h4><span class="en">The brackets are not decoration</span><span class="ar">القوسان ليسا زينة</span></h4>
+    <p class="en"><code>(marks * weights).sum()</code> multiplies and then adds. <code>marks * weights.sum()</code> adds the weights first and then scales every mark by that one number &mdash; with these weights <code>weights.sum()</code> is <code>1.0</code>, so it hands back <code>[62. 75. 48. 91.]</code>, the marks untouched. It is an array where you wanted a number, and nothing warns you. When a formula has a &Sigma; in front of a product, the brackets are where the &Sigma; begins.</p>
+    <p class="ar"><code>(marks * weights).sum()</code> تضرب ثم تجمع. و<code>marks * weights.sum()</code> تجمع الأوزان أولًا ثم تضرب كل علامة في ذلك العدد الواحد &mdash; ومع هذه الأوزان تكون <code>weights.sum()</code> هي <code>1.0</code>، فتُعيد <code>[62. 75. 48. 91.]</code>، أي العلامات كما هي. فهي مصفوفةٌ في موضع أردت فيه عددًا، ولا شيء يحذّرك. فحين تكون في الصيغة &Sigma; أمام حاصل ضرب، فالقوسان هما حيث تبدأ الـ&Sigma;.</p>
+  </div>
+
+  <p class="en">One forward note, so the symbol is not a surprise later: Chapter 5 writes that same sum of products as <code>a @ b</code>, a single symbol meaning &ldquo;multiply the pairs and add&rdquo;. It gives <code>71.8</code> too. Until then, <code>(a * b).sum()</code> says it in a way you can read.</p>
+  <p class="ar">وملاحظةٌ استباقية واحدة، كي لا يفاجئك الرمز لاحقًا: يكتب الفصل الخامس مجموعَ الحواصل ذاك <code>a @ b</code>، وهو رمزٌ واحد يعني «اضرب الأزواج واجمع». ويعطي <code>71.8</code> هو أيضًا. وإلى ذلك الحين تقول <code>(a * b).sum()</code> الأمر بصيغة تستطيع قراءتها.</p>
+
+  <h2 id="a5-h3"><span class="en">A5.3 &mdash; A vector is a column of numbers, however it is printed</span><span class="ar">A5.3 &mdash; المتجه عمودُ أعداد، كيفما طُبع</span></h2>
+
+  <p class="en">A bold lowercase <strong>x</strong> means a <strong>vector</strong>: one list of numbers, kept in order. The word promises nothing beyond that. A textbook almost always <em>draws</em> it as a column, one number per line, and will say &ldquo;let <strong>x</strong> be a column vector&rdquo; as if that were a property of the thing rather than of the drawing.</p>
+  <p class="ar">و<strong>x</strong> الصغيرة الغليظة تعني <strong>متجهًا</strong>: قائمةَ أعداد واحدة محفوظةَ الترتيب. ولا تَعِد الكلمة بشيء فوق ذلك. والكتابُ يكاد دائمًا أن <em>يرسمه</em> عمودًا، عددًا في كل سطر، ويقول «ليكن <strong>x</strong> متجهًا عموديًا» كأن ذلك صفةٌ للشيء لا للرسم.</p>
+
+  <p class="en">NumPy prints the same thing flat, on one line.</p>
+  <p class="ar">وتطبع نمباي الشيء نفسه مسطّحًا في سطر واحد.</p>
+
+<pre class="code"><code>import numpy as np
+
+x = np.array([1.0, 2.0, 3.0])
+
+print(x)
+print(x.shape)
+print(x.T.shape)
+</code></pre>
+
+  <div class="output">[1. 2. 3.]
+(3,)
+(3,)</div>
+
+  <p class="en"><code>(3,)</code>, with that lonely comma, means one dimension of length three: three values and nothing else. Now say the consequence plainly, because it saves hours later &mdash; <strong>a 1-D NumPy array has no row or column nature at all.</strong> It is not a row that could be flipped into a column. There is nothing to flip, which is why <code>x.T</code>, the operation that exchanges rows and columns, hands back exactly the same shape and does not complain.</p>
+  <p class="ar">و<code>(3,)</code> بتلك الفاصلة الوحيدة تعني بعدًا واحدًا طولُه ثلاثة: ثلاث قيم ولا شيء غيرها. وقل الآن النتيجةَ صريحةً، فهي توفّر ساعات لاحقًا &mdash; <strong>مصفوفة نمباي أحاديةُ البعد ليست صفًّا ولا عمودًا إطلاقًا.</strong> فهي ليست صفًّا يمكن قلبه عمودًا. وليس ثمّة ما يُقلب، ولهذا تُعيد <code>x.T</code>، وهي العملية التي تبادل الصفوف والأعمدة، الشكلَ نفسه بعينه ولا تعترض.</p>
+
+  <p class="en">A true column is a different shape: two dimensions, three rows, one column.</p>
+  <p class="ar">أما العمود الحقيقي فشكلٌ آخر: بعدان، وثلاثة صفوف، وعمود واحد.</p>
+
+<pre class="code"><code>column = x[:, None]
+
+print(column)
+print(column.shape)
+</code></pre>
+
+  <div class="output">[[1.]
+ [2.]
+ [3.]]
+(3, 1)</div>
+
+  <p class="en">The nesting in the printout is the giveaway: three little arrays of one value each. <code>[:, None]</code> is the same move <a href="#l12-s4">Lecture 14 used to choose a broadcast direction</a>, here doing a second job &mdash; turning the flat thing into the column the textbook drew.</p>
+  <p class="ar">والتعشيشُ في المطبوع هو العلامة الفاضحة: ثلاث مصفوفات صغيرة، في كل واحدة قيمةٌ واحدة. و<code>[:, None]</code> هي الحركة نفسها <a href="#l12-s4">التي استعملتها المحاضرة 14 لاختيار اتجاه البثّ</a>، وتؤدي ههنا عملًا ثانيًا &mdash; أن تحوّل المسطّحَ إلى العمود الذي رسمه الكتاب.</p>
+
+  <div class="note">
+    <h4><span class="en">When does the difference matter?</span><span class="ar">متى يهمّ الفرق؟</span></h4>
+    <p class="en">Not when you are adding, averaging or summing &mdash; <code>(3,)</code> and <code>(3, 1)</code> give the same answers there. It matters the moment two arrays meet in an operation that pairs their shapes up, which is Lecture 14's broadcasting, and the moment a function demands a column and says so in an error. Until something complains, leave the flat array alone: the shape a formula draws is not an instruction to reshape.</p>
+    <p class="ar">لا يهمّ حين تجمع أو تتوسّط أو تُجمِّع &mdash; فـ<code>(3,)</code> و<code>(3, 1)</code> تعطيان الأجوبة نفسها هناك. وإنما يهمّ لحظةَ تلتقي مصفوفتان في عملية تزاوج شكليهما، وهي بثُّ المحاضرة 14، ولحظةَ تطلب دالّةٌ عمودًا وتقول ذلك في رسالة خطأ. وإلى أن يعترض شيء فاترك المصفوفة المسطّحة وشأنها: فالشكل الذي ترسمه الصيغة ليس أمرًا بإعادة التشكيل.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A textbook draws <strong>x</strong> as a column of three numbers, and the formula tells you to take its transpose. Your code has <code>x = np.array([1.0, 2.0, 3.0])</code>. What is <code>x.T</code>?</span><span class="ar">يرسم الكتاب <strong>x</strong> عمودًا من ثلاثة أعداد، وتأمرك الصيغة بأخذ منقولها. وفي كودك <code>x = np.array([1.0, 2.0, 3.0])</code>. فما <code>x.T</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The same array, still of shape <code>(3,)</code> &mdash; there is only one dimension, so there is nothing to exchange.</span><span class="ar">المصفوفة نفسها، وشكلها <code>(3,)</code> كما هو &mdash; فليس إلا بعدٌ واحد، فليس ثمّة ما يُبادَل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A column of shape <code>(3, 1)</code>, because the textbook said the vector was a column.</span><span class="ar">عمودٌ شكله <code>(3, 1)</code>، لأن الكتاب قال إن المتجه عمود.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A row of shape <code>(1, 3)</code>.</span><span class="ar">صفٌّ شكله <code>(1, 3)</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code>, since a transpose needs two dimensions to exchange.</span><span class="ar"><code>ValueError</code>، إذ النقل يحتاج بعدين ليبادل بينهما.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">This is the most common surprise in the whole appendix, and it is a quiet one: the line runs, the shape does not change, and no error tells you that the instruction had no effect. The reason the second and third answers feel right is that the drawing in the book really does have a direction &mdash; but the drawing is not the data. If you genuinely need a column, ask for one with <code>x[:, None]</code>; if you only need the answer the formula is after, you usually do not.</div>
+      <div class="ar">هذه أشيعُ مفاجأة في الملحق كله، وهي مفاجأةٌ هادئة: فالسطر يُنفَّذ، والشكل لا يتغير، ولا خطأ يخبرك أن الأمر لم يُحدث أثرًا. وسببُ أن الجوابين الثاني والثالث يبدوان صحيحين أن للرسم في الكتاب اتجاهًا فعلًا &mdash; لكن الرسم ليس البيانات. فإن كنت تحتاج عمودًا حقًّا فاطلبه بـ<code>x[:, None]</code>؛ وإن كنت تحتاج الجواب الذي تطلبه الصيغة فقط فأنت في الغالب لا تحتاجه.</div>
+    </div>
+  </div>
+
+  <h2 id="a5-h4"><span class="en">A5.4 &mdash; Matrices and two subscripts: A, a<sub>ij</sub>, rows before columns</span><span class="ar">A5.4 &mdash; المصفوفات وذوات الدليلين: A وa<sub>ij</sub>، الصفوف قبل الأعمدة</span></h2>
+
+  <p class="en">A capital <em>A</em> means a <strong>matrix</strong>: a table of numbers with rows and columns, which in NumPy is an array of two dimensions. One value inside it needs two labels, and notation writes them side by side with no separator at all: a<sub>ij</sub> is the value in <strong>row i, column j</strong>. Rows first. Always rows first &mdash; in the two subscripts, in <code>A[i, j]</code>, and in <code>A.shape</code>, which reads <code>(rows, columns)</code>.</p>
+  <p class="ar">و<em>A</em> الكبيرة تعني <strong>مصفوفةً</strong> بالمعنى الرياضي: جدولَ أعداد له صفوف وأعمدة، وهو في نمباي مصفوفةٌ ذات بعدين. والقيمةُ الواحدة داخلها تحتاج دليلين، والرموز تكتبهما جنبًا إلى جنب بلا فاصل إطلاقًا: فـa<sub>ij</sub> هي القيمة في <strong>الصفّ i والعمود j</strong>. الصفوف أولًا. الصفوف أولًا دائمًا &mdash; في الدليلين السفليين، وفي <code>A[i, j]</code>، وفي <code>A.shape</code> التي تُقرأ <code>(الصفوف، الأعمدة)</code>.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 300" role="img" aria-labelledby="a5fig1">
+      <title id="a5fig1">a two-by-three table of marks, labelled with its row index i and its column index j</title>
+      <defs>
+        <marker id="a5arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+
+      <text class="dg-t dg-c dg-n" x="215" y="76" text-anchor="middle">j = 0</text>
+      <text class="dg-t dg-c dg-n" x="285" y="76" text-anchor="middle">j = 1</text>
+      <text class="dg-t dg-c dg-n" x="355" y="76" text-anchor="middle">j = 2</text>
+
+      <text class="dg-t dg-c dg-n" x="170" y="114" text-anchor="end">i = 0</text>
+      <text class="dg-t dg-c dg-n" x="170" y="158" text-anchor="end">i = 1</text>
+
+      <rect class="dg-box" x="180" y="86" width="70" height="44"/>
+      <rect class="dg-box" x="250" y="86" width="70" height="44"/>
+      <rect class="dg-box" x="320" y="86" width="70" height="44"/>
+      <rect class="dg-box" x="180" y="130" width="70" height="44"/>
+      <rect class="dg-box" x="250" y="130" width="70" height="44"/>
+      <rect class="dg-box dg-fill" x="320" y="130" width="70" height="44"/>
+
+      <text class="dg-t dg-n" x="215" y="114" text-anchor="middle">62</text>
+      <text class="dg-t dg-n" x="285" y="114" text-anchor="middle">75</text>
+      <text class="dg-t dg-n" x="355" y="114" text-anchor="middle">48</text>
+      <text class="dg-t dg-n" x="215" y="158" text-anchor="middle">80</text>
+      <text class="dg-t dg-n" x="285" y="158" text-anchor="middle">55</text>
+      <text class="dg-t dg-n" x="355" y="158" text-anchor="middle">90</text>
+
+      <text class="dg-t dg-s en" x="20" y="110">each row is one student</text>
+      <text class="dg-t dg-s ar" x="20" y="110">كل صفّ طالب واحد</text>
+      <text class="dg-t dg-s en" x="20" y="134">each column is one paper</text>
+      <text class="dg-t dg-s ar" x="20" y="134">كل عمود ورقة واحدة</text>
+
+      <path class="dg-line" d="M 400 152 L 452 152" marker-end="url(#a5arrow)"/>
+      <text class="dg-t dg-c dg-n" x="462" y="148">A[1, 2]</text>
+      <text class="dg-t dg-s en" x="462" y="170">row 1, column 2 &mdash;</text>
+      <text class="dg-t dg-s ar" x="462" y="170">الصفّ 1 والعمود 2 &mdash;</text>
+      <text class="dg-t dg-s en" x="462" y="186">the row index comes first</text>
+      <text class="dg-t dg-s ar" x="462" y="186">دليلُ الصفّ أولًا</text>
+
+      <text class="dg-t dg-c dg-n" x="180" y="214">A.shape</text>
+      <text class="dg-t dg-c dg-n" x="256" y="214">(2, 3)</text>
+      <text class="dg-t dg-s en" x="330" y="214">two rows, three columns, in that order</text>
+      <text class="dg-t dg-s ar" x="330" y="214">صفّان وثلاثة أعمدة، بهذا الترتيب</text>
+
+      <text class="dg-t dg-s en" x="180" y="256">a textbook counting from 1 calls the shaded cell:</text>
+      <text class="dg-t dg-s ar" x="180" y="256">والكتاب الذي يعدّ من 1 يسمّي الخلية المظلَّلة:</text>
+      <text class="dg-t dg-c dg-n" x="180" y="282">a&#8322;&#8323; = A[1, 2]</text>
+    </svg>
+    <figcaption><span class="en">Figure A5.1 &mdash; one table, two index systems. The subscripts count rows and columns from 1; NumPy counts them from 0. Both put the row first, which is the part that never changes.</span><span class="ar">الشكل A5.1 &mdash; جدولٌ واحد ونظاما ترقيم. فالدليلان السفليان يعدّان الصفوف والأعمدة من 1؛ ونمباي تعدّهما من 0. وكلاهما يضع الصفّ أولًا، وذلك هو الجزء الذي لا يتغير أبدًا.</span></figcaption>
+  </figure>
+
+<pre class="code"><code>import numpy as np
+
+A = np.array([[62, 75, 48],
+              [80, 55, 90]])
+
+print(A.shape)
+print(A[1, 2])
+print(A[0])
+print(A[:, 2])
+</code></pre>
+
+  <div class="output">(2, 3)
+90
+[62 75 48]
+[48 90]</div>
+
+  <p class="en">Two students, three papers. <code>A[1, 2]</code> is the second student's third paper, which is 90. Give one index instead of two and you get a whole row: <code>A[0]</code> is the first student. Put a colon where the row index goes &mdash; the colon meaning &ldquo;every one of them&rdquo; &mdash; and you get a whole column: <code>A[:, 2]</code> is the third paper, for everybody. In notation those two have names you will meet constantly: the i-th row of A, and the j-th column of A.</p>
+  <p class="ar">طالبان وثلاث أوراق. فـ<code>A[1, 2]</code> هي ورقةُ الطالب الثاني الثالثة، وهي 90. وأعطِ دليلًا واحدًا بدل اثنين فتحصل على صفٍّ كامل: فـ<code>A[0]</code> هي الطالب الأول. وضَعْ نقطتين رأسيتين موضعَ دليل الصفّ &mdash; وهما تعنيان «كلّهم» &mdash; فتحصل على عمود كامل: فـ<code>A[:, 2]</code> هي الورقة الثالثة للجميع. ولهذين في الرموز اسمان ستقابلهما كثيرًا: صفُّ A ذو الدليل i، وعمودُ A ذو الدليل j.</p>
+
+  <p class="en">The superscript T, as in A<sup>T</sup> and read aloud as &ldquo;A transpose&rdquo;, is the same table with its rows and columns exchanged: a student-by-paper table becomes a paper-by-student table.</p>
+  <p class="ar">والحرف T المرفوع، كما في A<sup>T</sup> ويُقرأ عاليًا «منقول A»، هو الجدول نفسه بعد مبادلة صفوفه بأعمدته: فجدولُ الطلاب في الأوراق يصير جدولَ الأوراق في الطلاب.</p>
+
+<pre class="code"><code>print(A.T)
+print(A.T.shape)
+</code></pre>
+
+  <div class="output">[[62 80]
+ [75 55]
+ [48 90]]
+(3, 2)</div>
+
+  <p class="en">No arithmetic happened: the value at row i, column j of A<sup>T</sup> is the value at row j, column i of A, and that is the entire definition. The T appears everywhere in formulas for one practical reason &mdash; it is the cheapest way to make two shapes agree &mdash; and in NumPy it costs you two characters.</p>
+  <p class="ar">ولم يحدث حسابٌ قطّ: فالقيمة في الصفّ i والعمود j من A<sup>T</sup> هي القيمة في الصفّ j والعمود i من A، وذلك هو التعريف كلُّه. ويظهر الـT في كل مكان في الصيغ لسبب عملي واحد &mdash; أنه أرخص طريقة لجعل شكلين يتوافقان &mdash; ويكلّفك في نمباي حرفين.</p>
+
+  <h2 id="a5-h5"><span class="en">A5.5 &mdash; The Greek letters this course actually uses</span><span class="ar">A5.5 &mdash; الحروف اليونانية التي يستعملها هذا المقرر فعلًا</span></h2>
+
+  <p class="en">Seven letters cover almost everything you will meet. A Greek letter is never an operation and never an instruction; it is a <em>name</em>, fixed by convention, for a number or for a group of numbers. The convention is worth memorising, because books and documentation lean on it without ever saying so. One word below needs its own sentence first: a <strong>model</strong> here means a function whose shape a person chose and whose numbers a computer found from data (<a href="#appendix-a3">Appendix A3</a>).</p>
+  <p class="ar">سبعةُ حروف تغطي كلَّ ما ستقابله تقريبًا. والحرف اليوناني ليس عمليةً قطّ ولا أمرًا قطّ؛ إنما هو <em>اسمٌ</em> ثبّته الاصطلاح لعدد أو لمجموعة أعداد. ويستحق الاصطلاح الحفظ، لأن الكتب والتوثيق تتوكّأ عليه بلا أن تقول ذلك قطّ. وثمّة لفظٌ واحد أدناه يحتاج جملته أولًا: فالـ<strong>نموذج</strong> ههنا دالّةٌ اختار الإنسان شكلها ووجد الحاسوب أرقامها من البيانات (<a href="#appendix-a3">الملحق A3</a>).</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Letter</span><span class="ar">الحرف</span></th>
+        <th><span class="en">Said</span><span class="ar">يُنطق</span></th>
+        <th><span class="en">What it names</span><span class="ar">ما يسمّيه</span></th>
+        <th><span class="en">Usual name in code</span><span class="ar">اسمه المعتاد في الكود</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>&alpha;</td><td>alpha</td>
+        <td><span class="en">A small number you choose yourself, before anything runs &mdash; most often the size of each step a learning procedure takes.</span><span class="ar">عددٌ صغير تختاره أنت قبل أن يُنفَّذ شيء &mdash; وهو في الغالب حجمُ كل خطوة يخطوها إجراء التعلّم.</span></td>
+        <td><code>alpha</code>, <code>lr</code></td>
+      </tr>
+      <tr>
+        <td>&beta;</td><td>beta</td>
+        <td><span class="en">The numbers a model works out from the data, one for each input column.</span><span class="ar">الأعدادُ التي يستخرجها النموذج من البيانات، واحدٌ لكل عمود مدخل.</span></td>
+        <td><code>coef_</code></td>
+      </tr>
+      <tr>
+        <td>&epsilon;</td><td>epsilon</td>
+        <td><span class="en">Something deliberately tiny: either a guard added underneath a division so it can never be by zero, or the error left over between a prediction and the truth.</span><span class="ar">شيءٌ صغير بقصد: إما حارسٌ يُضاف تحت القسمة فلا تكون على صفر أبدًا، وإما الخطأ الباقي بين تنبؤٍ والحقيقة.</span></td>
+        <td><code>eps</code></td>
+      </tr>
+      <tr>
+        <td>&mu;</td><td>mu</td>
+        <td><span class="en">A mean &mdash; the ordinary average: add everything up, divide by how many.</span><span class="ar">متوسطٌ &mdash; أي المعدّل المعتاد: اجمع الكلّ واقسم على العدد.</span></td>
+        <td><code>mean</code>, <code>x.mean()</code></td>
+      </tr>
+      <tr>
+        <td>&sigma;</td><td>sigma</td>
+        <td><span class="en">A standard deviation &mdash; one number saying how spread out the values are around their mean.</span><span class="ar">انحرافٌ معياري &mdash; عددٌ واحد يقول كم تتبدّد القيم حول متوسطها.</span></td>
+        <td><code>std</code>, <code>x.std()</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma;</td><td><span class="en">capital sigma</span><span class="ar">سيغما الكبيرة</span></td>
+        <td><span class="en">Add these up. It has nothing whatever to do with the small &sigma; in the row above.</span><span class="ar">اجمع هذه. ولا علاقة لها بـ&sigma; الصغيرة في الصفّ أعلاه بحال.</span></td>
+        <td><code>.sum()</code></td>
+      </tr>
+      <tr>
+        <td>&lambda;</td><td>lambda</td>
+        <td><span class="en">How hard a model is pushed to keep its own learned numbers small.</span><span class="ar">كم يُدفع النموذج إلى إبقاء أرقامه المتعلَّمة صغيرة.</span></td>
+        <td><code>alpha</code></td>
+      </tr>
+      <tr>
+        <td>&theta;</td><td>theta</td>
+        <td><span class="en">&ldquo;The parameters&rdquo; &mdash; every number a model has learned, referred to together under one name.</span><span class="ar">«المعاملات» &mdash; كلُّ عدد تعلّمه النموذج، يُشار إليه مجتمعًا باسم واحد.</span></td>
+        <td><code>theta</code>, <code>params</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <h4><span class="en">The names collide, and no rule saves you</span><span class="ar">الأسماء تتضارب، ولا قاعدة تنجيك</span></h4>
+    <p class="en">Read the last column honestly and you will see a problem: &alpha; is called <code>alpha</code>, and &lambda; is <em>also</em> called <code>alpha</code> &mdash; that is genuinely what scikit-learn names it, in <code>Ridge(alpha=1.0)</code>. There is no convention that rescues you here; you read the documentation for the function in front of you and find out which of the two it means. Part of the reason &lambda; never keeps its own name is that <code>lambda</code> is a reserved word in Python and cannot be a variable at all.</p>
+    <p class="ar">اقرأ العمود الأخير بإنصاف تَرَ مشكلة: فـ&alpha; تُسمّى <code>alpha</code>، و&lambda; تُسمّى <code>alpha</code> <em>هي أيضًا</em> &mdash; وذلك فعلًا ما تسمّيها به scikit-learn في <code>Ridge(alpha=1.0)</code>. وليس ثمّة اصطلاحٌ ينجيك ههنا؛ بل تقرأ توثيق الدالّة التي بين يديك فتعرف أيَّ الاثنتين تعني. وبعضُ سبب أن &lambda; لا تحفظ اسمها قطّ أن <code>lambda</code> لفظٌ محجوز في بايثون فلا يصلح متغيرًا إطلاقًا.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A page of documentation writes &sigma; on one line and &Sigma; on the next. What are you looking at?</span><span class="ar">صفحةُ توثيق تكتب &sigma; في سطر و&Sigma; في السطر التالي. فما الذي تنظر إليه؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Two unrelated things: the small &sigma; is a standard deviation, and the capital &Sigma; is the instruction &ldquo;add these up&rdquo;.</span><span class="ar">شيئان لا رابط بينهما: فـ&sigma; الصغيرة انحرافٌ معياري، و&Sigma; الكبيرة أمرٌ معناه «اجمع هذه».</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The same quantity &mdash; the capital is used at the start of a formula, the way a sentence starts with a capital letter.</span><span class="ar">المقدار نفسه &mdash; وتُستعمل الكبيرة في بدء الصيغة كما تبدأ الجملة بحرف كبير.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Both are sums; the small one sums over fewer values.</span><span class="ar">كلتاهما مجموع؛ والصغيرة تجمع على قيم أقل.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The small &sigma; is a sum and the capital &Sigma; is a standard deviation.</span><span class="ar">&sigma; الصغيرة مجموعٌ و&Sigma; الكبيرة انحرافٌ معياري.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Case carries meaning in notation, and this pair is the worst offender in the alphabet: one is a measurement, the other is an order to do something. The second answer is the one worth killing off, because it imports a rule from ordinary writing &mdash; capitals never mean &ldquo;same word, start of a sentence&rdquo; in a formula. If you need a tell, use position: &Sigma; stands in front of an expression with an index tucked under it, while &sigma; sits inside an expression like any other number.</div>
+      <div class="ar">حالةُ الحرف تحمل معنىً في الرموز، وهذا الزوج أسوأُ مخالف في الأبجدية: فإحداهما قياسٌ والأخرى أمرٌ بفعل. والجواب الثاني يستحق القضاء عليه، لأنه يستورد قاعدةً من الكتابة العادية &mdash; فالحروف الكبيرة لا تعني قطّ «اللفظ نفسه في بدء الجملة» في صيغة. وإن أردت علامةً فاستعمل الموضع: فـ&Sigma; تقف أمام تعبير وقد انطوى دليلٌ تحتها، أما &sigma; فتجلس داخل التعبير كأي عدد آخر.</div>
+    </div>
+  </div>
+
+  <h2 id="a5-h6"><span class="en">A5.6 &mdash; A translation table: notation to NumPy</span><span class="ar">A5.6 &mdash; جدول ترجمة: من الرموز إلى نمباي</span></h2>
+
+  <p class="en">This is the page to come back to. Read the middle column before the third one: if you can say what a symbol asks for, the NumPy is short enough to remember.</p>
+  <p class="ar">هذه هي الصفحة التي تعود إليها. واقرأ العمود الأوسط قبل الثالث: فإن استطعت أن تقول ما يطلبه الرمز كان سطرُ نمباي أقصرَ من أن يُنسى.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Notation</span><span class="ar">الرمز</span></th>
+        <th><span class="en">What it says</span><span class="ar">ما يقوله</span></th>
+        <th><span class="en">NumPy</span><span class="ar">نمباي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>x<sub>i</sub></td>
+        <td><span class="en">the i-th value of x, counting from 1</span><span class="ar">قيمة x ذات الدليل i، بالعدّ من 1</span></td>
+        <td><code>x[i - 1]</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma; x<sub>i</sub></td>
+        <td><span class="en">add up every value</span><span class="ar">اجمع كل القيم</span></td>
+        <td><code>x.sum()</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma; a<sub>i</sub>b<sub>i</sub></td>
+        <td><span class="en">multiply the pairs, then add the products</span><span class="ar">اضرب الأزواج ثم اجمع الحواصل</span></td>
+        <td><code>(a * b).sum()</code></td>
+      </tr>
+      <tr>
+        <td>&#8214;x&#8214;</td>
+        <td><span class="en">the length of x: &radic; of the sum of its squares</span><span class="ar">طولُ x: &radic; مجموع مربعاته</span></td>
+        <td><code>np.linalg.norm(x)</code></td>
+      </tr>
+      <tr>
+        <td>x&#772;</td>
+        <td><span class="en">&ldquo;x-bar&rdquo; &mdash; the mean of the values in x</span><span class="ar">«x بشُرطة» &mdash; متوسطُ القيم في x</span></td>
+        <td><code>x.mean()</code></td>
+      </tr>
+      <tr>
+        <td>A<sup>T</sup></td>
+        <td><span class="en">A with its rows and columns exchanged</span><span class="ar">A بعد مبادلة صفوفها بأعمدتها</span></td>
+        <td><code>A.T</code></td>
+      </tr>
+      <tr>
+        <td>A<sup>&minus;1</sup></td>
+        <td><span class="en">the inverse of A: the matrix that undoes whatever A does</span><span class="ar">معكوسُ A: المصفوفة التي تُلغي ما تفعله A</span></td>
+        <td><code>np.linalg.inv(A)</code></td>
+      </tr>
+      <tr>
+        <td>Ax = b</td>
+        <td><span class="en">a question, not a statement: which x does A turn into b?</span><span class="ar">سؤالٌ لا خبر: أيُّ x تحوّلها A إلى b؟</span></td>
+        <td><code>np.linalg.solve(A, b)</code></td>
+      </tr>
+      <tr>
+        <td>&Sigma; (x<sub>i</sub> &minus; x&#772;)<sup>2</sup></td>
+        <td><span class="en">subtract the mean from each value, square each result, add them all</span><span class="ar">اطرح المتوسط من كل قيمة، وربّع كل ناتج، واجمعها كلها</span></td>
+        <td><code>((x - x.mean()) ** 2).sum()</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+<pre class="code"><code>import numpy as np
+
+x = np.array([6.0, 8.0])
+A = np.array([[2.0, 1.0],
+              [1.0, 3.0]])
+b = np.array([5.0, 10.0])
+
+print(np.linalg.norm(x))
+print(x.mean())
+print(((x - x.mean()) ** 2).sum())
+print(np.linalg.solve(A, b))
+</code></pre>
+
+  <div class="output">10.0
+7.0
+2.0
+[1. 3.]</div>
+
+  <p class="en">Four rows of that table, four lines of Python, and not one loop between them. Notice that the last line answered a question: given A and b, <code>solve</code> reports the x that A turns into b, which here is <code>[1. 3.]</code>. That is what an equals sign means when there is an unknown on one side of it.</p>
+  <p class="ar">أربعةُ صفوف من ذلك الجدول، وأربعةُ أسطر بايثون، وليس بينها حلقةٌ واحدة. ولاحظ أن السطر الأخير أجاب سؤالًا: فبإعطاء A وb تُبلّغ <code>solve</code> بـ x التي تحوّلها A إلى b، وهي ههنا <code>[1. 3.]</code>. وذلك ما تعنيه علامةُ المساواة حين يكون على أحد طرفيها مجهول.</p>
+
+  <div class="note">
+    <h4><span class="en">Where the notation and the good code part company</span><span class="ar">حيث يفترق الرمز عن الكود الجيّد</span></h4>
+    <p class="en">Rows seven and eight are the one place in this table where a literal translation is the wrong move. A formula will write x = A<sup>&minus;1</sup>b, and it is tempting to type the inverse and then multiply. Do not: the right NumPy for that formula is <code>np.linalg.solve(A, b)</code>, which is faster and markedly more accurate. Chapter 5 explains why; for now, carry the pairing rather than the inverse. <code>np.linalg.inv</code> is in the table because you will <em>read</em> A<sup>&minus;1</sup>, not because you will often want to compute it.</p>
+    <p class="ar">الصفّان السابع والثامن هما الموضعُ الوحيد في هذا الجدول الذي تكون الترجمةُ الحرفية فيه الحركةَ الخطأ. فالصيغة ستكتب x = A<sup>&minus;1</sup>b، ويغريك أن تكتب المعكوس ثم تضرب. فلا تفعل: فسطرُ نمباي الصحيح لتلك الصيغة هو <code>np.linalg.solve(A, b)</code>، وهو أسرع وأدقُّ بوضوح. ويشرح الفصل الخامس السبب؛ وأما الآن فاحمل المزاوجة لا المعكوس. و<code>np.linalg.inv</code> في الجدول لأنك <em>ستقرأ</em> A<sup>&minus;1</sup>، لا لأنك ستريد حسابها كثيرًا.</p>
+  </div>
+
+  <h2 id="a5-h7"><span class="en">Self-check</span><span class="ar">فحص ذاتي</span></h2>
+
+  <p class="en">Eight questions on this page alone. They are not part of any test and no score is recorded anywhere &mdash; they are here so you can find out which symbol is still vague while it is still cheap to look it up.</p>
+  <p class="ar">ثمانية أسئلة على هذه الصفحة وحدها. وهي ليست جزءًا من أي اختبار ولا تُسجَّل نتيجةٌ في أي مكان &mdash; إنما هي ههنا لتكتشف أيُّ رمز بقي غامضًا ما دام البحثُ عنه رخيصًا.</p>
+
+  <div class="assess" data-bank="appendix-a5" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What you should be able to do now</span><span class="ar">ما ينبغي أن تقدر عليه الآن</span></h4>
+    <p class="en">Nothing on this page is examined, and nothing on it was linear algebra. What should have changed is your reading speed: given a formula, you can now say which thing varies, where a sum starts and stops, whether a subscript pair is rows-then-columns, whether a letter is a number somebody chose or a number a model found, and what the matching NumPy line looks like.</p>
+    <p class="ar">لا شيء في هذه الصفحة ممتحَن فيه، ولا شيء فيها كان جبرًا خطيًا. والذي ينبغي أن يكون تغيّر هو سرعةُ قراءتك: فأمام صيغةٍ تستطيع الآن أن تقول ما المتغيّر، ومن أين يبدأ المجموع وأين يتوقف، وهل زوجُ الأدلّة صفوفٌ ثم أعمدة، وهل الحرف عددٌ اختاره أحدٌ أم عددٌ وجده نموذج، وكيف يبدو سطرُ نمباي المقابل.</p>
+    <p class="en">The other half of reading a formula is knowing what shape the arrays have to be, and that half is already behind you: <a href="#lesson-12">Lecture 14</a> on shapes and broadcasting, and <a href="#appendix-a4">Appendix A4</a> on why a sum of decimals prints the way it does. What this appendix did <em>not</em> do is say what any of the operations mean &mdash; that is <a href="#appendix-a6">Appendix A6</a>, and it is the one to read before Chapter 5.</p>
+    <p class="ar">والنصفُ الآخر من قراءة الصيغة هو معرفةُ الأشكال التي يجب أن تكون عليها المصفوفات، وذلك النصف وراءك أصلًا: <a href="#lesson-12">المحاضرة 14</a> في الأشكال والبثّ، و<a href="#appendix-a4">الملحق A4</a> في سبب طباعة مجموع العشريات على الصورة التي يُطبع بها. وأما ما <em>لم</em> يفعله هذا الملحق فهو أن يقول ما تعنيه أيٌّ من تلك العمليات &mdash; وذلك هو <a href="#appendix-a6">الملحق A6</a>، وهو الذي تقرأه قبل الفصل الخامس.</p>
+  </div>
+
+
+</section>

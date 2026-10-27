@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Slices That Are Not Copies · Python OOP by Example" data-ar="قطعٌ ليست نسخًا · البرمجة الكائنية بلغة بايثون">Slices That Are Not Copies · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="3" data-page="lesson-11" data-path="lessons/chapter-3-lesson-11.html">
+<main>
+<section class="page" id="lesson-11">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 11 &middot; Week 5 &middot; Lecture 13 &middot; 90 min</span><span class="ar">الدرس 11 &middot; الأسبوع 5 &middot; المحاضرة 13 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Slices That Are Not Copies</span><span class="ar">قطعٌ ليست نسخًا</span></h1>
+
+  <p class="lede en">By the end of this lesson you will slice an array exactly the way you slice a list, write into the slice, and discover that you have changed the original table instead. Then you will learn the one-word fix, and &mdash; more usefully &mdash; which kinds of indexing have this behaviour and which do not.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستقطّع مصفوفةً تمامًا كما تقطّع قائمة، وتكتب في القطعة، فتكتشف أنك غيّرت الجدول الأصلي بدلًا من ذلك. ثم ستتعلّم الإصلاح ذا الكلمة الواحدة، و&mdash; وهو الأنفع &mdash; أيُّ أنواع الفهرسة لها هذا السلوك وأيُّها لا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lesson 10</a> first: this lesson assumes <code>shape</code>, <code>dtype</code> and elementwise arithmetic. It needs no mathematics and no machine learning. If you have met <a href="../lessons/chapter-1-lesson-1.html#l1-s4">two names pointing at one object</a> in Chapter 1, this is that idea with a sharper edge.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-3-lesson-10.html#lesson-10">الدرس 10</a> أولًا: فهذا الدرس يفترض <code>shape</code> و<code>dtype</code> والحساب على العناصر. ولا يحتاج رياضيات ولا تعلّم آلة. وإن كنت قابلت <a href="../lessons/chapter-1-lesson-1.html#l1-s4">اسمين يشيران إلى كائن واحد</a> في الفصل 1 فهذه تلك الفكرة بحدٍّ أمضى.</p>
+  </div>
+
+  <h2 id="l11-h1"><span class="en">Concept 1 &mdash; A slice of an array is a window, not a photograph</span><span class="ar">المفهوم 1 &mdash; قطعة المصفوفة نافذة لا صورة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">Three students sat a resit. You take their marks out of the class array, cap them at 60 as the regulations require, and report both the resit marks and the original class. One of those two is now wrong.</p>
+    <p class="ar">أعاد ثلاثة طلبة الامتحان. فتأخذ علاماتهم من مصفوفة الصفّ، وتحصرها عند 60 كما تقتضي اللائحة، وتبلّغ علاماتِ الإعادة والصفَّ الأصلي. وأحد هذين خطأٌ الآن.</p>
+  </div>
+
+  <h3 id="l11-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code bad"><code>import numpy as np
+
+marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4]
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+</code></pre>
+
+  <div class="output">resit: [60 70 85]
+class: [ 40  60  70  85 100]</div>
+
+  <p class="en">The class array changed. Nobody assigned to <code>marks</code>; the only assignment in the program is to <code>resit</code>. Do exactly the same thing with a list and it behaves the way you expected:</p>
+  <p class="ar">تغيّرت مصفوفة الصفّ. ولم يُسنِد أحدٌ إلى <code>marks</code>؛ فالإسناد الوحيد في البرنامج إلى <code>resit</code>. وافعل الشيء نفسه بقائمة تتصرف كما توقعت:</p>
+
+<pre class="code"><code>marks = [40, 55, 70, 85, 100]
+resit = marks[1:4]
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+</code></pre>
+
+  <div class="output">resit: [60, 70, 85]
+class: [40, 55, 70, 85, 100]</div>
+
+  <h3 id="l11-s2"><span class="en">Diagnosis</span><span class="ar">التشخيص</span></h3>
+
+  <p class="en">Slicing a list <strong>copies</strong> the chosen items into a new list. Slicing an array <strong>does not copy anything</strong>: it hands back a second array object that points at the same memory, starting a little further along. The two names are two windows onto one block of numbers, so writing through either is visible through both.</p>
+  <p class="ar">تقطيعُ القائمة <strong>ينسخ</strong> العناصر المختارة إلى قائمة جديدة. وتقطيعُ المصفوفة <strong>لا ينسخ شيئًا</strong>: بل يُعيد كائن مصفوفة ثانيًا يشير إلى الذاكرة نفسها، بادئًا أبعد قليلًا. فالاسمان نافذتان على كتلة أعداد واحدة، فالكتابةُ عبر أيٍّ منهما تُرى عبر كليهما.</p>
+
+  <div class="note">
+    <h4><span class="en">Why NumPy does this on purpose</span><span class="ar">لماذا تفعل نمباي هذا متعمدةً</span></h4>
+    <p class="en">A million-row table sliced into a hundred overlapping windows would be a hundred million numbers copied, for nothing, if all you wanted was to read them. Not copying is what makes a slice instant regardless of size. The cost is that you have to know when you are holding a window, and the single word <code>.copy()</code> is how you stop.</p>
+    <p class="ar">جدولٌ بمليون صفّ مقطَّعٌ إلى مئة نافذة متداخلة سيكون مئة مليون عدد منسوخة بلا طائل، إن كان كل مرادك قراءتها. وعدمُ النسخ هو ما يجعل القطعة فورية أيًّا كان الحجم. والثمنُ أن عليك أن تعرف متى تمسك بنافذة، وكلمةُ <code>.copy()</code> الواحدة هي كيف تتوقف.</p>
+  </div>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4].copy()
+resit[0] = 60
+
+print("resit:", resit)
+print("class:", marks)
+print("is it a window?", marks[1:4].base is not None, resit.base is None)
+</code></pre>
+
+  <div class="output">resit: [60 70 85]
+class: [ 40  55  70  85 100]
+is it a window? True True</div>
+
+  <p class="en"><code>.base</code> is how you ask. A view's <code>base</code> is the array it looks into; an independent array's <code>base</code> is <code>None</code>. You will not write that line often, but it is the fastest way to settle an argument with yourself at two in the morning.</p>
+  <p class="ar"><code>.base</code> هي كيف تسأل. فـ<code>base</code> النافذة هي المصفوفة التي تطلّ عليها؛ و<code>base</code> المصفوفة المستقلة هي <code>None</code>. ولن تكتب ذلك السطر كثيرًا، لكنه أسرع طريقة لحسم خصومة مع نفسك في الثانية صباحًا.</p>
+
+  <div data-trace-id="t-view"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">What does <code>print(a)</code> show?<br><code>a = np.array([10, 20, 30, 40, 50])</code><br><code>b = a[::2]</code><br><code>b[0] = 0</code></span><span class="ar">ماذا يُظهر <code>print(a)</code>؟<br><code>a = np.array([10, 20, 30, 40, 50])</code><br><code>b = a[::2]</code><br><code>b[0] = 0</code></span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[ 0 20 30 40 50]</code>. A slice with a step is still describable as start/step/stop, so it is a view and the write lands in <code>a</code>.</span><span class="ar"><code>[ 0 20 30 40 50]</code>. فالقطعةُ ذات الخطوة لا تزال توصف ببداية/خطوة/نهاية، فهي نافذة وتهبط الكتابةُ في <code>a</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[10 20 30 40 50]</code> &mdash; once a step is involved NumPy has to copy.</span><span class="ar"><code>[10 20 30 40 50]</code> &mdash; فمتى دخلت خطوةٌ وجب على نمباي أن تنسخ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[ 0 20  0 40  0]</code>, because <code>b</code> covers three places and all three are set.</span><span class="ar"><code>[ 0 20  0 40  0]</code>، لأن <code>b</code> تغطي ثلاثة مواضع وتُضبط كلها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises, because you cannot write through a strided view.</span><span class="ar">يرفع خطأً، لأنك لا تستطيع الكتابة عبر نافذة ذات خطوة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is the tempting one, and the reason it is wrong is worth holding on to: the step is exactly what makes the window describable. &ldquo;Every other element&rdquo; is a start, a step and a stop, so nothing needs to move. Compare <code>a[[0, 2, 4]]</code>, which selects the same three elements and <em>is</em> a copy, because a list of positions carries no rule NumPy can follow.</div>
+      <div class="ar">الخيار الثاني هو المُغري، وسببُ خطئه جديرٌ بالحفظ: فالخطوةُ هي بالضبط ما يجعل النافذة قابلةً للوصف. فـ«كل عنصر ثانٍ» بدايةٌ وخطوةٌ ونهاية، فلا شيء يحتاج أن يتحرّك. وقارن <code>a[[0, 2, 4]]</code> التي تختار العناصر الثلاثة نفسها و<em>هي</em> نسخة، لأن قائمة المواضع لا تحمل قاعدةً تتبعها نمباي.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.1 &mdash; Archive first, then moderate</span><span class="ar">تمرين 11.1 &mdash; احفظ أولًا ثم عدّل</span></h4>
+    <p class="en">The middle subject was marked too harshly and every mark in it is to go up by 5. Keep an untouched archive of the original table, apply the change <em>in place</em> to the real table, and print the middle subject from each to prove both survived.</p>
+    <p class="ar">صُحِّحت المادة الوسطى بقسوة فكل علامة فيها ستزيد 5. احفظ أرشيفًا سليمًا للجدول الأصلي، وطبّق التغيير <em>في مكانه</em> على الجدول الحقيقي، واطبع المادة الوسطى من كلٍّ لتُثبت أن الاثنين نجَوا.</p>
+
+<pre class="code"><code>marks = np.array([[40., 55., 70.],
+                  [60., 65., 90.],
+                  [80., 75., 50.]])
+# archive, then moderate
+# expected: [55. 65. 75.] then [60. 70. 80.]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>archive = marks.copy()
+marks[:, 1] += 5
+
+print(archive[:, 1])
+print(marks[:, 1])
+</code></pre>
+      <div class="output">[55. 65. 75.]
+[60. 70. 80.]</div>
+      <p class="en">Two uses of the same rule, in opposite directions. <code>archive = marks.copy()</code> must copy, because a view would change along with the table and archive nothing. <code>marks[:, 1] += 5</code> must <em>not</em> copy, because the point is to change the real table &mdash; writing through a column view is how you moderate one subject in place.</p>
+      <p class="ar">استعمالان للقاعدة نفسها في اتجاهين متعاكسين. فـ <code>archive = marks.copy()</code> يجب أن تنسخ، لأن النافذة ستتغير مع الجدول فلا تؤرشف شيئًا. و<code>marks[:, 1] += 5</code> يجب ألّا تنسخ، لأن المقصود تغييرُ الجدول الحقيقي &mdash; فالكتابةُ عبر نافذة عمود هي كيف تعدّل مادةً واحدة في مكانها.</p>
+      <p class="en">Try it with <code>archive = marks</code> instead and print again: both lines show the moderated marks, because the two names are the same array. That is not even a view &mdash; it is one object with two labels.</p>
+      <p class="ar">جرّبه بـ <code>archive = marks</code> بدلًا من ذلك واطبع مرة أخرى: فيُظهر السطران العلامات المعدَّلة، لأن الاسمين مصفوفةٌ واحدة. وذلك ليس نافذةً حتى &mdash; بل كائنٌ واحد بلافتتين.</p>
+    </details>
+  </section>
+
+  <h2 id="l11-h2"><span class="en">Concept 2 &mdash; Reaching into a table</span><span class="ar">المفهوم 2 &mdash; المدّ داخل الجدول</span></h2>
+
+  <p class="en">The class table is one row per student and one column per subject. Indexing it takes one number per dimension, separated by a comma, and that comma is the whole difference from a list of lists.</p>
+  <p class="ar">جدولُ الصفّ صفٌّ لكل طالب وعمودٌ لكل مادة. وفهرستُه تأخذ عددًا لكل بُعد، مفصولًا بفاصلة، وتلك الفاصلة هي كل الفرق عن قائمة القوائم.</p>
+
+<pre class="code good"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+
+print(marks[1, 2])
+print(marks[0])
+print(marks[:, 1])
+print(marks[1:, 1:])
+</code></pre>
+
+  <div class="output">90
+[40 55 70]
+[55 65 75]
+[[65 90]
+ [75 50]]</div>
+
+  <ul>
+    <li><span class="en"><code>marks[1, 2]</code> &mdash; row 1, column 2: the second student's third subject. Counting starts at zero in both directions.</span><span class="ar"><code>marks[1, 2]</code> &mdash; الصفّ 1 والعمود 2: المادة الثالثة للطالب الثاني. والعدّ يبدأ من صفر في الاتجاهين.</span></li>
+    <li><span class="en"><code>marks[0]</code> &mdash; a whole row, which is one student across all subjects.</span><span class="ar"><code>marks[0]</code> &mdash; صفٌّ كامل، وهو طالب واحد في كل المواد.</span></li>
+    <li><span class="en"><code>marks[:, 1]</code> &mdash; the colon means "every row", so this is a whole column: one subject across all students. This is the form people forget, and it is the one you need most.</span><span class="ar"><code>marks[:, 1]</code> &mdash; النقطتان تعنيان «كل الصفوف»، فهذا عمودٌ كامل: مادةٌ واحدة لكل الطلبة. وهذه الصيغة ينساها الناس، وهي أكثر ما تحتاج.</span></li>
+    <li><span class="en"><code>marks[1:, 1:]</code> &mdash; a rectangular block: from row 1 onwards, from column 1 onwards.</span><span class="ar"><code>marks[1:, 1:]</code> &mdash; كتلةٌ مستطيلة: من الصفّ 1 فصاعدًا ومن العمود 1 فصاعدًا.</span></li>
+  </ul>
+
+  <p class="en">Every one of those is a view. Writing into a column changes the table:</p>
+  <p class="ar">وكلُّ واحدة من تلك نافذة. فالكتابة في عمود تغيّر الجدول:</p>
+
+<pre class="code bad"><code>maths = marks[:, 0]
+maths += 5
+
+print(marks)
+</code></pre>
+
+  <div class="output">[[45 55 70]
+ [65 65 90]
+ [85 75 50]]</div>
+
+  <p class="en">Which is sometimes exactly what you want &mdash; moderating one subject in place is a real task and this is the neat way to do it. The danger is doing it by accident, having thought you were working on a copy.</p>
+  <p class="ar">وهذا أحيانًا بالضبط ما تريد &mdash; فتعديل مادة واحدة في مكانها مهمةٌ حقيقية وهذه الطريقة الأنيقة لها. والخطر أن تفعله بالصدفة وأنت تحسب أنك تعمل على نسخة.</p>
+
+  <h3 id="l11-s3"><span class="en">Which kinds of indexing copy?</span><span class="ar">أي أنواع الفهرسة تنسخ؟</span></h3>
+
+  <p class="en">This is the part worth memorising, because it is not obvious and it decides whether your edit escapes.</p>
+  <p class="ar">هذا هو الجزء الجدير بالحفظ، لأنه ليس بديهيًا وهو يقرّر هل يفلت تعديلك.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Written as</span><span class="ar">يُكتب هكذا</span></th>
+        <th><span class="en">Gives</span><span class="ar">يعطي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>a[1:4]</code>, <code>a[:, 0]</code>, <code>a[1:, 1:]</code></td>
+          <td><span class="en"><strong>A view.</strong> Writing to it writes to the original.</span><span class="ar"><strong>نافذة.</strong> فالكتابة فيها تكتب في الأصل.</span></td></tr>
+      <tr><td><code>a[[0, 2, 4]]</code> <span class="en">(a list of positions)</span><span class="ar">(قائمة مواضع)</span></td>
+          <td><span class="en"><strong>A copy.</strong> The positions are not evenly spaced, so there is no window to describe.</span><span class="ar"><strong>نسخة.</strong> فالمواضع غير متباعدة بانتظام، فلا نافذة توصَف.</span></td></tr>
+      <tr><td><code>a[a &gt; 60]</code> <span class="en">(a mask)</span><span class="ar">(قناع)</span></td>
+          <td><span class="en"><strong>A copy</strong>, for the same reason.</span><span class="ar"><strong>نسخة</strong>، للسبب نفسه.</span></td></tr>
+      <tr><td><code>a.copy()</code></td>
+          <td><span class="en"><strong>A copy</strong>, always, on purpose.</span><span class="ar"><strong>نسخة</strong>، دائمًا، بقصد.</span></td></tr>
+    </tbody>
+  </table>
+
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+picked = marks[[0, 2, 4]]
+picked[0] = -1
+print("after writing to a fancy-indexed pick:", marks)
+
+high = marks[marks &gt; 60]
+high[0] = -1
+print("after writing to a masked pick:      ", marks)
+</code></pre>
+
+  <div class="output">after writing to a fancy-indexed pick: [ 40  55  70  85 100]
+after writing to a masked pick:       [ 40  55  70  85 100]</div>
+
+  <p class="en">The rule behind the table is mechanical, not arbitrary. A view has to be describable as "start here, take every <em>n</em>th number, stop there" &mdash; that is all the extra information an array object carries. Positions 0, 2 and 4 happen to fit that, but <code>[0, 2, 3]</code> would not, and NumPy will not decide case by case, so the whole family copies.</p>
+  <p class="ar">والقاعدةُ وراء الجدول آليةٌ لا اعتباطية. فالنافذة يجب أن تُوصَف بـ«ابدأ هنا، وخذ كل عدد <em>ن</em>، وتوقف هناك» &mdash; وذلك كل ما يحمله كائن المصفوفة من معلومات إضافية. والمواضع 0 و2 و4 تنطبق عليها اتفاقًا، لكن <code>[0, 2, 3]</code> لا تنطبق، ولن تقرّر نمباي حالةً حالةً، فتنسخ الفصيلة كلها.</p>
+
+  <div class="note">
+    <h4><span class="en">A warning you will meet</span><span class="ar">تحذيرٌ ستقابله</span></h4>
+    <p class="en">Writing <em>into</em> a mask, as opposed to writing into the copy a mask returned, does change the original and is the normal way to cap values:</p>
+    <p class="ar">الكتابةُ <em>في</em> القناع، خلافًا للكتابة في النسخة التي أعادها القناع، تغيّر الأصل وهي الطريقة المعتادة لحصر القيم:</p>
+<pre class="code good"><code>marks[marks &gt; 80] = 80
+print(marks)
+</code></pre>
+    <div class="output">[40 55 70 80 80]</div>
+    <p class="en">The difference is that here the mask is on the <em>left</em> of the <code>=</code>, so NumPy is being told where to write rather than being asked for a selection. Compare it with <code>high = marks[marks &gt; 80]</code> above, which asks for a selection and gets a copy.</p>
+    <p class="ar">والفرق أن القناع هنا على <em>يسار</em> علامة <code>=</code>، فتُخبَر نمباي أين تكتب لا تُسأل عن اختيار. قارنه بـ <code>high = marks[marks &gt; 80]</code> أعلاه، فهي تطلب اختيارًا وتنال نسخة.</p>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.2 &mdash; Moderate one subject without touching the others</span><span class="ar">تمرين 11.2 &mdash; عدّل مادة واحدة دون مسّ الأخريات</span></h4>
+    <p class="en">Raise every mark in the third subject by 10, capped at 100, leaving the other two columns alone. Then print the table to prove the other columns did not move.</p>
+    <p class="ar">ارفع كل علامة في المادة الثالثة بمقدار 10، محصورةً عند 100، وادع العمودين الآخرين. ثم اطبع الجدول لتثبت أن العمودين الآخرين لم يتحركا.</p>
+
+<pre class="code"><code>marks = np.array([[40, 55, 70],
+                  [60, 65, 90],
+                  [80, 75, 50]])
+# your lines here
+# expected:
+# [[ 40  55  80]
+#  [ 60  65 100]
+#  [ 80  75  60]]
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>third = marks[:, 2]
+third += 10
+third[third &gt; 100] = 100
+print(marks)
+</code></pre>
+      <div class="output">[[ 40  55  80]
+ [ 60  65 100]
+ [ 80  75  60]]</div>
+      <p class="en">This is the lesson's trap used deliberately: <code>third</code> is a view, so <code>third += 10</code> writes straight into the column of the real table and no assignment back is needed. Had you written <code>third = third + 10</code> instead, the <code>+</code> would have built a new array and <code>third</code> would have been rebound to it, leaving <code>marks</code> untouched &mdash; the same two lines, one character apart, with opposite effects. That distinction is <a href="#l11-h2">worth a second read</a>.</p>
+      <p class="ar">هذا فخُّ الدرس مستعملًا متعمدًا: فـ <code>third</code> نافذة، فـ <code>third += 10</code> تكتب مباشرة في عمود الجدول الحقيقي ولا يلزم إسنادٌ عائد. ولو كتبت <code>third = third + 10</code> بدلًا من ذلك لبنى <code>+</code> مصفوفةً جديدة ولأُعيد ربط <code>third</code> بها، تاركًا <code>marks</code> بلا مساس &mdash; السطران نفسهما بفارق محرف واحد وبأثرين متعاكسين. وذلك التمييز <a href="#l11-h2">يستحق قراءة ثانية</a>.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 11.3 &mdash; Make the resit safe</span><span class="ar">تمرين 11.3 &mdash; اجعل الإعادة آمنة</span></h4>
+    <p class="en">Take the middle three marks of a class into a separate array, cap them at 60, and leave the class untouched. Then prove it with <code>.base</code>.</p>
+    <p class="ar">خذ العلامات الثلاث الوسطى من صفٍّ إلى مصفوفة منفصلة، واحصرها عند 60، واترك الصفَّ بلا مساس. ثم أثبت ذلك بـ <code>.base</code>.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>marks = np.array([40, 55, 70, 85, 100])
+
+resit = marks[1:4].copy()
+resit[resit &gt; 60] = 60
+
+print("resit:", resit, "independent:", resit.base is None)
+print("class:", marks)
+</code></pre>
+      <div class="output">resit: [55 60 60] independent: True
+class: [ 40  55  70  85 100]</div>
+      <p class="en">One word. The habit worth forming is to write <code>.copy()</code> the moment you intend to <em>modify</em> a slice, and to leave it off when you only intend to read &mdash; which is most of the time, and is where the speed comes from.</p>
+      <p class="ar">كلمةٌ واحدة. والعادة الجديرة بالتكوين أن تكتب <code>.copy()</code> لحظةَ تنوي <em>تعديل</em> قطعة، وأن تتركها حين تنوي القراءة فقط &mdash; وهو أكثر الوقت، ومنه تأتي السرعة.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>a = np.array([1, 2, 3, 4])</code>, then <code>b = a[:2]</code>, then <code>b[0] = 99</code>. What is <code>a</code>?</span><span class="ar"><code>a = np.array([1, 2, 3, 4])</code> ثم <code>b = a[:2]</code> ثم <code>b[0] = 99</code>. فما قيمة <code>a</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>[99  2  3  4]</code> &mdash; the slice is a view onto <code>a</code>, so writing through <code>b</code> writes into <code>a</code>.</span><span class="ar"><code>[99  2  3  4]</code> &mdash; فالقطعة نافذة على <code>a</code>، فالكتابة عبر <code>b</code> تكتب في <code>a</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[1 2 3 4]</code> &mdash; slicing copies, as it does for a list.</span><span class="ar"><code>[1 2 3 4]</code> &mdash; فالتقطيع ينسخ كما يفعل مع القائمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[99 2]</code> &mdash; <code>a</code> is shortened to match the slice.</span><span class="ar"><code>[99 2]</code> &mdash; تُقصَّر <code>a</code> لتطابق القطعة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code>, because a view may not be written to.</span><span class="ar"><code>ValueError</code>، لأن النافذة لا يجوز الكتابة فيها.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second answer is what a Python list does, and the reason this bug is so easy to write: the syntax is identical and the behaviour is not. Nothing errors and nothing warns, so the only way to catch it is to know the rule &mdash; or to find a report that disagrees with the database next week.</div>
+      <div class="ar">الجواب الثاني هو ما تفعله قائمةُ بايثون، وهو سبب سهولة كتابة هذا الخلل: فالصيغة متطابقة والسلوك ليس كذلك. ولا شيء يُخطئ ولا شيء يحذّر، فالسبيل الوحيد لضبطه معرفةُ القاعدة &mdash; أو أن تجد تقريرًا يخالف قاعدة البيانات الأسبوع القادم.</div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which of these gives you an array you can modify <em>without</em> touching the original?</span><span class="ar">أيٌّ من هذه يعطيك مصفوفة تستطيع تعديلها <em>دون</em> مسّ الأصل؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="false"><span class="en"><code>a[1:4]</code></span><span class="ar"><code>a[1:4]</code></span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>a[:, 0]</code></span><span class="ar"><code>a[:, 0]</code></span></button></li>
+      <li><button class="opt" data-correct="true"><span class="en"><code>a[a &gt; 60]</code> &mdash; and <code>a[[0, 2]]</code> and <code>a.copy()</code> as well. A selection that is not a regular window has to be copied.</span><span class="ar"><code>a[a &gt; 60]</code> &mdash; وكذلك <code>a[[0, 2]]</code> و<code>a.copy()</code>. فالاختيار الذي ليس نافذة منتظمة يجب نسخه.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">All of them, as long as you do not use <code>+=</code>.</span><span class="ar">كلها، ما دمت لا تستعمل <code>+=</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The rule is mechanical: a view only exists when the selection can be described as "start, step, stop", so a slice is a view and an arbitrary list of positions or a mask cannot be. The fourth answer contains a real insight pointing the wrong way &mdash; <code>b = b + 1</code> does leave the original alone, but only because it rebinds the <em>name</em> <code>b</code> to a brand-new array; the view itself was never the thing that changed. Write <code>b += 1</code> and the original moves.</div>
+      <div class="ar">القاعدة آلية: فالنافذة لا توجد إلا حين يُوصَف الاختيار بـ«بداية وخطوة ونهاية»، فالقطعة نافذة وقائمةُ مواضع اعتباطية أو قناعٌ لا يمكن أن يكونا كذلك. والجواب الرابع يحوي بصيرة حقيقية تشير في الاتجاه الخطأ &mdash; فـ <code>b = b + 1</code> تترك الأصل فعلًا، لكن فقط لأنها تعيد ربط <em>الاسم</em> <code>b</code> بمصفوفة جديدة تمامًا؛ والنافذةُ نفسها لم تكن قطّ هي ما تغيّر. واكتب <code>b += 1</code> يتحرك الأصل.</div>
+    </div>
+  </div>
+
+  <h3 id="l11-s4"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l11-s5"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>Slicing a list copies; slicing an array does not.</strong> Identical syntax, opposite behaviour, no error either way.</span><span class="ar"><strong>تقطيعُ القائمة ينسخ؛ وتقطيعُ المصفوفة لا.</strong> صيغةٌ متطابقة وسلوكٌ متعاكس، ولا خطأ في الحالتين.</span></li>
+      <li><span class="en"><strong>Write <code>.copy()</code> the moment you intend to modify a slice</strong>, and leave it off when you only read. Reading is most of the time, and is where the speed comes from.</span><span class="ar"><strong>اكتب <code>.copy()</code> لحظةَ تنوي تعديل قطعة</strong>، واتركها حين تقرأ فقط. والقراءة أكثر الوقت، ومنها تأتي السرعة.</span></li>
+      <li><span class="en"><strong><code>a[row, column]</code>, and <code>a[:, 1]</code> is a whole column.</strong> The colon means "all of this dimension" and is the form you will use most.</span><span class="ar"><strong><code>a[الصف، العمود]</code>، و<code>a[:, 1]</code> عمودٌ كامل.</strong> فالنقطتان تعنيان «كل هذا البُعد» وهي الصيغة التي ستستعملها أكثر.</span></li>
+      <li><span class="en"><strong>Slices give views; a list of positions and a boolean mask give copies.</strong> The rule is whether the selection can be written as start, step, stop.</span><span class="ar"><strong>القطع تعطي نوافذ؛ وقائمةُ المواضع والقناعُ المنطقي يعطيان نسخًا.</strong> والقاعدة هل يُكتب الاختيار بداية وخطوة ونهاية.</span></li>
+      <li><span class="en"><strong>A mask on the left of <code>=</code> writes; a mask on the right selects.</strong> <code>a[a &gt; 80] = 80</code> changes <code>a</code>; <code>b = a[a &gt; 80]</code> hands you a copy.</span><span class="ar"><strong>القناع يسار <code>=</code> يكتب؛ والقناع يمينها يختار.</strong> فـ <code>a[a &gt; 80] = 80</code> تغيّر <code>a</code>؛ و<code>b = a[a &gt; 80]</code> تعطيك نسخة.</span></li>
+      <li><span class="en"><strong>Next:</strong> <a href="../lessons/chapter-3-lesson-12.html#lesson-12">Lesson 12</a> subtracts a row of three averages from a table of nine marks, and the shapes do not match &mdash; which NumPy allows, usefully, and occasionally disastrously.</span><span class="ar"><strong>التالي:</strong> يطرح <a href="../lessons/chapter-3-lesson-12.html#lesson-12">الدرس 12</a> صفًّا من ثلاثة متوسطات من جدول فيه تسع علامات، والشكلان لا يتطابقان &mdash; وتسمح نمباي بذلك، نافعًا، وكارثيًا أحيانًا.</span></li>
+    </ul>
+  </div>
+
+  <p><span class="score"></span></p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-03.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

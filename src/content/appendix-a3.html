@@ -1,0 +1,272 @@
+
+<section class="page" id="appendix-a3">
+
+
+  <span class="kicker"><span class="en">Appendix A3 &middot; self-study &middot; not examined</span><span class="ar">الملحق A3 &middot; دراسة ذاتية &middot; غير ممتحَن فيه</span></span>
+  <h1><span class="en">Machine Learning Vocabulary, Without the Mathematics</span><span class="ar">مفردات تعلّم الآلة، بلا رياضيات</span></h1>
+
+  <p class="lede en">From <a href="#lesson-08">Lecture 10</a> onwards the code on screen has names in it &mdash; <code>fit</code>, <code>transform</code>, <code>features</code>, <code>pipeline</code> &mdash; that come from machine learning. You have not taken a machine-learning course and you do not need one to follow those lectures. This appendix explains every one of those words in plain language, with no mathematics at all, so that nothing in a lecture is a word you have never met.</p>
+  <p class="lede ar">ابتداءً من <a href="#lesson-08">المحاضرة 10</a> سيحمل الكود على الشاشة أسماءً &mdash; <code>fit</code> و<code>transform</code> و<code>features</code> و<code>pipeline</code> &mdash; مصدرها تعلّم الآلة. وأنت لم تدرس مقرر تعلّم آلة ولا تحتاج إليه لتتابع تلك المحاضرات. يشرح هذا الملحق كل كلمة منها بلغة بسيطة وبلا أي رياضيات، فلا يبقى في المحاضرة لفظٌ لم تقابله.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">How to use this appendix</span><span class="ar">كيف تستخدم هذا الملحق</span></h4>
+    <p class="en">Read it once before Week 4. It takes about twenty minutes and it is <strong>not lecture material</strong> &mdash; no lesson test or chapter test asks about anything on this page. The self-check at the bottom is for you alone. What the lectures will examine is the <em>code</em>: how to shape a class so that these ideas are easy to express.</p>
+    <p class="ar">اقرأه مرة واحدة قبل الأسبوع 4. يستغرق نحو عشرين دقيقة وهو <strong>ليس مادة محاضرة</strong> &mdash; فلا اختبار درس ولا اختبار فصل يسأل عن شيء في هذه الصفحة. والفحص الذاتي في الأسفل لك وحدك. أما ما ستمتحن فيه المحاضرات فهو <em>الكود</em>: كيف تصوغ صنفًا تسهل به صياغة هذه الأفكار.</p>
+  </div>
+
+  <h2 id="a3-h1"><span class="en">A3.1 &mdash; A model is a function whose numbers were filled in for it</span><span class="ar">A3.1 &mdash; النموذج دالةٌ عُبِّئت أرقامها نيابةً عنه</span></h2>
+
+  <p class="en">You already know how to write a function that converts a temperature:</p>
+  <p class="ar">أنت تعرف أصلًا كيف تكتب دالة تحوّل درجة حرارة:</p>
+
+<pre class="code"><code>def to_fahrenheit(c):
+    return c * 1.8 + 32
+</code></pre>
+
+  <p class="en">The two numbers, <code>1.8</code> and <code>32</code>, are in the source code because somebody knew them. Now imagine the same shape of function for something nobody knows the numbers for &mdash; the price of a flat from its area:</p>
+  <p class="ar">الرقمان <code>1.8</code> و<code>32</code> في الكود لأن أحدًا كان يعرفهما. تخيّل الآن الشكل نفسه من الدوال لشيء لا يعرف أحد أرقامه &mdash; سعر شقة من مساحتها:</p>
+
+<pre class="code"><code>def price(area):
+    return area * ??? + ???
+</code></pre>
+
+  <p class="en">Nobody can write those two numbers down from memory. But if you have a list of flats whose area <em>and</em> price are both known, a computer can search for the pair of numbers that makes the formula fit those flats as closely as possible. <strong>That search is called training, and the function with the found numbers inside it is called a model.</strong></p>
+  <p class="ar">لا أحد يستطيع كتابة ذينك الرقمين من ذاكرته. لكن إن كان لديك قائمة شقق تُعرف مساحتها <em>و</em>سعرها معًا، استطاع الحاسوب أن يبحث عن زوج الأرقام الذي يجعل الصيغة تنطبق على تلك الشقق قدر الإمكان. <strong>ويسمّى هذا البحث تدريبًا، وتسمّى الدالةُ وبداخلها الأرقام المكتشفة نموذجًا.</strong></p>
+
+  <div class="note">
+    <h4><span class="en">That is the whole idea</span><span class="ar">تلك هي الفكرة كلها</span></h4>
+    <p class="en">A model is a function. Its shape is chosen by a person; its numbers are found by a computer from examples. Everything else in machine learning is detail about which shape, which examples, and how the searching is done &mdash; and none of that detail is needed to write the code in this course.</p>
+    <p class="ar">النموذج دالة. يختار الإنسان شكلها، ويجد الحاسوبُ أرقامها من الأمثلة. وكل ما عدا ذلك في تعلّم الآلة تفصيلٌ في أي شكل، وأي أمثلة، وكيف يجري البحث &mdash; ولا شيء من ذلك التفصيل لازم لكتابة الكود في هذا المقرر.</p>
+  </div>
+
+  <h2 id="a3-h2"><span class="en">A3.2 &mdash; Features and labels: the shape of a dataset</span><span class="ar">A3.2 &mdash; السمات والأهداف: شكل مجموعة البيانات</span></h2>
+
+  <p class="en">The examples you train on are a table. One row is one thing you measured; the columns are what you measured about it.</p>
+  <p class="ar">الأمثلة التي تدرّب عليها جدول. الصفّ شيءٌ واحد قِسته؛ والأعمدة ما قِسته عنه.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">area m²</span><span class="ar">المساحة م²</span></th>
+        <th><span class="en">rooms</span><span class="ar">الغرف</span></th>
+        <th><span class="en">floor</span><span class="ar">الطابق</span></th>
+        <th><span class="en">price (what we want)</span><span class="ar">السعر (ما نريده)</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>95</td><td>3</td><td>2</td><td>61 000</td></tr>
+      <tr><td>120</td><td>4</td><td>1</td><td>78 000</td></tr>
+      <tr><td>64</td><td>2</td><td>5</td><td>40 000</td></tr>
+    </tbody>
+  </table>
+
+  <ul>
+    <li><span class="en">The columns you are given are the <strong>features</strong>. Here: area, rooms, floor. In code they are almost always called <code>X</code>.</span><span class="ar">الأعمدة المعطاة لك هي <strong>السمات</strong>. وهنا: المساحة والغرف والطابق. وتُسمّى في الكود <code>X</code> في الغالب الأعمّ.</span></li>
+    <li><span class="en">The column you want to produce is the <strong>label</strong> or <strong>target</strong>. Here: price. In code it is almost always called <code>y</code>.</span><span class="ar">العمود الذي تريد إنتاجه هو <strong>الهدف</strong> أو <strong>التصنيف</strong>. وهنا: السعر. ويُسمّى في الكود <code>y</code> في الغالب الأعمّ.</span></li>
+    <li><span class="en">One row is one <strong>sample</strong> or <strong>example</strong>.</span><span class="ar">الصفّ الواحد <strong>عيّنة</strong> أو <strong>مثال</strong>.</span></li>
+  </ul>
+
+  <p class="en">So <code>X</code> is a table with one row per example, and <code>y</code> is a single column with one value per example. Whenever you see <code>fit(X, y)</code> in this course, that is all it means: here is the table, and here is the answer for each row.</p>
+  <p class="ar">إذن <code>X</code> جدولٌ بصفٍّ لكل مثال، و<code>y</code> عمودٌ واحد بقيمة لكل مثال. وكلما رأيت <code>fit(X, y)</code> في هذا المقرر فهذا كل ما تعنيه: هذا هو الجدول، وهذا جواب كل صفّ.</p>
+
+  <h2 id="a3-h3"><span class="en">A3.3 &mdash; <code>fit</code> and <code>predict</code>: the two verbs</span><span class="ar">A3.3 &mdash; <code>fit</code> و<code>predict</code>: الفعلان</span></h2>
+
+  <p class="en">Every tool you will meet has the same two verbs, and they happen at different times.</p>
+  <p class="ar">لكل أداة ستقابلها الفعلان نفسهما، ويقعان في وقتين مختلفين.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 220" role="img" aria-labelledby="a3fig1">
+      <title id="a3fig1">fit learns numbers from examples; predict uses them on new rows</title>
+      <defs>
+        <marker id="a3arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+
+      <rect class="dg-box" x="8"   y="26" width="150" height="76" rx="10"/>
+      <text class="dg-t dg-b dg-n" x="83" y="54" text-anchor="middle">X, y</text>
+      <text class="dg-t dg-s en" x="83" y="74" text-anchor="middle">rows you know</text>
+      <text class="dg-t dg-s en" x="83" y="90" text-anchor="middle">the answer for</text>
+      <text class="dg-t dg-s ar" x="83" y="74" text-anchor="middle">صفوف تعرف</text>
+      <text class="dg-t dg-s ar" x="83" y="90" text-anchor="middle">جوابها</text>
+
+      <path class="dg-line" d="M 160 64 L 262 64" marker-end="url(#a3arrow)"/>
+      <text class="dg-t dg-c dg-n" x="211" y="54" text-anchor="middle">fit(X, y)</text>
+
+      <rect class="dg-box dg-fill" x="264" y="10" width="172" height="108" rx="10"/>
+      <text class="dg-t dg-b en" x="350" y="36" text-anchor="middle">the object</text>
+      <text class="dg-t dg-s en" x="350" y="58" text-anchor="middle">before: empty</text>
+      <text class="dg-t dg-c en" x="350" y="80" text-anchor="middle">after: holds</text>
+      <text class="dg-t dg-c en" x="350" y="98" text-anchor="middle">the numbers</text>
+      <text class="dg-t dg-b ar" x="350" y="36" text-anchor="middle">الكائن</text>
+      <text class="dg-t dg-s ar" x="350" y="58" text-anchor="middle">قبل: فارغ</text>
+      <text class="dg-t dg-c ar" x="350" y="80" text-anchor="middle">بعد: يحمل</text>
+      <text class="dg-t dg-c ar" x="350" y="98" text-anchor="middle">الأرقام</text>
+
+      <path class="dg-line" d="M 438 64 L 540 64" marker-end="url(#a3arrow)"/>
+      <text class="dg-t dg-c dg-n" x="489" y="54" text-anchor="middle">predict(X)</text>
+
+      <rect class="dg-box" x="542" y="26" width="150" height="76" rx="10"/>
+      <text class="dg-t dg-b dg-n" x="617" y="54" text-anchor="middle">y&#770;</text>
+      <text class="dg-t dg-s en" x="617" y="74" text-anchor="middle">answers for rows</text>
+      <text class="dg-t dg-s en" x="617" y="90" text-anchor="middle">you have not seen</text>
+      <text class="dg-t dg-s ar" x="617" y="74" text-anchor="middle">أجوبة لصفوف</text>
+      <text class="dg-t dg-s ar" x="617" y="90" text-anchor="middle">لم ترها</text>
+
+      <path class="dg-line dg-dash" d="M 350 118 L 350 160 L 617 160 L 617 110" marker-end="url(#a3arrow)"/>
+      <text class="dg-t dg-s en" x="483" y="182" text-anchor="middle">predict only works after fit: it reads the numbers fit stored</text>
+      <text class="dg-t dg-s ar" x="483" y="182" text-anchor="middle">لا تعمل predict إلا بعد fit: فهي تقرأ الأرقام التي خزّنتها</text>
+    </svg>
+    <figcaption><span class="en">Figure A3.1 &mdash; <code>fit</code> happens once, on data whose answers you know. <code>predict</code> happens many times afterwards, on data whose answers you do not.</span><span class="ar">الشكل A3.1 &mdash; تقع <code>fit</code> مرة واحدة على بيانات تعرف أجوبتها. وتقع <code>predict</code> مرات كثيرة بعدها على بيانات لا تعرف أجوبتها.</span></figcaption>
+  </figure>
+
+  <h2 id="a3-h4"><span class="en">A3.4 &mdash; What <code>fit</code> leaves behind is object state</span><span class="ar">A3.4 &mdash; ما تتركه <code>fit</code> وراءها هو حالة الكائن</span></h2>
+
+  <p class="en">This is the sentence that connects the whole of Chapter 1 to everything that follows, so it is worth reading twice.</p>
+  <p class="ar">هذه هي الجملة التي تصل الفصل الأول كله بكل ما بعده، فتستحق قراءتين.</p>
+
+  <div class="note">
+    <h4><span class="en">The connection to Chapter 1</span><span class="ar">الصلة بالفصل الأول</span></h4>
+    <p class="en"><code>fit</code> is a method that changes the object it is called on. The numbers it finds are stored on <code>self</code>, and <code>predict</code> reads them back from <code>self</code> later. That is exactly the <a href="#l1-h2">data-and-behaviour-together</a> idea from Lesson 1, and exactly the <a href="#l2-h1">correct birth and stored state</a> idea from Lesson 2 &mdash; which is why machine-learning libraries are written with classes and not with loose functions.</p>
+    <p class="ar"><code>fit</code> دالةٌ تغيّر الكائن الذي استُدعيت عليه. فالأرقام التي تجدها تُخزَّن على <code>self</code>، وتقرأها <code>predict</code> من <code>self</code> لاحقًا. وتلك بالضبط فكرة <a href="#l1-h2">اجتماع البيانات والسلوك</a> من الدرس 1، وبالضبط فكرة <a href="#l2-h1">الولادة الصحيحة والحالة المخزَّنة</a> من الدرس 2 &mdash; ولهذا تُكتب مكتبات تعلّم الآلة بالأصناف لا بدوال سائبة.</p>
+  </div>
+
+<pre class="code"><code># this is not a real library, it is the shape every real one has
+class Scaler:
+    def __init__(self):
+        self.smallest = None      # nothing known yet
+        self.largest = None
+
+    def fit(self, column):
+        """Look at the data and remember what you found."""
+        self.smallest = min(column)
+        self.largest = max(column)
+        return self
+
+    def transform(self, column):
+        """Use what you remembered. Does not look at new data to learn."""
+        span = self.largest - self.smallest
+        return [(v - self.smallest) / span for v in column]
+
+
+s = Scaler()
+s.fit([10, 20, 30])              # now s.smallest is 10, s.largest is 30
+print(s.transform([10, 20, 30]))
+print(s.transform([15]))         # the SAME 10 and 30 are used again
+</code></pre>
+
+  <div class="output">[0.0, 0.5, 1.0]
+[0.25]</div>
+
+  <p class="en">Read what the object does, not what the numbers mean. <code>fit</code> wrote two attributes; <code>transform</code> read them. Call <code>transform</code> before <code>fit</code> and you get a <code>TypeError</code> on <code>None</code> &mdash; an object used before it was properly born, which is the defect <a href="#l2-h1">Lesson 2</a> is entirely about.</p>
+  <p class="ar">اقرأ ما يفعله الكائن لا ما تعنيه الأرقام. فقد كتبت <code>fit</code> خاصيتين؛ وقرأتهما <code>transform</code>. واستدعِ <code>transform</code> قبل <code>fit</code> تحصل على <code>TypeError</code> على <code>None</code> &mdash; كائنٌ استُعمل قبل أن يُولد ولادة صحيحة، وهو العيب الذي يدور عليه <a href="#l2-h1">الدرس 2</a> كله.</p>
+
+  <h2 id="a3-h5"><span class="en">A3.5 &mdash; <code>transform</code>: the steps before the model</span><span class="ar">A3.5 &mdash; <code>transform</code>: الخطوات قبل النموذج</span></h2>
+
+  <p class="en">Raw data is rarely in a shape a model can use. A column might hold the words <code>"Gaza"</code>, <code>"Rafah"</code>, <code>"Khan Younis"</code> when the model needs numbers; another might run from 0 to 1 while a third runs from 0 to 500 000. Fixing that is called <strong>preprocessing</strong>, and each fix is a step with the same two verbs:</p>
+  <p class="ar">نادرًا ما تكون البيانات الخام على شكل يصلح للنموذج. فقد يحمل عمودٌ الكلمات <code>"غزة"</code> و<code>"رفح"</code> و<code>"خان يونس"</code> والنموذج يحتاج أرقامًا؛ وقد يمتد عمود من 0 إلى 1 بينما يمتد ثالث من 0 إلى 500000. وتسمّى معالجة ذلك <strong>التهيئة المسبقة</strong>، وكل معالجة خطوةٌ بالفعلين نفسيهما:</p>
+
+  <ul>
+    <li><span class="en"><code>fit(data)</code> &mdash; look at the data and remember what you need: the smallest and largest value, the list of city names, the average of a column.</span><span class="ar"><code>fit(data)</code> &mdash; انظر إلى البيانات واحفظ ما تحتاجه: أصغر قيمة وأكبرها، وقائمة أسماء المدن، ومتوسط عمود.</span></li>
+    <li><span class="en"><code>transform(data)</code> &mdash; return a changed copy of the data, using only what was remembered.</span><span class="ar"><code>transform(data)</code> &mdash; أعِد نسخة مغيَّرة من البيانات، مستعملًا ما حُفظ فقط.</span></li>
+  </ul>
+
+  <p class="en">A step that <em>changes the data</em> has <code>fit</code> and <code>transform</code>. A step that <em>answers a question</em> &mdash; the model at the end &mdash; has <code>fit</code> and <code>predict</code>. That is the only difference between the two kinds of object you will meet, and <a href="#lesson-08">Lecture 10</a> is about expressing it as a class.</p>
+  <p class="ar">الخطوة التي <em>تغيّر البيانات</em> لها <code>fit</code> و<code>transform</code>. والخطوة التي <em>تجيب سؤالًا</em> &mdash; وهي النموذج في النهاية &mdash; لها <code>fit</code> و<code>predict</code>. وذلك هو الفرق الوحيد بين نوعَي الكائنات التي ستقابلها، و<a href="#lesson-08">المحاضرة 10</a> عن التعبير عنه صنفًا.</p>
+
+  <h2 id="a3-h6"><span class="en">A3.6 &mdash; A pipeline is a list of steps, run in order</span><span class="ar">A3.6 &mdash; المسار قائمة خطوات تُنفَّذ بالترتيب</span></h2>
+
+  <p class="en">Real data needs several steps, always in the same order: fill in the missing values, turn the words into numbers, put the columns on the same scale, then the model. A <strong>pipeline</strong> is an object that holds that list and runs it for you.</p>
+  <p class="ar">تحتاج البيانات الحقيقية عدة خطوات، بالترتيب نفسه دائمًا: عوِّض القيم المفقودة، وحوّل الكلمات أرقامًا، واجعل الأعمدة على مقياس واحد، ثم النموذج. و<strong>المسار</strong> كائنٌ يمسك بتلك القائمة وينفّذها نيابةً عنك.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 120" role="img" aria-labelledby="a3fig2">
+      <title id="a3fig2">a pipeline runs its steps in order, then the model</title>
+      <defs>
+        <marker id="a3arrow2" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+      <rect class="dg-box dg-soft" x="4" y="30" width="692" height="56" rx="12"/>
+      <text class="dg-t dg-s en" x="350" y="104" text-anchor="middle">one object, four steps &mdash; fit it once, and every step is fitted in order</text>
+      <text class="dg-t dg-s ar" x="350" y="104" text-anchor="middle">كائن واحد، أربع خطوات &mdash; درّبه مرة، وتُدرَّب كل خطوة بالترتيب</text>
+
+      <rect class="dg-box" x="22"  y="44" width="128" height="30" rx="8"/>
+      <text class="dg-t dg-c en" x="86" y="63" text-anchor="middle">fill gaps</text>
+      <text class="dg-t dg-c ar" x="86" y="63" text-anchor="middle">سدّ الفجوات</text>
+      <path class="dg-line" d="M 152 59 L 182 59" marker-end="url(#a3arrow2)"/>
+
+      <rect class="dg-box" x="184" y="44" width="128" height="30" rx="8"/>
+      <text class="dg-t dg-c en" x="248" y="63" text-anchor="middle">words → numbers</text>
+      <text class="dg-t dg-c ar" x="248" y="63" text-anchor="middle">كلمات ← أرقام</text>
+      <path class="dg-line" d="M 314 59 L 344 59" marker-end="url(#a3arrow2)"/>
+
+      <rect class="dg-box" x="346" y="44" width="128" height="30" rx="8"/>
+      <text class="dg-t dg-c en" x="410" y="63" text-anchor="middle">same scale</text>
+      <text class="dg-t dg-c ar" x="410" y="63" text-anchor="middle">مقياس واحد</text>
+      <path class="dg-line" d="M 476 59 L 506 59" marker-end="url(#a3arrow2)"/>
+
+      <rect class="dg-box dg-fill" x="508" y="44" width="170" height="30" rx="8"/>
+      <text class="dg-t dg-b en" x="593" y="63" text-anchor="middle">the model</text>
+      <text class="dg-t dg-b ar" x="593" y="63" text-anchor="middle">النموذج</text>
+    </svg>
+    <figcaption><span class="en">Figure A3.2 &mdash; the first three steps have <code>fit</code>/<code>transform</code>; the last has <code>fit</code>/<code>predict</code>. The pipeline itself has both, which is the design trick <a href="#lesson-09">Lecture 11</a> builds.</span><span class="ar">الشكل A3.2 &mdash; للخطوات الثلاث الأولى <code>fit</code>/<code>transform</code>؛ وللأخيرة <code>fit</code>/<code>predict</code>. وللمسار نفسه كلاهما، وتلك هي الحيلة التصميمية التي تبنيها <a href="#lesson-09">المحاضرة 11</a>.</span></figcaption>
+  </figure>
+
+  <h2 id="a3-h7"><span class="en">A3.7 &mdash; One rule you must know before the code makes sense</span><span class="ar">A3.7 &mdash; قاعدة واحدة يجب أن تعرفها قبل أن يستقيم الكود</span></h2>
+
+  <p class="en">You split your table in two before you do anything: most of it to train on, a small part kept aside and never looked at until the end, to check the model on rows it has never seen. The rule that follows is the one that explains a great deal of code shape:</p>
+  <p class="ar">تقسم جدولك قسمين قبل أن تفعل أي شيء: أكثره للتدريب، وجزء صغير يُنحّى جانبًا ولا يُنظر إليه حتى النهاية، لتفحص النموذج على صفوف لم يرها قطّ. والقاعدة التالية هي التي تفسّر كثيرًا من شكل الكود:</p>
+
+  <div class="note">
+    <h4><span class="en">Fit on training data only</span><span class="ar">درِّب على بيانات التدريب وحدها</span></h4>
+    <p class="en">Every step calls <code>fit</code> on the training rows and <code>transform</code> on both. If a step calls <code>fit</code> on the held-back rows as well, it has quietly looked at data it was supposed to be tested on, and your final score becomes a flattering lie. You do not need to know why that is statistically true to write the code &mdash; you need to know that <code>fit</code> is called once, on one part of the data, and this is why <a href="#lesson-09">Lecture 11</a> makes the pipeline own the ordering rather than leaving it to whoever writes the script.</p>
+    <p class="ar">كل خطوة تستدعي <code>fit</code> على صفوف التدريب و<code>transform</code> على الاثنين. فإن استدعت خطوةٌ <code>fit</code> على الصفوف المنحّاة أيضًا فقد نظرت بصمت إلى بيانات كان يُفترض أن تُختبر عليها، وصارت نتيجتك النهائية كذبةً مُطرية. ولا تحتاج إلى معرفة لماذا هذا صحيح إحصائيًا لتكتب الكود &mdash; بل تحتاج أن تعرف أن <code>fit</code> تُستدعى مرة واحدة على جزء واحد من البيانات، ولهذا تجعل <a href="#lesson-09">المحاضرة 11</a> المسارَ يملك الترتيب بدل تركه لمن يكتب السكربت.</p>
+  </div>
+
+  <p class="en">The statistics behind this &mdash; what a fair estimate is and why a model can score well and still be useless &mdash; is Appendix A10, due before Week 13. You do not need it for Chapter 2.</p>
+  <p class="ar">أما الإحصاء وراء ذلك &mdash; ما التقدير المنصف ولماذا قد يسجّل نموذج نتيجة جيدة ويبقى عديم النفع &mdash; فهو الملحق A10، موعده قبل الأسبوع 13. ولا تحتاجه للفصل 2.</p>
+
+  <h2 id="a3-h8"><span class="en">A3.8 &mdash; The words, in one table</span><span class="ar">A3.8 &mdash; الألفاظ في جدول واحد</span></h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Word</span><span class="ar">اللفظ</span></th>
+        <th><span class="en">In one sentence</span><span class="ar">في جملة</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><code>X</code></td><td><span class="en">The table of inputs: one row per example, one column per feature.</span><span class="ar">جدول المدخلات: صفٌّ لكل مثال، وعمودٌ لكل سمة.</span></td></tr>
+      <tr><td><code>y</code></td><td><span class="en">The answer column: one value per row of <code>X</code>.</span><span class="ar">عمود الجواب: قيمةٌ لكل صفّ من <code>X</code>.</span></td></tr>
+      <tr><td><span class="en">feature</span><span class="ar">سمة</span></td><td><span class="en">One input column &mdash; something you measured.</span><span class="ar">عمود مدخل واحد &mdash; شيء قِسته.</span></td></tr>
+      <tr><td><span class="en">label / target</span><span class="ar">هدف / تصنيف</span></td><td><span class="en">The column you want the model to produce.</span><span class="ar">العمود الذي تريد من النموذج إنتاجه.</span></td></tr>
+      <tr><td><span class="en">sample</span><span class="ar">عيّنة</span></td><td><span class="en">One row &mdash; one thing you measured.</span><span class="ar">صفٌّ واحد &mdash; شيء واحد قِسته.</span></td></tr>
+      <tr><td><span class="en">model</span><span class="ar">نموذج</span></td><td><span class="en">A function whose numbers were found from examples instead of typed in.</span><span class="ar">دالةٌ وُجدت أرقامها من الأمثلة بدل أن تُكتب.</span></td></tr>
+      <tr><td><code>fit</code></td><td><span class="en">Look at data once and store what you learned on <code>self</code>.</span><span class="ar">انظر إلى البيانات مرة واخزن ما تعلّمته على <code>self</code>.</span></td></tr>
+      <tr><td><code>transform</code></td><td><span class="en">Return a changed copy of the data, using only what <code>fit</code> stored.</span><span class="ar">أعِد نسخة مغيَّرة من البيانات مستعملًا ما خزّنته <code>fit</code> فقط.</span></td></tr>
+      <tr><td><code>predict</code></td><td><span class="en">Return an answer for each row, using only what <code>fit</code> stored.</span><span class="ar">أعِد جوابًا لكل صفّ مستعملًا ما خزّنته <code>fit</code> فقط.</span></td></tr>
+      <tr><td><span class="en">preprocessing</span><span class="ar">تهيئة مسبقة</span></td><td><span class="en">Every step that changes the data before the model sees it.</span><span class="ar">كل خطوة تغيّر البيانات قبل أن يراها النموذج.</span></td></tr>
+      <tr><td><span class="en">pipeline</span><span class="ar">مسار</span></td><td><span class="en">An object holding the ordered list of steps, run for you in order.</span><span class="ar">كائنٌ يمسك بقائمة الخطوات المرتَّبة، تُنفَّذ لك بالترتيب.</span></td></tr>
+      <tr><td><span class="en">estimator</span><span class="ar">مُقدِّر</span></td><td><span class="en">The library's name for "any object with <code>fit</code>" &mdash; steps and models alike.</span><span class="ar">اسم المكتبة لـ«أي كائن له <code>fit</code>» &mdash; الخطوات والنماذج سواء.</span></td></tr>
+      <tr><td><span class="en">training / test data</span><span class="ar">بيانات التدريب/الاختبار</span></td><td><span class="en">The part you <code>fit</code> on, and the part kept aside to check the result honestly.</span><span class="ar">الجزء الذي تستدعي عليه <code>fit</code>، والجزء المنحّى لفحص النتيجة بصدق.</span></td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="a3-h9"><span class="en">Self-check</span><span class="ar">فحص ذاتي</span></h2>
+
+  <p class="en">Six questions on this page alone. They are not part of any test and no score is recorded against you &mdash; they are here so you can find out whether a word is still vague before it appears in a lecture.</p>
+  <p class="ar">ستة أسئلة على هذه الصفحة وحدها. وهي ليست جزءًا من أي اختبار ولا تُسجَّل عليك نتيجة &mdash; إنما هي هنا لتكتشف هل بقي لفظٌ غامضًا قبل أن يظهر في محاضرة.</p>
+
+  <div class="assess" data-bank="appendix-a3" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">You are ready for Week 4</span><span class="ar">أنت جاهز للأسبوع 4</span></h4>
+    <p class="en">Nothing above is examined. What matters is that <code>fit</code>, <code>transform</code>, <code>predict</code>, <code>X</code>, <code>y</code>, step and pipeline are now words you recognise. <a href="#lesson-08">Lecture 10</a> takes it from there and is pure OOP: a class per step, one interface, and the design that makes a pipeline possible.</p>
+    <p class="ar">لا شيء مما سبق ممتحَن فيه. والمهم أن <code>fit</code> و<code>transform</code> و<code>predict</code> و<code>X</code> و<code>y</code> والخطوة والمسار صارت ألفاظًا تعرفها. و<a href="#lesson-08">المحاضرة 10</a> تأخذها من هنا وهي برمجة كائنية خالصة: صنفٌ لكل خطوة، وواجهةٌ واحدة، والتصميم الذي يجعل المسار ممكنًا.</p>
+  </div>
+
+
+</section>

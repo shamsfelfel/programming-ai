@@ -1,0 +1,756 @@
+
+<section class="page" id="appendix-a6">
+
+
+  <span class="kicker"><span class="en">Appendix A6 &middot; self-study &middot; not examined</span><span class="ar">الملحق A6 &middot; دراسة ذاتية &middot; غير ممتحَن فيه</span></span>
+  <h1><span class="en">Vectors and Matrices</span><span class="ar">المتجهات والمصفوفات</span></h1>
+
+  <p class="lede en">By Week 6 the code on screen says <code>X @ w</code>, <code>A.T</code>, <code>np.linalg.norm(a - b)</code> and <code>np.linalg.solve(A, b)</code>. <a href="#lesson-14">Chapter 4</a> teaches you to call those correctly and Chapter 5 teaches you what <code>np.linalg</code> can and cannot do; neither of them explains what the arithmetic <em>is</em>, because that is mathematics and mathematics is not in the lecture budget. It is here. This is the longest appendix in the course and the only one you should set aside an evening for &mdash; about an hour and a half, with a pencil.</p>
+  <p class="lede ar">مع الأسبوع 6 يصير الكود على الشاشة يقول <code>X @ w</code> و<code>A.T</code> و<code>np.linalg.norm(a - b)</code> و<code>np.linalg.solve(A, b)</code>. ويعلّمك <a href="#lesson-14">الفصل الرابع</a> كيف تنادي هذه نداءً صحيحًا، ويعلّمك الفصل الخامس ما يستطيعه <code>np.linalg</code> وما لا يستطيعه؛ ولا يشرح أيٌّ منهما <em>ما</em> هذا الحساب، لأنه رياضيات، والرياضيات ليست في ميزانية المحاضرات. وهي هنا. هذا أطول ملحق في المقرر، والوحيد الذي يستحق أن تُفرد له مساءً &mdash; نحو ساعة ونصف، وبيدك قلم.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">How to use this appendix</span><span class="ar">كيف تستخدم هذا الملحق</span></h4>
+    <p class="en">Read it once before Week 6, after <a href="#lesson-10">Lecture 12</a> to <a href="#lesson-13">Lecture 15</a>. It assumes you know what a NumPy array is &mdash; <a href="#l10-s5">shape</a>, <a href="#l12-s1">the broadcasting rule</a>, <a href="#l13-h1">axes</a> &mdash; and school arithmetic, and nothing else. It assumes you have never taken a linear algebra course, because you have not.</p>
+    <p class="ar">اقرأه مرة واحدة قبل الأسبوع 6، بعد <a href="#lesson-10">المحاضرة 12</a> إلى <a href="#lesson-13">المحاضرة 15</a>. وهو يفترض أنك تعرف ما مصفوفة نمباي &mdash; <a href="#l10-s5">الشكل</a> و<a href="#l12-s1">قاعدة البثّ</a> و<a href="#l13-h1">المحاور</a> &mdash; وتعرف حساب المدرسة، ولا شيء غير ذلك. ويفترض أنك لم تدرس مقرر جبر خطّي قطّ، لأنك لم تدرسه.</p>
+    <p class="en"><strong>Nothing on this page is ever examined.</strong> No lesson test and no chapter test asks about any of it, and a student who skips this appendix entirely can still finish every lecture and pass every test. It exists for one reason: so that the code in Chapters 4, 5 and 11 stops being magic you type and starts being arithmetic you can check by hand.</p>
+    <p class="ar"><strong>لا شيء في هذه الصفحة ممتحَن فيه إطلاقًا.</strong> فلا اختبار درس ولا اختبار فصل يسأل عن شيء منها، والطالب الذي يتخطّى هذا الملحق كلّه يستطيع مع ذلك إتمام كل محاضرة والنجاح في كل اختبار. وهو موجود لسبب واحد: ليتوقف الكود في الفصول الرابع والخامس والحادي عشر عن كونه سحرًا تكتبه، ويصير حسابًا تستطيع فحصه بيدك.</p>
+  </div>
+
+  <h2 id="a6-h1"><span class="en">A6.1 &mdash; A vector is a list of numbers that belong together</span><span class="ar">A6.1 &mdash; المتجه قائمةُ أعدادٍ ينتمي بعضها إلى بعض</span></h2>
+
+  <p class="en">A <strong>vector</strong> is a list of numbers written in a fixed order, where the order carries meaning. That is the whole definition. There is no hidden second requirement.</p>
+  <p class="ar"><strong>المتجه</strong> قائمةُ أعدادٍ مكتوبةٍ بترتيب ثابت، والترتيبُ فيها يحمل معنى. هذا هو التعريف كلّه. وليس فيه شرطٌ ثانٍ مستور.</p>
+
+  <p class="en">One student sat three papers: coursework 72, midterm 65, final 90. Written as a vector that is (72, 65, 90) &mdash; three numbers that belong together because they describe the same student. One clinic patient has a height, a weight and a temperature; one iris flower has a petal length, a petal width and a sepal length. In every case the numbers are different kinds of thing, and the order is what tells you which is which: position 1 is always the coursework, never the final.</p>
+  <p class="ar">طالبٌ واحد قدّم ثلاث أوراق: الأعمال الفصلية 72، والنصفي 65، والنهائي 90. وتُكتب متجهًا هكذا (72, 65, 90) &mdash; ثلاثةُ أعداد ينتمي بعضها إلى بعض لأنها تصف الطالب نفسه. ولمريض العيادة الواحد طولٌ ووزنٌ ودرجةُ حرارة؛ ولزهرة السوسن الواحدة طولُ بتلةٍ وعرضُ بتلةٍ وطولُ سَبلة. والأعدادُ في كل حالة أشياءُ من أجناس مختلفة، والترتيبُ هو ما يخبرك أيُّها أيٌّ: فالموضع 1 هو الأعمال الفصلية دائمًا، وليس النهائي أبدًا.</p>
+
+  <p class="en">When the numbers are measurements that describe one thing, the vector is called a <strong>feature vector</strong> &mdash; one entry per feature, where <a href="#a3-h2">a feature</a> is one thing you measured. Be ready for a second name for the same object: NumPy and scikit-learn documentation calls that whole row a <strong>sample</strong>, so "the sample" and "the feature vector" are the same three numbers seen from two directions &mdash; one row of the data, or one point described by its features.</p>
+  <p class="ar">وحين تكون الأعدادُ قياساتٍ تصف شيئًا واحدًا، يُسمّى المتجه <strong>متجه السمات</strong> &mdash; مدخلةٌ لكل سمة، و<a href="#a3-h2">السمة</a> شيءٌ واحد قِسته. واستعدّ لاسم ثانٍ للشيء نفسه: فوثائقُ نمباي وscikit-learn تسمّي ذلك الصفَّ كلّه <strong>عيّنة</strong>، فـ«العيّنة» و«متجه السمات» هما الأعدادُ الثلاثة نفسها منظورًا إليها من جهتين &mdash; صفٌّ واحد من البيانات، أو نقطةٌ واحدة موصوفةٌ بسماتها.</p>
+
+  <p class="en">The number of entries is the vector's <strong>dimension</strong>. Two numbers are a point on a page: go across by the first and up by the second, and the arrow from the corner to that point <em>is</em> the vector. Three numbers are a point in the room you are sitting in. Three hundred numbers are still one point; the only thing that changes at three hundred is that you stop drawing it. Every rule in this appendix was worked out on the page, where you can see it, and then applied unchanged to the three hundred.</p>
+  <p class="ar">وعددُ المدخلات هو <strong>بُعد</strong> المتجه. فعددان نقطةٌ على ورقة: تمضي أفقيًا بمقدار الأول وتصعد بمقدار الثاني، والسهمُ من الزاوية إلى تلك النقطة <em>هو</em> المتجه. وثلاثةُ أعداد نقطةٌ في الغرفة التي تجلس فيها. وثلاثُ مئةٍ من الأعداد لا تزال نقطةً واحدة؛ والشيءُ الوحيد الذي يتغير عند الثلاث مئة أنك تكفّ عن رسمها. وكلُّ قاعدة في هذا الملحق استُخرجت على الورقة حيث تراها، ثم طُبِّقت بلا تغيير على الثلاث مئة.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 260" role="img" aria-labelledby="a6fig1">
+      <title id="a6fig1">the vector (3, 4) drawn as an arrow from the origin</title>
+      <defs>
+        <marker id="a6arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+
+      <path class="dg-line dg-dash" d="M 80 210 L 420 210"/>
+      <path class="dg-line dg-dash" d="M 80 210 L 80 40"/>
+
+      <text class="dg-t dg-c dg-n" x="120" y="228" text-anchor="middle">1</text>
+      <text class="dg-t dg-c dg-n" x="160" y="228" text-anchor="middle">2</text>
+      <text class="dg-t dg-c dg-n" x="200" y="228" text-anchor="middle">3</text>
+      <text class="dg-t dg-c dg-n" x="66" y="175" text-anchor="end">1</text>
+      <text class="dg-t dg-c dg-n" x="66" y="135" text-anchor="end">2</text>
+      <text class="dg-t dg-c dg-n" x="66" y="95" text-anchor="end">3</text>
+      <text class="dg-t dg-c dg-n" x="66" y="55" text-anchor="end">4</text>
+
+      <path class="dg-line dg-dash" d="M 200 50 L 200 210"/>
+      <path class="dg-line dg-dash" d="M 200 50 L 80 50"/>
+      <path class="dg-line" d="M 80 210 L 200 50" marker-end="url(#a6arrow)"/>
+      <circle cx="200" cy="50" r="4" class="dg-arrowhead"/>
+      <text class="dg-t dg-c dg-n" x="214" y="44">(3, 4)</text>
+
+      <text class="dg-t dg-s en" x="250" y="238" text-anchor="middle">first entry</text>
+      <text class="dg-t dg-s ar" x="250" y="238" text-anchor="middle">المدخلة الأولى</text>
+      <text class="dg-t dg-s en" x="80" y="28" text-anchor="middle">second entry</text>
+      <text class="dg-t dg-s ar" x="80" y="28" text-anchor="middle">المدخلة الثانية</text>
+
+      <text class="dg-t dg-b en" x="470" y="70">Two numbers, one point</text>
+      <text class="dg-t dg-b ar" x="470" y="70">عددان، نقطة واحدة</text>
+      <text class="dg-t dg-s en" x="470" y="100">The arrow and the point at its tip</text>
+      <text class="dg-t dg-s en" x="470" y="118">are the same vector, drawn twice.</text>
+      <text class="dg-t dg-s en" x="470" y="146">Three numbers are a point in a room.</text>
+      <text class="dg-t dg-s en" x="470" y="164">Three hundred are still one point &mdash;</text>
+      <text class="dg-t dg-s en" x="470" y="182">you simply stop drawing it.</text>
+      <text class="dg-t dg-s ar" x="470" y="100">السهم والنقطة عند طرفه</text>
+      <text class="dg-t dg-s ar" x="470" y="118">هما المتجه نفسه مرسومًا مرتين.</text>
+      <text class="dg-t dg-s ar" x="470" y="146">وثلاثة أعداد نقطة في غرفة.</text>
+      <text class="dg-t dg-s ar" x="470" y="164">وثلاث مئة لا تزال نقطة واحدة &mdash;</text>
+      <text class="dg-t dg-s ar" x="470" y="182">وإنما تكفّ عن رسمها.</text>
+    </svg>
+    <figcaption><span class="en">Figure A6.1 &mdash; the vector (3, 4): across 3, up 4. The arrow is a picture of the list, not a different object.</span><span class="ar">الشكل A6.1 &mdash; المتجه (3, 4): ثلاثةٌ أفقيًا وأربعةٌ صعودًا. والسهمُ صورةٌ للقائمة لا شيءٌ آخر.</span></figcaption>
+  </figure>
+
+  <p class="en">In NumPy a vector is a one-dimensional array, and its <a href="#l10-s5">shape</a> is a tuple with one number in it:</p>
+  <p class="ar">والمتجه في نمباي مصفوفةٌ ذات بُعد واحد، و<a href="#l10-s5">شكلها</a> صفٌّ فيه عددٌ واحد:</p>
+
+<pre class="code"><code>import numpy as np
+
+marks = np.array([72, 65, 90])
+
+print(marks)
+print(marks.shape)
+print(marks[0])
+</code></pre>
+
+  <div class="output">[72 65 90]
+(3,)
+72</div>
+
+  <div class="note">
+    <h4><span class="en">A vector has no direction of its own in NumPy</span><span class="ar">متجهُ نمباي لا اتجاه له في ذاته</span></h4>
+    <p class="en">Mathematics books usually draw a vector as a <em>column</em>. NumPy does not: the shape is <code>(3,)</code>, not <code>(3, 1)</code>, and a one-dimensional array is neither a row nor a column until something makes it one. That is a convenience almost all of the time and a trap exactly once, in A6.7.</p>
+    <p class="ar">كتبُ الرياضيات ترسم المتجه <em>عمودًا</em> في الغالب. ونمباي لا تفعل: فالشكل <code>(3,)</code> لا <code>(3, 1)</code>، والمصفوفةُ ذات البُعد الواحد ليست صفًّا ولا عمودًا حتى يجعلها شيءٌ أحدَهما. وهي راحةٌ في كل وقت تقريبًا، وفخٌّ مرةً واحدة بالضبط، في A6.7.</p>
+  </div>
+
+  <h2 id="a6-h2"><span class="en">A6.2 &mdash; Adding vectors and scaling them</span><span class="ar">A6.2 &mdash; جمعُ المتجهات وضربُها في عدد</span></h2>
+
+  <p class="en">Two vectors of the same length are <strong>added</strong> entry by entry: first with first, second with second. If the lengths differ there is no answer, and that is not a technicality &mdash; adding a student's three marks to a patient's two measurements is not a question.</p>
+  <p class="ar">متجهان متساويا الطول <strong>يُجمعان</strong> مدخلةً مدخلةً: الأولى مع الأولى، والثانية مع الثانية. وإن اختلف الطولان فلا جواب، وليست هذه مسألةً شكلية &mdash; فجمعُ علامات طالبٍ ثلاثٍ إلى قياسَي مريضٍ ليس سؤالًا.</p>
+
+  <p class="en">A vector is <strong>scaled</strong> by multiplying every entry by one ordinary number. An ordinary single number, as opposed to a vector, is called a <strong>scalar</strong> &mdash; that is the only reason the word exists. Geometrically, scaling by 2 leaves the arrow pointing exactly where it pointed and makes it twice as long; by 0.5, half as long; by &minus;1, the same length in the opposite direction. Scaling never turns the arrow; only adding does.</p>
+  <p class="ar">ويُضرب المتجه في <strong>عدد</strong> بضرب كل مدخلةٍ في عددٍ عادي واحد. والعددُ العادي المفرد، في مقابل المتجه، يُسمّى <strong>قياسيًّا</strong> (<code>scalar</code>) &mdash; وهذا هو السبب الوحيد لوجود الكلمة. وهندسيًّا: الضربُ في 2 يترك السهم مشيرًا إلى حيث كان بالضبط ويجعله ضِعف طوله؛ والضربُ في 0.5 نصفَ طوله؛ والضربُ في &minus;1 الطولَ نفسه في الاتجاه المضاد. والضربُ في عددٍ لا يُدير السهم أبدًا؛ وإنما يديره الجمعُ وحده.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 300" role="img" aria-labelledby="a6fig2">
+      <title id="a6fig2">adding two vectors head to tail, and scaling one</title>
+      <defs>
+        <marker id="a6arrow2" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="dg-arrowhead"/>
+        </marker>
+      </defs>
+
+      <path class="dg-line dg-dash" d="M 70 250 L 280 250"/>
+      <path class="dg-line dg-dash" d="M 70 250 L 70 110"/>
+
+      <path class="dg-line" d="M 70 250 L 100 160" marker-end="url(#a6arrow2)"/>
+      <text class="dg-t dg-c dg-n" x="60" y="150">a = (1, 3)</text>
+      <path class="dg-line" d="M 70 250 L 160 220" marker-end="url(#a6arrow2)"/>
+      <text class="dg-t dg-c dg-n" x="166" y="238">b = (3, 1)</text>
+      <path class="dg-line dg-dash" d="M 100 160 L 190 130" marker-end="url(#a6arrow2)"/>
+      <path class="dg-line" d="M 70 250 L 190 130" marker-end="url(#a6arrow2)"/>
+      <text class="dg-t dg-c dg-n" x="196" y="124">a + b = (4, 4)</text>
+
+      <text class="dg-t dg-b en" x="70" y="96">Adding: head to tail</text>
+      <text class="dg-t dg-b ar" x="70" y="96">الجمع: رأسٌ إلى ذيل</text>
+      <text class="dg-t dg-s en" x="70" y="282">1+3 across, 3+1 up. Start at the tip of a, walk along b.</text>
+      <text class="dg-t dg-s ar" x="70" y="282">1+3 أفقيًا و3+1 صعودًا. ابدأ من طرف a وامشِ على b.</text>
+
+      <path class="dg-line dg-dash" d="M 430 250 L 600 250"/>
+      <path class="dg-line dg-dash" d="M 430 250 L 430 110"/>
+
+      <path class="dg-line dg-dash" d="M 430 250 L 490 130" marker-end="url(#a6arrow2)"/>
+      <path class="dg-line" d="M 430 250 L 460 190" marker-end="url(#a6arrow2)"/>
+      <circle cx="445" cy="220" r="4" class="dg-arrowhead"/>
+      <text class="dg-t dg-c dg-n" x="468" y="186">x = (1, 2)</text>
+      <text class="dg-t dg-c dg-n" x="498" y="126">2x = (2, 4)</text>
+      <text class="dg-t dg-c dg-n" x="452" y="226">0.5x</text>
+
+      <text class="dg-t dg-b en" x="430" y="96">Scaling: same line, new length</text>
+      <text class="dg-t dg-b ar" x="430" y="96">الضرب في عدد: الخطّ نفسه بطول جديد</text>
+      <text class="dg-t dg-s en" x="430" y="282">All three arrows lie on one line through the corner.</text>
+      <text class="dg-t dg-s ar" x="430" y="282">السهام الثلاثة كلها على خطٍّ واحد يمرّ بالزاوية.</text>
+    </svg>
+    <figcaption><span class="en">Figure A6.2 &mdash; adding puts one arrow at the tip of the other; scaling slides the tip along the line it was already on.</span><span class="ar">الشكل A6.2 &mdash; الجمعُ يضع أحد السهمين عند طرف الآخر؛ والضربُ في عددٍ يُزلق الطرف على الخطّ الذي كان عليه أصلًا.</span></figcaption>
+  </figure>
+
+<pre class="code"><code>marks = np.array([72, 65, 90])
+bonus = np.array([3, 5, 0])
+
+print(marks + bonus)
+print(0.5 * marks)
+</code></pre>
+
+  <div class="output">[75 70 90]
+[36.  32.5 45. ]</div>
+
+  <p class="en">You already ran both of these in <a href="#lesson-12">Lecture 14</a>: <code>a + b</code> and <code>2 * a</code> are the elementwise arithmetic that an array does and a list does not. The names are new; the behaviour is not. Note that scaling by 0.5 turned whole marks into decimals, which is the <a href="#l10-h2">one-type rule</a> doing its job and not an accident.</p>
+  <p class="ar">وقد شغّلتَ كلتيهما في <a href="#lesson-12">المحاضرة 14</a>: فـ <code>a + b</code> و<code>2 * a</code> هما الحسابُ العنصريّ الذي تفعله المصفوفة ولا تفعله القائمة. فالأسماءُ جديدة والسلوكُ ليس كذلك. ولاحظ أن الضرب في 0.5 حوّل علاماتٍ صحيحةً إلى عشرية، وذلك <a href="#l10-h2">قانونُ النوع الواحد</a> يؤدي عمله، لا حادثٌ عارض.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A courier's two vans each carry a load vector in kilograms: <code>van_a = np.array([120, 80])</code> and <code>van_b = np.array([120, 80, 60])</code>. What is <code>van_a + van_b</code>?</span><span class="ar">شاحنتا شركةِ توصيل تحمل كلٌّ منهما متجه حِمْلٍ بالكيلوغرامات: <code>van_a = np.array([120, 80])</code> و<code>van_b = np.array([120, 80, 60])</code>. فما <code>van_a + van_b</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">A <code>ValueError</code>. Adding vectors is entry by entry, so there must be the same number of entries; two loads described by different numbers of measurements are not addable.</span><span class="ar">خطأ <code>ValueError</code>. فجمعُ المتجهات مدخلةً مدخلةً، فلا بد من تساوي عدد المدخلات؛ وحِمْلان موصوفان بعددين مختلفين من القياسات لا يُجمعان.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[240 160 60]</code> &mdash; the missing entry of <code>van_a</code> counts as zero.</span><span class="ar"><code>[240 160 60]</code> &mdash; فالمدخلةُ الغائبة من <code>van_a</code> تُحسب صفرًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[240 160]</code> &mdash; NumPy adds as far as the shorter vector goes and stops.</span><span class="ar"><code>[240 160]</code> &mdash; فنمباي تجمع إلى حيث ينتهي الأقصر ثم تتوقف.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[360 240 180]</code> &mdash; broadcasting stretches <code>van_a</code> to the longer shape.</span><span class="ar"><code>[360 240 180]</code> &mdash; فالبثُّ يمدّد <code>van_a</code> إلى الشكل الأطول.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The last option is the interesting mistake, because broadcasting is real and you have used it. <a href="#l12-s1">The rule</a> is that a dimension fits if it is equal, or 1, or absent &mdash; and 2 against 3 is none of those, so there is nothing to stretch. Broadcasting is generous about shapes it can line up and gives you nothing at all when it cannot; the second and third options are the kinds of silent guess it deliberately refuses to make.</div>
+      <div class="ar">الخيار الأخير هو الخطأ المثير، فالبثُّ حقيقيّ وقد استعملته. و<a href="#l12-s1">القاعدة</a> أن البُعد يناسب إن كان متساويًا أو 1 أو غائبًا &mdash; و2 في مقابل 3 ليست أيًّا من ذلك، فلا شيء يُمدَّد. فالبثُّ سَخيٌّ في الأشكال التي يستطيع محاذاتها، ولا يعطيك شيئًا إطلاقًا حين لا يستطيع؛ والخياران الثاني والثالث من جنس التخمين الصامت الذي يأبى أن يفعله عن قصد.</div>
+    </div>
+  </div>
+
+  <h2 id="a6-h3"><span class="en">A6.3 &mdash; The dot product: multiply pairwise, then add</span><span class="ar">A6.3 &mdash; الجَداء القياسي: اضرب أزواجًا ثم اجمع</span></h2>
+
+  <p class="en">Here is the rule in words, and it is the only rule in this section. <strong>Multiply the first entry of one vector by the first entry of the other, the second by the second, and so on to the end; then add all of those products together.</strong> Two vectors go in, <em>one number</em> comes out. It is written x &middot; y, and in the notation that <a href="#appendix-a5">Appendix A5</a> and Chapter 11 use it is &Sigma; x<sub>i</sub>y<sub>i</sub> &mdash; the sum, over every position i, of the two entries at that position multiplied together.</p>
+  <p class="ar">وهذه هي القاعدة بالكلام، وهي القاعدة الوحيدة في هذا القسم. <strong>اضرب المدخلةَ الأولى من أحد المتجهين في المدخلة الأولى من الآخر، والثانيةَ في الثانية، وهكذا إلى النهاية؛ ثم اجمع تلك الجَداءات كلّها.</strong> فيدخل متجهان ويخرج <em>عددٌ واحد</em>. ويُكتب x &middot; y، وبالترميز الذي يستعمله <a href="#appendix-a5">الملحق A5</a> والفصل الحادي عشر هو &Sigma; x<sub>i</sub>y<sub>i</sub> &mdash; أي مجموعُ جَداء المدخلتين عند كل موضع i.</p>
+
+  <p class="en">The student sat three papers and they are not worth the same. Coursework counts 2, the midterm 3, the final 5 &mdash; ten parts in all. Marks (72, 65, 90) against weights (2, 3, 5), by hand:</p>
+  <p class="ar">قدّم الطالب ثلاث أوراق، وليست متساويةَ القيمة. فالأعمال الفصلية بوزن 2، والنصفي 3، والنهائي 5 &mdash; عشرةُ أجزاء في الجملة. والعلاماتُ (72, 65, 90) في مقابل الأوزان (2, 3, 5)، بالحساب اليدوي:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Paper</span><span class="ar">الورقة</span></th>
+        <th><span class="en">Mark</span><span class="ar">العلامة</span></th>
+        <th><span class="en">Weight</span><span class="ar">الوزن</span></th>
+        <th><span class="en">Product</span><span class="ar">الجَداء</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="en">coursework</span><span class="ar">الأعمال الفصلية</span></td><td>72</td><td>2</td><td>144</td></tr>
+      <tr><td><span class="en">midterm</span><span class="ar">النصفي</span></td><td>65</td><td>3</td><td>195</td></tr>
+      <tr><td><span class="en">final</span><span class="ar">النهائي</span></td><td>90</td><td>5</td><td>450</td></tr>
+      <tr><td><strong><span class="en">dot product</span><span class="ar">الجَداء القياسي</span></strong></td><td></td><td></td><td><strong>789</strong></td></tr>
+    </tbody>
+  </table>
+
+<pre class="code"><code>marks   = np.array([72, 65, 90])
+weights = np.array([2, 3, 5])
+
+print(marks @ weights)
+print((marks @ weights) / 10)
+</code></pre>
+
+  <div class="output">789
+78.9</div>
+
+  <p class="en">The <code>@</code> operator is the dot product, and <code>np.dot(marks, weights)</code> is the same thing with an older spelling. 789 out of ten parts is 78.9 &mdash; the student's weighted mark. Three multiplications and two additions, done in one character.</p>
+  <p class="ar">والمعامل <code>@</code> هو الجَداء القياسي، و<code>np.dot(marks, weights)</code> هو نفسه بإملاء أقدم. و789 على عشرة أجزاء تساوي 78.9 &mdash; وهي علامةُ الطالب الموزونة. ثلاثُ عمليات ضرب وعمليتا جمع، في محرفٍ واحد.</p>
+
+  <h3><span class="en">What it means, reading one: a weighted total</span><span class="ar">ما معناه، القراءة الأولى: مجموعٌ موزون</span></h3>
+
+  <p class="en">The first reading is the one the table above makes obvious and the one almost nobody says out loud: a dot product is a <strong>weighted total</strong>. One vector holds the quantities, the other holds how much each quantity counts, and the single number out is the verdict. Every price-times-quantity bill you have ever added up is a dot product. So is every prediction in Chapter 11: <code>X @ w</code> multiplies each feature by its weight and adds, once per row, and that sum is the model's answer.</p>
+  <p class="ar">والقراءة الأولى هي التي يُظهرها الجدول أعلاه ولا يقولها أحدٌ تقريبًا جهرًا: الجَداءُ القياسي <strong>مجموعٌ موزون</strong>. فأحدُ المتجهين يحمل المقادير، والآخر يحمل كم يُحسَب كلُّ مقدار، والعددُ الواحد الخارج هو الحكم. وكلُّ فاتورةٍ جمعتَها في حياتك سعرًا في كمية هي جَداءٌ قياسي. وكذلك كلُّ تنبّؤٍ في الفصل الحادي عشر: فـ <code>X @ w</code> يضرب كل سمةٍ في وزنها ويجمع، مرةً لكل صفّ، وذلك المجموعُ هو جوابُ الأنموذج.</p>
+
+  <h3><span class="en">What it means, reading two: a similarity score</span><span class="ar">ما معناه، القراءة الثانية: درجةُ تشابه</span></h3>
+
+  <p class="en">The second reading is geometric, and it is the one that makes later chapters make sense. The dot product measures <strong>how much two vectors agree about direction</strong>. It is large and positive when they point the same way, zero when they are at right angles, and negative when they oppose each other.</p>
+  <p class="ar">والقراءة الثانية هندسية، وهي التي تجعل الفصول اللاحقة معقولة. فالجَداءُ القياسي يقيس <strong>مقدار اتفاق متجهين على الاتجاه</strong>. فهو كبيرٌ موجب حين يشيران الجهة نفسها، وصفرٌ حين يكونان متعامدين، وسالبٌ حين يتضادّان.</p>
+
+<pre class="code"><code>print(np.array([1, 0]) @ np.array([0, 1]))
+print(np.array([2, 1]) @ np.array([4, 2]))
+print(np.array([2, 1]) @ np.array([-4, -2]))
+</code></pre>
+
+  <div class="output">0
+10
+-10</div>
+
+  <p class="en">Look hard at the first line, because it is the one that makes "at right angles" concrete. (1, 0) is one step across and none up; (0, 1) is one step up and none across. They share no direction at all &mdash; whatever one of them measures, the other says nothing about it &mdash; and the arithmetic agrees: 1&times;0 + 0&times;1 = 0. For two non-zero vectors, a dot product of zero is the algebraic way of saying "these two are perpendicular", and from Chapter 5 onwards you will see it used as exactly that test, with no picture anywhere in sight.</p>
+  <p class="ar">وانظر مليًّا في السطر الأول، فهو الذي يجعل «التعامد» محسوسًا. فـ (1, 0) خطوةٌ أفقيًا ولا صعود؛ و(0, 1) خطوةٌ صعودًا ولا أفقَ. ولا يتشاركان اتجاهًا إطلاقًا &mdash; فما يقيسه أحدُهما لا يقول عنه الآخر شيئًا &mdash; والحسابُ موافق: 1&times;0 + 0&times;1 = 0. ولمتجهين غير صفريين، فالجَداءُ القياسي الصفري هو الطريقة الجبرية لقول «هذان متعامدان»، وستراه من الفصل الخامس فصاعدًا مستعملًا على أنه ذلك الاختبار بالضبط، ولا صورةَ في الأفق.</p>
+
+  <p class="en">The second and third lines are the same vector against (4, 2) and against its exact opposite: (4, 2) is twice (2, 1), so it points the same way and the score is as positive as it gets for those lengths; (&minus;4, &minus;2) points the other way and the score is the same size with a minus sign in front. One number, carrying both "how big" and "which way".</p>
+  <p class="ar">والسطران الثاني والثالث هما المتجه نفسه في مقابل (4, 2) وفي مقابل نقيضه التامّ: فـ (4, 2) ضِعفُ (2, 1)، فهو يشير الجهة نفسها والدرجةُ أكبرُ ما تكون موجبةً لهذين الطولين؛ و(&minus;4, &minus;2) يشير الجهة الأخرى والدرجةُ بالحجم نفسه وأمامها إشارةُ سالب. عددٌ واحد يحمل «كم» و«إلى أين» معًا.</p>
+
+  <div class="note">
+    <h4><span class="en">Two vectors in, one number out</span><span class="ar">متجهان يدخلان وعددٌ يخرج</span></h4>
+    <p class="en">Keep this separate from <code>marks * weights</code>, which gives you back three numbers &mdash; the products, unadded. The dot product is the <em>pair</em>: multiply, then add. Forgetting the second half is the most common mistake in this appendix, and A6.6 names it again because it costs people an afternoon.</p>
+    <p class="ar">افصِل هذا عن <code>marks * weights</code> التي تردّ لك ثلاثة أعداد &mdash; الجَداءات غير مجموعة. فالجَداءُ القياسي هو <em>الزوج</em>: اضرب ثم اجمع. ونسيانُ النصف الثاني أشيعُ خطأ في هذا الملحق، وسيسمّيه A6.6 مرةً أخرى لأنه يُضيّع على الناس بعدَ ظهر يوم.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A repair shop scores each job on two things: parts cost and hours. Job one is <code>j1 = np.array([0, 5])</code> and job two is <code>j2 = np.array([7, 0])</code>. What is <code>j1 @ j2</code>, and what does it tell you?</span><span class="ar">محلُّ تصليحٍ يقيّم كل عملية بشيئين: ثمن القطع والساعات. فالعملية الأولى <code>j1 = np.array([0, 5])</code> والثانية <code>j2 = np.array([7, 0])</code>. فما <code>j1 @ j2</code>، وماذا يخبرك؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>0</code>: 0&times;7 + 5&times;0. The two jobs are at right angles &mdash; one is all labour and the other all parts, so they have no direction in common.</span><span class="ar"><code>0</code>: 0&times;7 + 5&times;0. فالعمليتان متعامدتان &mdash; إحداهما عملٌ كلُّها والأخرى قطعٌ كلُّها، فلا اتجاه مشترك بينهما.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>35</code>: multiply the non-zero entries, since multiplying by zero would throw information away.</span><span class="ar"><code>35</code>: اضرب المدخلتين غير الصفريتين، إذ الضربُ في صفر يرمي معلومات.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>[0 0]</code>: the dot product is elementwise, so the answer has two entries.</span><span class="ar"><code>[0 0]</code>: فالجَداء القياسي عنصريّ، فللجواب مدخلتان.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>12</code>: the dot product adds the entries of both vectors.</span><span class="ar"><code>12</code>: فالجَداء القياسي يجمع مدخلات المتجهين.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Zero does not mean "nothing to see here", which is why the second option is tempting: it feels like the zeros are missing data to be worked around. They are not &mdash; a zero is a real measurement, and these two jobs genuinely share no direction. The third option is the one worth fixing in your hands: <code>j1 * j2</code> is elementwise and gives <code>[0 0]</code>; <code>j1 @ j2</code> multiplies pairwise <em>and then adds</em>, which is why a dot product is always one number.</div>
+      <div class="ar">الصفرُ لا يعني «لا شيء هنا»، ولهذا كان الخيار الثاني مُغريًا: فيُخيَّل أن الأصفار بياناتٌ ناقصة تُتجاوَز. وليست كذلك &mdash; فالصفرُ قياسٌ حقيقي، وهاتان العمليتان لا تشتركان في اتجاه فعلًا. والخيار الثالث يستحق أن تُصلحه بيديك: فـ <code>j1 * j2</code> عنصريٌّ ويعطي <code>[0 0]</code>؛ و<code>j1 @ j2</code> يضرب أزواجًا <em>ثم يجمع</em>، ولذلك كان الجَداء القياسي عددًا واحدًا دائمًا.</div>
+    </div>
+  </div>
+
+  <h2 id="a6-h4"><span class="en">A6.4 &mdash; Length and distance: the norm</span><span class="ar">A6.4 &mdash; الطول والمسافة: المِعيار</span></h2>
+
+  <p class="en">The <strong>norm</strong> of a vector is its length: how long the arrow is. It is written &#8214;x&#8214; &mdash; two bars on each side, to distinguish it from the one-bar absolute value of a single number &mdash; and it is the square root of the sum of the squares of the entries: &#8214;x&#8214; = &radic;(x<sub>1</sub><sup>2</sup> + x<sub>2</sub><sup>2</sup> + &hellip; ).</p>
+  <p class="ar"><strong>مِعيارُ</strong> المتجه هو طولُه: كم طولُ السهم. ويُكتب &#8214;x&#8214; &mdash; شَرطتان على كل جانب، تمييزًا له عن القيمة المطلقة ذات الشَّرطة الواحدة للعدد المفرد &mdash; وهو الجذرُ التربيعي لمجموع مربّعات المدخلات: &#8214;x&#8214; = &radic;(x<sub>1</sub><sup>2</sup> + x<sub>2</sub><sup>2</sup> + &hellip; ).</p>
+
+  <p class="en">That is Pythagoras, and nothing more. For the arrow in Figure A6.1, across 3 and up 4, the length is &radic;(3<sup>2</sup> + 4<sup>2</sup>) = &radic;(9 + 16) = &radic;25 = 5 &mdash; the hypotenuse of the right-angled triangle the dashed lines draw. The only new idea is that the same formula keeps working when there is no triangle you can see: add a third square for a third entry, a three-hundredth for a three-hundredth, and take the root at the end.</p>
+  <p class="ar">وهذه فيثاغورس، ولا شيء غير ذلك. فللسهم في الشكل A6.1، ثلاثةٌ أفقيًا وأربعةٌ صعودًا، يكون الطول &radic;(3<sup>2</sup> + 4<sup>2</sup>) = &radic;(9 + 16) = &radic;25 = 5 &mdash; وهو وتر المثلث القائم الذي ترسمه الخطوط المتقطعة. والفكرةُ الجديدة الوحيدة أن الصيغة نفسها تظل تعمل حين لا يكون هناك مثلثٌ تراه: أضِف مربّعًا ثالثًا لمدخلةٍ ثالثة، ومربّعًا ثلاثَ مئيًّا لمدخلةٍ ثلاثَ مئية، وخُذ الجذر في النهاية.</p>
+
+<pre class="code"><code>print(np.linalg.norm(np.array([3, 4])))
+</code></pre>
+
+  <div class="output">5.0</div>
+
+  <p class="en">The <strong>distance</strong> between two vectors is the norm of their difference: &#8214;a &minus; b&#8214;. Subtracting gives the arrow that goes from b to a, and its length is how far apart they are. Amal scored (72, 65, 90) and Badr (70, 60, 88). The difference is (2, 5, 2), so the distance is &radic;(4 + 25 + 4) = &radic;33, which is a little under 6:</p>
+  <p class="ar">و<strong>المسافة</strong> بين متجهين هي مِعيارُ فرقهما: &#8214;a &minus; b&#8214;. فالطرحُ يعطي السهم الذاهب من b إلى a، وطولُه هو مقدار تباعدهما. فأمل نالت (72, 65, 90) وبدر نال (70, 60, 88). والفرقُ (2, 5, 2)، فالمسافةُ &radic;(4 + 25 + 4) = &radic;33، وهي أقلُّ قليلًا من 6:</p>
+
+<pre class="code"><code>amal = np.array([72, 65, 90])
+badr = np.array([70, 60, 88])
+
+print(amal - badr)
+print(np.linalg.norm(amal - badr))
+</code></pre>
+
+  <div class="output">[2 5 2]
+5.744562646538029</div>
+
+  <p class="en">Three places this turns up, and they are the same calculation each time:</p>
+  <p class="ar">وثلاثةُ مواضع يظهر فيها هذا، وهي الحسابُ نفسه في كل مرة:</p>
+
+  <table>
+    <thead>
+      <tr><th><span class="en">Question asked</span><span class="ar">السؤال المطروح</span></th><th><span class="en">What is computed</span><span class="ar">ما يُحسب</span></th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="en">How different are these two students?</span><span class="ar">كم يختلف هذان الطالبان؟</span></td><td><span class="en">&#8214;a &minus; b&#8214; over their marks &mdash; one number instead of three comparisons</span><span class="ar">&#8214;a &minus; b&#8214; على علاماتهما &mdash; عددٌ واحد بدل ثلاث مقارنات</span></td></tr>
+      <tr><td><span class="en">Which student is most like this one? (nearest neighbour)</span><span class="ar">أيُّ طالبٍ أشبهُ بهذا؟ (الجارُ الأقرب)</span></td><td><span class="en">the distance to every other row, then the smallest</span><span class="ar">المسافةُ إلى كل صفٍّ آخر ثم أصغرُها</span></td></tr>
+      <tr><td><span class="en">How wrong is this model?</span><span class="ar">كم يُخطئ هذا الأنموذج؟</span></td><td><span class="en">&#8214;y &minus; prediction&#8214; &mdash; the size of the whole error, in one number</span><span class="ar">&#8214;y &minus; prediction&#8214; &mdash; حجمُ الخطأ كلّه في عددٍ واحد</span></td></tr>
+    </tbody>
+  </table>
+
+  <p class="en">The third row is the reason this section exists. A model that predicts three marks and gets them all slightly wrong produces a vector of errors, not an error; the norm turns that vector into the single number you can minimise. Squaring is what makes it work: it throws away the sign, so being 2 under and 2 over do not cancel out, and it punishes one large mistake more than several small ones. Chapter 11 and Appendix A9 are built on that sentence.</p>
+  <p class="ar">والصفُّ الثالث هو سببُ وجود هذا القسم. فالأنموذجُ الذي يتنبأ بثلاث علامات فيُخطئ فيها كلِّها قليلًا يُنتج متجهَ أخطاء، لا خطأً واحدًا؛ والمِعيارُ يحوّل ذلك المتجه إلى العدد الواحد الذي تستطيع تصغيره. والتربيعُ هو ما يُنجح هذا: فهو يرمي الإشارة، فلا يتلاشى نقصُ 2 مع زيادة 2، وهو يعاقب خطأً واحدًا كبيرًا أكثر من عدة أخطاء صغيرة. وعلى تلك الجملة يُبنى الفصل الحادي عشر والملحق A9.</p>
+
+  <div class="note">
+    <h4><span class="en">The norm and the dot product are the same machinery</span><span class="ar">المِعيار والجَداء القياسي آلةٌ واحدة</span></h4>
+    <p class="en">A vector dotted with itself is the sum of the squares of its entries, which is the norm before the square root: (3, 4) &middot; (3, 4) = 9 + 16 = 25, and &radic;25 = 5. So &#8214;x&#8214; = &radic;(x &middot; x). You will see the squared form <code>x @ x</code> used on its own in Chapter 11, because when all you want is the <em>smallest</em> error the square root changes nothing and costs time.</p>
+    <p class="ar">المتجهُ مضروبًا قياسيًّا في نفسه هو مجموعُ مربّعات مدخلاته، وهو المِعيارُ قبل الجذر: (3, 4) &middot; (3, 4) = 9 + 16 = 25، و&radic;25 = 5. فإذن &#8214;x&#8214; = &radic;(x &middot; x). وسترى الصيغة المربّعة <code>x @ x</code> مستعملةً وحدها في الفصل الحادي عشر، لأنك حين لا تريد إلا <em>أصغر</em> خطأ لا يغيّر الجذرُ شيئًا ويستهلك وقتًا.</p>
+  </div>
+
+  <h2 id="a6-h5"><span class="en">A6.5 &mdash; A matrix is a table of numbers, and also a machine</span><span class="ar">A6.5 &mdash; المصفوفة جدولُ أعداد، وهي أيضًا آلة</span></h2>
+
+  <p class="en">A <strong>matrix</strong> is a rectangle of numbers: so many rows by so many columns. There are two useful ways to read one, and a student who can switch between them has understood this appendix.</p>
+  <p class="ar"><strong>المصفوفة</strong> مستطيلٌ من الأعداد: كذا صفًّا في كذا عمودًا. ولقراءتها طريقتان نافعتان، ومن استطاع التنقّل بينهما فقد فهم هذا الملحق.</p>
+
+  <h3><span class="en">Reading one: a table of data</span><span class="ar">القراءة الأولى: جدولُ بيانات</span></h3>
+
+  <p class="en">One row per thing you measured, one column per measurement. Four students, three papers each:</p>
+  <p class="ar">صفٌّ لكل شيء قِسته، وعمودٌ لكل قياس. أربعةُ طلاب، ثلاثُ أوراق لكل منهم:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th><span class="en">coursework</span><span class="ar">الأعمال الفصلية</span></th>
+        <th><span class="en">midterm</span><span class="ar">النصفي</span></th>
+        <th><span class="en">final</span><span class="ar">النهائي</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="en">Amal</span><span class="ar">أمل</span></td><td>72</td><td>65</td><td>90</td></tr>
+      <tr><td><span class="en">Badr</span><span class="ar">بدر</span></td><td>60</td><td>70</td><td>80</td></tr>
+      <tr><td><span class="en">Hind</span><span class="ar">هند</span></td><td>88</td><td>91</td><td>95</td></tr>
+      <tr><td><span class="en">Zaid</span><span class="ar">زيد</span></td><td>45</td><td>52</td><td>50</td></tr>
+    </tbody>
+  </table>
+
+  <p class="en">A table laid out that way &mdash; <strong>one row per sample, one column per feature</strong> &mdash; is called a <strong>design matrix</strong>, and it is written <code>X</code> in almost every piece of machine-learning code you will ever read. The name is older than computers: it comes from the statistics of planned experiments, where the rows really were the conditions someone had designed. With data you merely collected, nothing is designed and the name has stuck anyway. Every row of <code>X</code> is a feature vector from A6.1, and every column is one measurement across the whole class.</p>
+  <p class="ar">والجدولُ المرتَّب هكذا &mdash; <strong>صفٌّ لكل عيّنة، وعمودٌ لكل سمة</strong> &mdash; يُسمّى <strong>مصفوفةَ التصميم</strong> (<code>design matrix</code>)، ويُكتب <code>X</code> في كل كود تعلّم آلة تقرؤه تقريبًا. والاسمُ أقدمُ من الحواسيب: فأصلُه من إحصاء التجارب المخطَّطة، حيث كانت الصفوف فعلًا هي الظروف التي صمّمها أحدٌ. أما البيانات التي جمعتَها جمعًا فليس فيها شيءٌ مُصمَّم، وبقي الاسمُ مع ذلك. وكلُّ صفٍّ من <code>X</code> هو متجهُ سماتٍ من A6.1، وكلُّ عمود قياسٌ واحد على الصفّ كلّه.</p>
+
+  <p class="en">The shape of a matrix is always written <strong>(rows, columns)</strong>, in that order, and NumPy's <a href="#l10-s5"><code>.shape</code></a> is exactly that tuple. Indexing follows the same order: <code>X[i, j]</code> is row i, column j &mdash; which student first, which paper second.</p>
+  <p class="ar">وشكلُ المصفوفة يُكتب دائمًا <strong>(صفوف، أعمدة)</strong> بهذا الترتيب، و<a href="#l10-s5"><code>.shape</code></a> في نمباي هو ذلك الصفُّ بالضبط. والفهرسةُ تتبع الترتيب نفسه: فـ <code>X[i, j]</code> هي الصفّ i والعمود j &mdash; أيُّ طالبٍ أولًا وأيُّ ورقةٍ ثانيًا.</p>
+
+<pre class="code"><code>X = np.array([[72, 65, 90],
+              [60, 70, 80],
+              [88, 91, 95],
+              [45, 52, 50]])
+
+print(X.shape)
+print(X[2])
+print(X[:, 1])
+print(X[2, 1])
+</code></pre>
+
+  <div class="output">(4, 3)
+[88 91 95]
+[65 70 91 52]
+91</div>
+
+  <p class="en"><code>X[2]</code> is Hind's three marks &mdash; one sample. <code>X[:, 1]</code> is the midterm column &mdash; one feature across four students. <code>X[2, 1]</code> is Hind's midterm, 91. None of that is new; it is <a href="#l11-h2">Lecture 13</a> with the mathematical names attached.</p>
+  <p class="ar">فـ <code>X[2]</code> هي علامات هند الثلاث &mdash; عيّنةٌ واحدة. و<code>X[:, 1]</code> هو عمود النصفي &mdash; سمةٌ واحدة على أربعة طلاب. و<code>X[2, 1]</code> هي نصفيّ هند، 91. وليس في ذلك جديد؛ إنما هي <a href="#l11-h2">المحاضرة 13</a> وقد أُلحقت بها الأسماءُ الرياضية.</p>
+
+  <h3><span class="en">Reading two: a machine</span><span class="ar">القراءة الثانية: آلة</span></h3>
+
+  <p class="en">The second reading is the one that makes the next section inevitable. A matrix is also a <strong>machine that takes a vector in and gives a vector out</strong>. Feed the three weights (2, 3, 5) into the table above and four numbers come out &mdash; one weighted total per student. The table did not change; it acted. An (m, n) matrix always takes a vector of n numbers in and gives a vector of m numbers out, and A6.6 is nothing but the rule for how.</p>
+  <p class="ar">والقراءةُ الثانية هي التي تجعل القسم التالي لازمًا. فالمصفوفةُ أيضًا <strong>آلةٌ تأخذ متجهًا وتعطي متجهًا</strong>. أدخِل الأوزانَ الثلاثة (2, 3, 5) في الجدول أعلاه فتخرج أربعةُ أعداد &mdash; مجموعٌ موزون لكل طالب. فالجدولُ لم يتغيّر؛ بل فَعَل. والمصفوفةُ (m, n) تأخذ دائمًا متجهًا من n عددًا وتعطي متجهًا من m عددًا، وليس A6.6 إلا قاعدةَ الكيفية.</p>
+
+  <div class="note">
+    <h4><span class="en">One word, two languages, two meanings</span><span class="ar">كلمةٌ واحدة بلغتين ومعنيان</span></h4>
+    <p class="en">In NumPy code "array" and "matrix" are used almost interchangeably for a two-dimensional array, and in this course they mean the same object: a 2-D array <em>is</em> how a matrix is written down. (NumPy does have a separate <code>np.matrix</code> class. Do not use it &mdash; its own documentation says it is no longer recommended, even for linear algebra &mdash; and everything here is about ordinary arrays.)</p>
+    <p class="ar">وفي العربية تُستعمل كلمة «مصفوفة» للاثنين: لمصفوفة نمباي ولجدول الأعداد الرياضي. والسياقُ يفصل بينهما، ومصفوفةُ نمباي ذات البُعدين <em>هي</em> كيف تُكتب المصفوفة الرياضية. (ولنمباي صنفٌ منفصل اسمه <code>np.matrix</code>. فلا تستعمله &mdash; فوثائقه نفسها تقول إنه لم يَعُد مُستحسَنًا، ولا للجبر الخطّي &mdash; وكلُّ ما هنا عن المصفوفات العادية.)</p>
+  </div>
+
+  <h2 id="a6-h6"><span class="en">A6.6 &mdash; Matrix times vector, then matrix times matrix</span><span class="ar">A6.6 &mdash; مصفوفةٌ في متجه، ثم مصفوفةٌ في مصفوفة</span></h2>
+
+  <p class="en">Here is the rule, stated once. <strong>Every entry of the answer is one dot product: the row that it lies in, dotted with the column that it lies in.</strong> That is the whole of matrix multiplication; everything else in this section is bookkeeping about shapes.</p>
+  <p class="ar">وهذه هي القاعدة، تُقال مرةً واحدة. <strong>كلُّ مدخلةٍ من الجواب جَداءٌ قياسي واحد: الصفُّ الذي هي فيه مضروبًا قياسيًّا في العمود الذي هي فيه.</strong> وهذا هو ضربُ المصفوفات كلُّه؛ وكلُّ ما بقي في هذا القسم محاسبةُ أشكال.</p>
+
+  <h3><span class="en">A matrix times a vector</span><span class="ar">مصفوفةٌ في متجه</span></h3>
+
+  <p class="en">Take the first two students and the three weights. The matrix has two rows, so there are two dot products to do and the answer has two numbers. By hand, with nothing but multiplication and addition:</p>
+  <p class="ar">خُذ أولَ طالبين والأوزانَ الثلاثة. للمصفوفة صفّان، فهناك جَداءان قياسيان يُحسبان، وللجواب عددان. بالحساب اليدوي، بلا شيء إلا الضرب والجمع:</p>
+
+  <table>
+    <thead>
+      <tr><th><span class="en">Row</span><span class="ar">الصفّ</span></th><th><span class="en">Worked out by hand</span><span class="ar">محسوبًا بيدك</span></th><th><span class="en">Entry of the answer</span><span class="ar">مدخلةُ الجواب</span></th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="en">Amal</span><span class="ar">أمل</span></td><td>72&times;2 + 65&times;3 + 90&times;5 = 144 + 195 + 450</td><td>789</td></tr>
+      <tr><td><span class="en">Badr</span><span class="ar">بدر</span></td><td>60&times;2 + 70&times;3 + 80&times;5 = 120 + 210 + 400</td><td>730</td></tr>
+    </tbody>
+  </table>
+
+<pre class="code"><code>A = np.array([[72, 65, 90],
+              [60, 70, 80]])
+w = np.array([2, 3, 5])
+
+print(A.shape, w.shape)
+print(A @ w)
+</code></pre>
+
+  <div class="output">(2, 3) (3,)
+[789 730]</div>
+
+  <p class="en">A (2, 3) matrix met a 3-vector and gave back a 2-vector. The three disappeared and the two survived, and that is not a coincidence about this example.</p>
+  <p class="ar">مصفوفةٌ (2, 3) لاقت متجهًا من 3 فردّت متجهًا من 2. فاختفى الثلاثة وبقي الاثنان، وليس ذلك مصادفةً في هذا المثال.</p>
+
+  <h3><span class="en">The shape rule, said loudly</span><span class="ar">قاعدةُ الأشكال، بصوتٍ عالٍ</span></h3>
+
+  <p class="en"><strong>(m, n) @ (n, p) &rarr; (m, p).</strong> The two inner numbers must be equal, because they are what gets dotted together, and they <em>vanish</em> from the answer. The two outer numbers survive untouched and become the shape of the result. If the inner numbers differ there is no answer at all, and NumPy says so immediately.</p>
+  <p class="ar"><strong>(m, n) @ (n, p) &rarr; (m, p).</strong> فالعددان الداخليان يجب أن يتساويا، لأنهما ما يُضرب قياسيًّا، وهما <em>يختفيان</em> من الجواب. والعددان الخارجيان يبقيان بلا مساس ويصيران شكلَ الناتج. وإن اختلف الداخليان فلا جواب إطلاقًا، وتقول نمباي ذلك على الفور.</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 200" role="img" aria-labelledby="a6fig3">
+      <title id="a6fig3">the inner dimensions must match and then vanish</title>
+      <text class="dg-t dg-c dg-n" x="120" y="100" text-anchor="middle">(2, 3)</text>
+      <text class="dg-t dg-c dg-n" x="185" y="100" text-anchor="middle">@</text>
+      <text class="dg-t dg-c dg-n" x="250" y="100" text-anchor="middle">(3, 2)</text>
+      <text class="dg-t dg-c dg-n" x="320" y="100" text-anchor="middle">&rarr;</text>
+      <text class="dg-t dg-c dg-n" x="390" y="100" text-anchor="middle">(2, 2)</text>
+
+      <path class="dg-line" d="M 107 82 Q 247 34 377 82"/>
+      <text class="dg-t dg-s en" x="247" y="26" text-anchor="middle">the outer pair survives &mdash; this is the shape you get</text>
+      <text class="dg-t dg-s ar" x="247" y="26" text-anchor="middle">الزوج الخارجي يبقى &mdash; وهذا هو الشكل الذي تحصل عليه</text>
+
+      <path class="dg-line dg-dash" d="M 133 112 Q 185 152 237 112"/>
+      <text class="dg-t dg-s en" x="185" y="176" text-anchor="middle">must match &mdash; then they vanish</text>
+      <text class="dg-t dg-s ar" x="185" y="176" text-anchor="middle">يجب أن يتساويا &mdash; ثم يختفيان</text>
+
+      <text class="dg-t dg-b en" x="470" y="86">Read it from the middle out</text>
+      <text class="dg-t dg-b ar" x="470" y="86">اقرأها من الوسط إلى الخارج</text>
+      <text class="dg-t dg-s en" x="470" y="114">The inner pair is where the adding</text>
+      <text class="dg-t dg-s en" x="470" y="132">happens, so it has to agree.</text>
+      <text class="dg-t dg-s ar" x="470" y="114">الزوج الداخلي هو موضع الجمع،</text>
+      <text class="dg-t dg-s ar" x="470" y="132">فلا بد أن يتوافق.</text>
+    </svg>
+    <figcaption><span class="en">Figure A6.3 &mdash; write the two shapes side by side. Inner pair: must match, then gone. Outer pair: your answer's shape.</span><span class="ar">الشكل A6.3 &mdash; اكتب الشكلين جنبًا إلى جنب. الزوجُ الداخلي: يجب تساويه ثم يذهب. والزوجُ الخارجي: شكلُ جوابك.</span></figcaption>
+  </figure>
+
+  <h3><span class="en">A matrix times a matrix</span><span class="ar">مصفوفةٌ في مصفوفة</span></h3>
+
+  <p class="en">Nothing changes except that there is now more than one column to dot against. Suppose the department is arguing about two weighting schemes: scheme one is (2, 3, 5) and scheme two is (1, 3, 6), both out of ten. Stack them as the two <em>columns</em> of a (3, 2) matrix and multiply once:</p>
+  <p class="ar">ولا يتغير شيء إلا أن هناك الآن أكثر من عمودٍ يُضرب فيه. فلنفترض أن القسم يتنازع في مخطّطَي ترجيح: الأول (2, 3, 5) والثاني (1, 3, 6)، وكلاهما على عشرة. رُصَّهما <em>عمودَي</em> مصفوفةٍ (3, 2) واضرب مرةً واحدة:</p>
+
+  <figure class="diagram">
+    <svg viewBox="0 0 700 300" role="img" aria-labelledby="a6fig4">
+      <title id="a6fig4">row two of A meets column one of W to make one entry of the answer</title>
+
+      <text class="dg-t dg-c dg-n" x="126" y="52" text-anchor="middle">A (2, 3)</text>
+      <rect x="60" y="76" width="132" height="68" class="dg-box"/>
+      <rect x="60" y="110" width="132" height="34" class="dg-box dg-fill"/>
+      <text class="dg-t dg-c dg-n" x="82" y="103" text-anchor="middle">72</text>
+      <text class="dg-t dg-c dg-n" x="126" y="103" text-anchor="middle">65</text>
+      <text class="dg-t dg-c dg-n" x="170" y="103" text-anchor="middle">90</text>
+      <text class="dg-t dg-c dg-n" x="82" y="137" text-anchor="middle">60</text>
+      <text class="dg-t dg-c dg-n" x="126" y="137" text-anchor="middle">70</text>
+      <text class="dg-t dg-c dg-n" x="170" y="137" text-anchor="middle">80</text>
+
+      <text class="dg-t dg-c dg-n" x="225" y="117" text-anchor="middle">@</text>
+
+      <text class="dg-t dg-c dg-n" x="304" y="52" text-anchor="middle">W (3, 2)</text>
+      <rect x="260" y="60" width="88" height="102" class="dg-box"/>
+      <rect x="260" y="60" width="44" height="102" class="dg-box dg-fill"/>
+      <text class="dg-t dg-c dg-n" x="282" y="87" text-anchor="middle">2</text>
+      <text class="dg-t dg-c dg-n" x="326" y="87" text-anchor="middle">1</text>
+      <text class="dg-t dg-c dg-n" x="282" y="121" text-anchor="middle">3</text>
+      <text class="dg-t dg-c dg-n" x="326" y="121" text-anchor="middle">3</text>
+      <text class="dg-t dg-c dg-n" x="282" y="155" text-anchor="middle">5</text>
+      <text class="dg-t dg-c dg-n" x="326" y="155" text-anchor="middle">6</text>
+
+      <text class="dg-t dg-c dg-n" x="408" y="117" text-anchor="middle">=</text>
+
+      <text class="dg-t dg-c dg-n" x="504" y="52" text-anchor="middle">A @ W (2, 2)</text>
+      <rect x="460" y="76" width="88" height="68" class="dg-box"/>
+      <rect x="460" y="110" width="44" height="34" class="dg-box dg-fill"/>
+      <text class="dg-t dg-c dg-n" x="482" y="103" text-anchor="middle">789</text>
+      <text class="dg-t dg-c dg-n" x="526" y="103" text-anchor="middle">807</text>
+      <text class="dg-t dg-c dg-n" x="482" y="137" text-anchor="middle">730</text>
+      <text class="dg-t dg-c dg-n" x="526" y="137" text-anchor="middle">750</text>
+
+      <text class="dg-t dg-b en" x="350" y="212" text-anchor="middle">Row 2 of A meets column 1 of W</text>
+      <text class="dg-t dg-b ar" x="350" y="212" text-anchor="middle">الصفّ 2 من A يلاقي العمود 1 من W</text>
+      <text class="dg-t dg-c dg-n" x="350" y="242" text-anchor="middle">60&times;2 + 70&times;3 + 80&times;5 = 730</text>
+      <text class="dg-t dg-s en" x="350" y="270" text-anchor="middle">The answer has four cells, so there are four dot products to do.</text>
+      <text class="dg-t dg-s ar" x="350" y="270" text-anchor="middle">للجواب أربعُ خانات، فهناك أربعةُ جَداءات قياسية تُحسب.</text>
+    </svg>
+    <figcaption><span class="en">Figure A6.4 &mdash; the shaded row and the shaded column meet in the shaded cell. Every other cell is the same operation on a different pair.</span><span class="ar">الشكل A6.4 &mdash; الصفُّ المظلَّل والعمودُ المظلَّل يلتقيان في الخانة المظلَّلة. وكلُّ خانة أخرى هي العملية نفسها على زوجٍ آخر.</span></figcaption>
+  </figure>
+
+<pre class="code"><code>W = np.array([[2, 1],
+              [3, 3],
+              [5, 6]])
+
+print(A @ W)
+print((A @ W).shape)
+</code></pre>
+
+  <div class="output">[[789 807]
+ [730 750]]
+(2, 2)</div>
+
+  <p class="en">Check the top-right entry by hand, because it is the one that proves you have the rule: row 1 of <code>A</code> against column 2 of <code>W</code> is 72&times;1 + 65&times;3 + 90&times;6 = 72 + 195 + 540 = 807. Row for student, column for scheme: Amal gets 78.9 under the first scheme and 80.7 under the second, and the argument is now about the second column of a matrix rather than about opinions.</p>
+  <p class="ar">افحص المدخلة العليا اليمنى بيدك، فهي التي تُثبت أنك ضبطت القاعدة: الصفُّ 1 من <code>A</code> في مقابل العمود 2 من <code>W</code> هو 72&times;1 + 65&times;3 + 90&times;6 = 72 + 195 + 540 = 807. فالصفُّ للطالب والعمودُ للمخطّط: أمل تنال 78.9 بالمخطّط الأول و80.7 بالثاني، وصار النزاعُ الآن عن العمود الثاني من مصفوفة لا عن الآراء.</p>
+
+  <p class="en">And when the inner numbers do not match, NumPy tells you so, loudly and in a sentence worth learning to read. <code>X</code> is the (4, 3) design matrix from A6.5:</p>
+  <p class="ar">وحين لا يتوافق العددان الداخليان تخبرك نمباي بذلك جهرًا وبجملةٍ تستحق أن تتعلّم قراءتها. و<code>X</code> هي مصفوفةُ التصميم (4, 3) من A6.5:</p>
+
+<pre class="code bad"><code>print(X @ X)
+</code></pre>
+
+  <div class="output">ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature (n?,k),(k,m?)-&gt;(n?,m?) (size 4 is different from 3)</div>
+
+  <p class="en">Under the jargon it says one thing: the inner pair is 3 and 4, and 3 is not 4. "Core dimension 0 of operand 1" is the first number of the <em>second</em> shape &mdash; the row count of the right-hand matrix &mdash; which is exactly the inner number on the right. The signature <code>(n,k),(k,m)-&gt;(n,m)</code> printed in the middle of the message is the shape rule from Figure A6.3, written in NumPy's own notation.</p>
+  <p class="ar">وتحت الرَّكاكة تقول شيئًا واحدًا: الزوجُ الداخلي 3 و4، و3 ليست 4. و«البُعد الأساسي 0 من المُعامل 1» هو العددُ الأول من الشكل <em>الثاني</em> &mdash; أي عددُ صفوف المصفوفة اليمنى &mdash; وهو العددُ الداخلي على اليمين بالضبط. والتوقيعُ <code>(n,k),(k,m)-&gt;(n,m)</code> المطبوع في وسط الرسالة هو قاعدةُ الأشكال من الشكل A6.3 مكتوبةً بترميز نمباي نفسه.</p>
+
+  <div class="note">
+    <h4><span class="en"><code>@</code> is not <code>*</code></span><span class="ar"><code>@</code> ليست <code>*</code></span></h4>
+    <p class="en"><code>A * B</code> multiplies corresponding entries and adds nothing, so the answer has the same shape as what went in. <code>A @ B</code> multiplies <em>and adds</em>, so a dimension disappears. They are different operations with different answers, and on square matrices they both run without complaint &mdash; which is why the mistake is expensive. If you meant a weighted total and got a table back, you typed <code>*</code>.</p>
+    <p class="ar"><code>A * B</code> تضرب المدخلات المتقابلة ولا تجمع شيئًا، فيكون للجواب شكلُ ما دخل. و<code>A @ B</code> تضرب <em>وتجمع</em>، فيختفي بُعد. فهما عمليتان مختلفتان بجوابين مختلفين، وعلى المصفوفات المربّعة تعمل كلتاهما بلا شكوى &mdash; ولهذا كان الخطأ مكلِفًا. فإن قصدتَ مجموعًا موزونًا فعاد إليك جدولٌ، فإنك كتبت <code>*</code>.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en"><code>X</code> is a design matrix of shape <code>(100, 4)</code> &mdash; 100 samples, 4 features &mdash; and <code>w</code> has shape <code>(4,)</code>. What is the shape of <code>X @ w</code>?</span><span class="ar"><code>X</code> مصفوفةُ تصميمٍ شكلُها <code>(100, 4)</code> &mdash; مئةُ عيّنة وأربعُ سمات &mdash; و<code>w</code> شكلُها <code>(4,)</code>. فما شكلُ <code>X @ w</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>(100,)</code> &mdash; one number per sample. The inner 4s matched and vanished; the outer 100 survived.</span><span class="ar"><code>(100,)</code> &mdash; عددٌ واحد لكل عيّنة. فالأربعتان الداخليتان تساويا واختفيا؛ وبقي المئةُ الخارجي.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>(100, 4)</code> &mdash; each of the 400 numbers is multiplied by its weight.</span><span class="ar"><code>(100, 4)</code> &mdash; فكلُّ عددٍ من الأربع مئة يُضرب في وزنه.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>(4,)</code> &mdash; one number per feature, totalled down the columns.</span><span class="ar"><code>(4,)</code> &mdash; عددٌ واحد لكل سمة، مجموعًا نزولًا في الأعمدة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A <code>ValueError</code> &mdash; <code>w</code> is one-dimensional, so it must be reshaped to <code>(4, 1)</code> first.</span><span class="ar">خطأ <code>ValueError</code> &mdash; فـ <code>w</code> ذو بُعد واحد، فيجب تغييرُ شكله إلى <code>(4, 1)</code> أولًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is the one to understand rather than just reject: it describes <code>X * w</code>, which really does give <code>(100, 4)</code> and really does run. Multiplying is only half of a dot product; the adding is what collapses the 4 features of each row into one prediction. The fourth option is a reasonable worry and NumPy is kinder than that &mdash; it treats a 1-D array on the right as the column it needs and hands back a 1-D answer, which is why <code>X @ w</code> is the form you will see everywhere.</div>
+      <div class="ar">الخيار الثاني يستحق الفهم لا مجرّد الرفض: فهو يصف <code>X * w</code> التي تعطي <code>(100, 4)</code> فعلًا وتعمل فعلًا. فالضربُ نصفُ الجَداء القياسي فقط؛ والجمعُ هو ما يُطبق السمات الأربع لكل صفٍّ في تنبّؤٍ واحد. والخيار الرابع قلقٌ معقول، ونمباي ألطفُ من ذلك &mdash; فهي تعامل المصفوفة ذات البُعد الواحد على اليمين بأنها العمودُ الذي تحتاجه وتردّ جوابًا ذا بُعد واحد، ولهذا كانت <code>X @ w</code> هي الصيغةَ التي ترى في كل مكان.</div>
+    </div>
+  </div>
+
+  <h2 id="a6-h7"><span class="en">A6.7 &mdash; Transpose: flipping rows and columns</span><span class="ar">A6.7 &mdash; المنقول: قلبُ الصفوف والأعمدة</span></h2>
+
+  <p class="en">The <strong>transpose</strong> of a matrix, written A<sup>T</sup>, is the same numbers with rows and columns swapped: whatever was at row i, column j is now at row j, column i. A shape of (2, 3) becomes (3, 2). Transposing twice gives you back what you started with.</p>
+  <p class="ar"><strong>منقولُ</strong> المصفوفة، ويُكتب A<sup>T</sup>، هو الأعدادُ نفسها بتبادل الصفوف والأعمدة: فما كان في الصفّ i والعمود j صار في الصفّ j والعمود i. فالشكلُ (2, 3) يصير (3, 2). والنقلُ مرتين يردّك إلى ما بدأت به.</p>
+
+<pre class="code"><code>print(A.shape)
+print(A.T)
+print(A.T.shape)
+</code></pre>
+
+  <div class="output">(2, 3)
+[[72 60]
+ [65 70]
+ [90 80]]
+(3, 2)</div>
+
+  <p class="en">The practical reason it appears on almost every line of real linear-algebra code is unglamorous: <strong>it makes two shapes line up</strong>. The design matrix <code>X</code> is (4, 3), so <code>X @ X</code> is impossible &mdash; inner pair 3 and 4. But <code>X.T</code> is (3, 4), and (3, 4) @ (4, 3) has an inner pair of 4 and 4, so it works and gives a (3, 3) matrix, one row and one column per feature:</p>
+  <p class="ar">والسببُ العملي لظهوره في كل سطر من كود الجبر الخطّي الحقيقي تقريبًا سببٌ غير بَرّاق: <strong>إنه يُحاذي شكلين</strong>. فمصفوفةُ التصميم <code>X</code> شكلُها (4, 3)، فـ <code>X @ X</code> مستحيلة &mdash; زوجٌ داخلي 3 و4. أما <code>X.T</code> فشكلُها (3, 4)، و(3, 4) @ (4, 3) زوجُها الداخلي 4 و4، فتعمل وتعطي مصفوفةً (3, 3) فيها صفٌّ وعمودٌ لكل سمة:</p>
+
+<pre class="code"><code>print(X.shape, X.T.shape)
+print((X.T @ X).shape)
+</code></pre>
+
+  <div class="output">(4, 3) (3, 4)
+(3, 3)</div>
+
+  <p class="en">That expression, X<sup>T</sup>X, is the one you will meet again in Chapter 11 and Appendix A9: it is the heart of the formula that fits a regression, and the reason it is always written with a transpose in front is the shape arithmetic you just did. The transpose is not an idea in that formula. It is a connector.</p>
+  <p class="ar">وذلك التعبير، X<sup>T</sup>X، هو الذي ستقابله مرةً أخرى في الفصل الحادي عشر والملحق A9: فهو قلبُ الصيغة التي تُلائم انحدارًا، والسببُ في كتابته دائمًا بمنقولٍ في المقدمة هو حسابُ الأشكال الذي فرغتَ منه قبل قليل. فالمنقولُ ليس فكرةً في تلك الصيغة. إنه موصِل.</p>
+
+  <div class="note">
+    <h4><span class="en">For a 1-D array, <code>.T</code> does nothing at all</span><span class="ar">وللمصفوفة ذات البُعد الواحد لا تفعل <code>.T</code> شيئًا إطلاقًا</span></h4>
+    <p class="en">This surprises everyone, and it is worth meeting here rather than at two in the morning.</p>
+    <p class="ar">وهذا يفاجئ الجميع، وخيرٌ أن تقابله هنا لا في الثانية بعد منتصف الليل.</p>
+
+<pre class="code"><code>v = np.array([1, 2, 3])
+
+print(v.T)
+print(v.shape, v.T.shape)
+</code></pre>
+
+    <div class="output">[1 2 3]
+(3,) (3,)</div>
+
+    <p class="en">Transposing swaps axes, and a 1-D array has only one axis, so there is nothing to swap &mdash; it is not an error and nothing warns. If you genuinely need a column, add the missing dimension explicitly with <code>v[:, None]</code>, which gives shape <code>(3, 1)</code>, exactly as in <a href="#l12-s4">Lecture 14</a>. In practice you need it less often than you expect, because <code>@</code> already treats a 1-D array on the right as a column and on the left as a row.</p>
+    <p class="ar">فالنقلُ يُبادل المحاور، وللمصفوفة ذات البُعد الواحد محورٌ واحد فقط، فلا شيء يُبادَل &mdash; وليس ذلك خطأً ولا شيء يحذّر. فإن احتجتَ عمودًا حقًّا فأضِف البُعد الناقص صراحةً بـ <code>v[:, None]</code> التي تعطي الشكل <code>(3, 1)</code>، كما في <a href="#l12-s4">المحاضرة 14</a> بالضبط. وأنت في الواقع تحتاج إليه أقلَّ مما تتوقع، لأن <code>@</code> تعامل المصفوفة ذات البُعد الواحد على اليمين عمودًا وعلى اليسار صفًّا أصلًا.</p>
+  </div>
+
+  <h2 id="a6-h8"><span class="en">A6.8 &mdash; Identity and inverse</span><span class="ar">A6.8 &mdash; مصفوفة الوحدة والمعكوس</span></h2>
+
+  <p class="en">The <strong>identity matrix</strong>, written I, is the matrix that changes nothing: 1s down the diagonal from top-left to bottom-right, 0s everywhere else. Multiply any vector by it and you get the same vector back. It is the 1 of matrix multiplication, in the same way that 1 is the number that multiplying by leaves everything alone.</p>
+  <p class="ar"><strong>مصفوفةُ الوحدة</strong>، وتُكتب I، هي المصفوفةُ التي لا تغيّر شيئًا: آحادٌ على القُطر من أعلى اليسار إلى أسفل اليمين، وأصفارٌ في كل ما سوى ذلك. اضرب أي متجه فيها فيعود إليك المتجهُ نفسه. فهي «واحدُ» ضربِ المصفوفات، كما أن 1 هو العددُ الذي يترك الضربُ فيه كلَّ شيء على حاله.</p>
+
+<pre class="code"><code>I = np.eye(3)
+
+print(I)
+print(I @ np.array([72., 65., 90.]))
+</code></pre>
+
+  <div class="output">[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+[72. 65. 90.]</div>
+
+  <p class="en">The <strong>inverse</strong> of a square matrix A, written A<sup>&minus;1</sup>, is the matrix that undoes it: A @ A<sup>&minus;1</sup> = I. If A is a machine that turns one vector into another, A<sup>&minus;1</sup> is the machine that runs it backwards. Not every matrix has one &mdash; that is the whole of A6.9 &mdash; but when it does, it is unique.</p>
+  <p class="ar">و<strong>معكوسُ</strong> المصفوفة المربّعة A، ويُكتب A<sup>&minus;1</sup>، هو المصفوفةُ التي تنقضها: A @ A<sup>&minus;1</sup> = I. فإن كانت A آلةً تحوّل متجهًا إلى آخر، فـ A<sup>&minus;1</sup> هي الآلةُ التي تُشغّلها عكسًا. وليس لكل مصفوفة معكوس &mdash; وذلك هو A6.9 كلُّه &mdash; ولكنه حين يوجد يكون وحيدًا.</p>
+
+<pre class="code"><code>M = np.array([[2., 1.],
+              [1., 1.]])
+
+print(np.linalg.inv(M))
+print(M @ np.linalg.inv(M))
+</code></pre>
+
+  <div class="output">[[ 1. -1.]
+ [-1.  2.]]
+[[1. 0.]
+ [0. 1.]]</div>
+
+  <p class="en">Check the top-left entry of the second output by hand with the rule from A6.6: row 1 of M is (2, 1), column 1 of the inverse is (1, &minus;1), and 2&times;1 + 1&times;(&minus;1) = 1. Top-right: (2, 1) against (&minus;1, 2) is 2&times;(&minus;1) + 1&times;2 = 0. That is the identity appearing one dot product at a time.</p>
+  <p class="ar">افحص المدخلة العليا اليسرى من المخرج الثاني بيدك بقاعدة A6.6: الصفُّ 1 من M هو (2, 1)، والعمودُ 1 من المعكوس هو (1, &minus;1)، و2&times;1 + 1&times;(&minus;1) = 1. والعليا اليمنى: (2, 1) في مقابل (&minus;1, 2) هو 2&times;(&minus;1) + 1&times;2 = 0. فهذه مصفوفةُ الوحدة تظهر جَداءً قياسيًّا بعد جَداء.</p>
+
+  <div class="note">
+    <h4><span class="en">Almost never compute an inverse in code</span><span class="ar">لا تحسب معكوسًا في الكود إلا نادرًا جدًّا</span></h4>
+    <p class="en">Say it now, before the habit forms. The reason anyone wants an inverse is to solve A x = b, because x = A<sup>&minus;1</sup>b. In code you should write <code>np.linalg.solve(A, b)</code> instead, which goes straight to x: it does less arithmetic, and it is more accurate, because <code>inv(A)</code> builds a whole matrix of rounded numbers that you then multiply by, rounding again. Both lines below give the same answer here, and only one of them is the line to write.</p>
+    <p class="ar">قُلها الآن قبل أن تُستحكم العادة. فالسببُ في أن يريد أحدٌ معكوسًا هو حلُّ A x = b، لأن x = A<sup>&minus;1</sup>b. وفي الكود ينبغي أن تكتب <code>np.linalg.solve(A, b)</code> بدلًا من ذلك، وهي تذهب إلى x مباشرةً: فحسابُها أقلّ، ودقتُها أعلى، لأن <code>inv(A)</code> تبني مصفوفةً كاملة من أعدادٍ مُقرَّبة ثم تضرب فيها فيحدث تقريبٌ ثانٍ. والسطران أدناه يعطيان الجواب نفسه هنا، وأحدُهما وحده هو السطرُ الذي يُكتب.</p>
+
+<pre class="code"><code>b = np.array([5., 3.])
+
+print(np.linalg.inv(M) @ b)
+print(np.linalg.solve(M, b))
+</code></pre>
+
+    <div class="output">[2. 1.]
+[2. 1.]</div>
+
+    <p class="en">On a well-behaved 2&times;2 the two agree to the last digit, which is why the advice has to be given rather than discovered. The gap opens on awkward matrices. Below, a 12&times;12 matrix is built whose true answer is a vector of twelve 1s, and the two routes are scored by how far their answers land from it &mdash; smaller is better:</p>
+    <p class="ar">وعلى مصفوفةٍ 2&times;2 حسنةِ الطبع يتفقان إلى آخر رقم، ولهذا وجب أن تُعطى هذه النصيحة لا أن تُكتشف. والفجوةُ تنفتح على المصفوفات العَصيّة. وفيما يلي تُبنى مصفوفةٌ 12&times;12 جوابُها الحقيقي متجهٌ من اثني عشر واحدًا، وتُقيَّم الطريقان بمقدار بُعد جوابيهما عنه &mdash; والأصغرُ أفضل:</p>
+
+<pre class="code"><code>i = np.arange(12)
+H = 1.0 / (i[:, None] + i[None, :] + 1)
+true = np.ones(12)
+rhs = H @ true
+
+off_inv   = np.linalg.norm(np.linalg.inv(H) @ rhs - true)
+off_solve = np.linalg.norm(np.linalg.solve(H, rhs) - true)
+print(np.round([off_inv, off_solve], 2))
+</code></pre>
+
+    <div class="output">[9.44 0.45]</div>
+
+    <p class="en">Both answers are poor, because that matrix is deliberately nasty; the inverse route is about twenty times poorer. The exact digits depend on the arithmetic library your machine uses and are not worth memorising &mdash; what is worth carrying is which column is smaller, and that <code>solve</code> is the default. Chapter 5 returns to this with the vocabulary to explain <em>why</em> the matrix is nasty.</p>
+    <p class="ar">والجوابان كلاهما ضعيف، لأن تلك المصفوفة عَصيّةٌ بالتصميم؛ وطريقُ المعكوس أضعفُ نحوَ عشرين مرة. والأرقامُ بعينها تتبع مكتبة الحساب على جهازك ولا تستحق الحفظ &mdash; والذي يستحق أن تحمله هو أيُّ العمودين أصغر، وأن <code>solve</code> هي الافتراض. ويعود الفصل الخامس إلى هذا بالمصطلحات التي تشرح <em>لماذا</em> كانت المصفوفة عَصيّة.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You need <code>x</code> such that <code>A @ x</code> is <code>b</code>, where <code>A</code> is a square 500&times;500 matrix. Which line should you write?</span><span class="ar">تحتاج <code>x</code> بحيث يكون <code>A @ x</code> هو <code>b</code>، و<code>A</code> مصفوفةٌ مربّعة 500&times;500. فأيُّ سطرٍ تكتب؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>x = np.linalg.solve(A, b)</code> &mdash; it goes straight to <code>x</code>, with less arithmetic and less rounding than building a matrix first.</span><span class="ar"><code>x = np.linalg.solve(A, b)</code> &mdash; فهي تذهب إلى <code>x</code> مباشرةً، بحسابٍ أقلّ وتقريبٍ أقلّ من بناء مصفوفةٍ أولًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>x = np.linalg.inv(A) @ b</code> &mdash; this is the definition of the answer, so it is the most faithful translation of the mathematics.</span><span class="ar"><code>x = np.linalg.inv(A) @ b</code> &mdash; فهذا تعريفُ الجواب، فهو أصدقُ ترجمةٍ للرياضيات.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>x = b @ np.linalg.inv(A)</code> &mdash; the inverse has to come second to undo <code>A</code> in the right order.</span><span class="ar"><code>x = b @ np.linalg.inv(A)</code> &mdash; فالمعكوسُ يجب أن يأتي ثانيًا لينقض <code>A</code> بالترتيب الصحيح.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>x = b / A</code> &mdash; division is how you undo a multiplication.</span><span class="ar"><code>x = b / A</code> &mdash; فالقسمةُ هي كيف تنقض الضرب.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The second option is not wrong mathematics &mdash; it is exactly the definition &mdash; which is what makes it the honest trap: a faithful translation of a formula is not always the right code. Building a 500&times;500 inverse means computing 250 000 rounded numbers you are about to throw away, and <code>solve</code> never builds it. The last option is worth refuting properly: <code>b / A</code> runs without any error and quietly divides elementwise with <a href="#l12-s1">broadcasting</a>, giving you a 500&times;500 table of nonsense rather than a vector.</div>
+      <div class="ar">الخيار الثاني ليس رياضياتٍ خاطئة &mdash; بل هو التعريفُ بعينه &mdash; وهذا ما يجعله الفخَّ الصادق: فالترجمةُ الوفيّة لصيغةٍ ليست دائمًا هي الكودَ الصحيح. فبناءُ معكوسٍ 500&times;500 يعني حسابَ 250 000 عددٍ مقرَّب أنت على وشك رميها، و<code>solve</code> لا تبنيه قطّ. والخيار الأخير يستحق دحضًا كاملًا: فـ <code>b / A</code> تعمل بلا أي خطأ وتقسم عنصريًّا بصمتٍ عبر <a href="#l12-s1">البثّ</a>، فتعطيك جدولًا 500&times;500 من اللغو لا متجهًا.</div>
+    </div>
+  </div>
+
+  <h2 id="a6-h9"><span class="en">A6.9 &mdash; When there is no single answer: rank, singular matrices, and systems</span><span class="ar">A6.9 &mdash; حين لا يكون هناك جوابٌ واحد: الرتبة والمصفوفات الشاذّة والنُّظُم</span></h2>
+
+  <p class="en">A <strong>system of linear equations</strong> is a set of equations in the same unknowns, with no powers and no products of unknowns. Two of them, in x and y:</p>
+  <p class="ar"><strong>نظامُ المعادلات الخطّية</strong> جملةُ معادلاتٍ في المجاهيل نفسها، بلا قوى ولا جَداءات بين المجاهيل. واثنتان منها في x و y:</p>
+
+  <table>
+    <thead>
+      <tr><th><span class="en">As equations</span><span class="ar">معادلاتٍ</span></th><th><span class="en">As A x = b</span><span class="ar">على صورة A x = b</span></th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>2x + y = 5<br>x + y = 3</td>
+        <td><span class="en">A is the table of coefficients <code>[[2, 1], [1, 1]]</code>, x is the vector of unknowns, b is <code>[5, 3]</code></span><span class="ar">A جدولُ المعاملات <code>[[2, 1], [1, 1]]</code>، وx متجهُ المجاهيل، وb هو <code>[5, 3]</code></span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="en">Writing a system as A x = b is the single most useful thing matrices do. The equations are now one object, the unknowns are one vector, and the question "is there an x?" becomes a question about A. Three answers are possible, and only three.</p>
+  <p class="ar">وكتابةُ النظام على صورة A x = b هي أنفعُ ما تفعله المصفوفات. فالمعادلاتُ الآن شيءٌ واحد، والمجاهيلُ متجهٌ واحد، وسؤالُ «هل يوجد x؟» صار سؤالًا عن A. والأجوبةُ الممكنة ثلاثة، ثلاثةٌ لا غير.</p>
+
+  <h3><span class="en">Case one: exactly one answer</span><span class="ar">الحالة الأولى: جوابٌ واحد بالضبط</span></h3>
+
+  <p class="en">2x + y = 5 and x + y = 3. Subtract the second from the first and x = 2; then y = 1. The two equations say genuinely different things, and they cross at exactly one point. This is the system you already solved in A6.8, now with its rank reported beside the answer:</p>
+  <p class="ar">2x + y = 5 و x + y = 3. اطرح الثانية من الأولى فيكون x = 2؛ ثم y = 1. فالمعادلتان تقولان شيئين مختلفين حقًّا، وتتقاطعان في نقطةٍ واحدة بالضبط. وهذا هو النظام الذي حللتَه في A6.8، ومعه الآن رتبتُه مُبلَّغًا بها إلى جانب الجواب:</p>
+
+<pre class="code"><code>C = np.array([[2., 1.],
+              [1., 1.]])
+rhs = np.array([5., 3.])
+
+print(np.linalg.solve(C, rhs))
+print(np.linalg.matrix_rank(C))
+</code></pre>
+
+  <div class="output">[2. 1.]
+2</div>
+
+  <h3><span class="en">Case two: no answer at all</span><span class="ar">الحالة الثانية: لا جواب إطلاقًا</span></h3>
+
+  <p class="en">x + y = 2 and x + y = 5. The left-hand sides are identical and the right-hand sides are not, so the two equations contradict each other: no pair of numbers can add up to 2 and to 5 at once. Geometrically, two parallel lines that never cross.</p>
+  <p class="ar">x + y = 2 و x + y = 5. فالطرفان الأيسران متطابقان والأيمنان ليسا كذلك، فالمعادلتان تتناقضان: فلا زوجَ أعدادٍ يُجمع فيكون 2 و5 في وقتٍ واحد. وهندسيًّا: خطّان متوازيان لا يتقاطعان أبدًا.</p>
+
+  <h3><span class="en">Case three: infinitely many answers</span><span class="ar">الحالة الثالثة: أجوبةٌ لا تُحصى</span></h3>
+
+  <p class="en">x + y = 2 and 2x + 2y = 4. The second equation is the first one doubled &mdash; it says nothing new. Every point on the line x + y = 2 satisfies both, so there is no single answer to report: (0, 2), (1, 1) and (2, 0) are all correct.</p>
+  <p class="ar">x + y = 2 و 2x + 2y = 4. فالمعادلةُ الثانية هي الأولى مضاعفةً &mdash; ولا تقول جديدًا. فكلُّ نقطة على الخطّ x + y = 2 تُحقّق الاثنتين، فلا جواب واحد يُذكر: فـ (0, 2) و(1, 1) و(2, 0) كلُّها صحيحة.</p>
+
+  <h3><span class="en">What "singular" means, and what rank counts</span><span class="ar">ما تعني «الشاذّة»، وما تعدّه الرتبة</span></h3>
+
+  <p class="en">A square matrix is <strong>singular</strong> when it has no inverse, and in practice it comes down to one thing: <strong>some row says nothing that the others had not already said.</strong> The usual case is the blunt one &mdash; two rows that are identical, or one row that is just another row multiplied by a number, which is exactly case three. The same can happen to columns &mdash; a feature that is just another feature doubled, say a length recorded once in metres and once in centimetres &mdash; and it is just as fatal.</p>
+  <p class="ar">والمصفوفةُ المربّعة <strong>شاذّة</strong> حين لا معكوس لها، وينتهي الأمرُ عمليًّا إلى شيءٍ واحد: <strong>صفٌّ لا يقول شيئًا لم تقله الصفوفُ الأخرى.</strong> والحالةُ المعتادة هي الصريحة &mdash; صفّان متطابقان، أو صفٌّ هو مجرّدُ صفٍّ آخر مضروبًا في عدد، وهي الحالةُ الثالثة بالضبط. وقد يحدث هذا للأعمدة &mdash; سمةٌ هي مجرّدُ سمةٍ أخرى مضاعفة، كطولٍ سُجّل مرةً بالأمتار ومرةً بالسنتيمترات &mdash; وهو مُهلكٌ بالقدر نفسه.</p>
+
+  <p class="en">The <strong>rank</strong> of a matrix counts how many of its rows carry genuinely new information &mdash; how many are left once you discard every row that is a combination of the others. A (2, 2) matrix whose second row is twice its first has rank 1, not 2. A square matrix is invertible exactly when its rank equals its size, and <code>np.linalg.matrix_rank</code> reports it:</p>
+  <p class="ar">و<strong>رتبةُ</strong> المصفوفة تعدّ كم من صفوفها يحمل معلومةً جديدة حقًّا &mdash; كم يبقى منها بعد أن تطرح كلَّ صفٍّ هو تركيبٌ من الباقي. فالمصفوفةُ (2, 2) التي صفُّها الثاني ضِعفُ أولها رتبتُها 1 لا 2. والمصفوفةُ المربّعة قابلةٌ للعكس بالضبط حين تساوي رتبتُها حجمَها، و<code>np.linalg.matrix_rank</code> تُبلّغ بها:</p>
+
+<pre class="code bad"><code>S = np.array([[1., 1.],
+              [2., 2.]])
+
+print(np.linalg.matrix_rank(S))
+print(np.linalg.solve(S, np.array([2., 4.])))
+</code></pre>
+
+  <div class="output">1
+numpy.linalg.LinAlgError: Singular matrix</div>
+
+  <p class="en">Rank 1 for a 2&times;2 matrix, so it is singular, so <code>solve</code> refuses. Learn that message &mdash; <code>numpy.linalg.LinAlgError: Singular matrix</code> &mdash; because it is the one NumPy raises for <em>both</em> of the awkward cases. Change the right-hand side to <code>[2., 5.]</code>, turning "infinitely many answers" into "no answer at all", and you get exactly the same message. That is not sloppiness: <code>solve</code> is telling you that A is the problem, and A is identical in the two cases. Only b changed.</p>
+  <p class="ar">رتبةٌ 1 لمصفوفةٍ 2&times;2، فهي شاذّة، فتأبى <code>solve</code>. وتعلّم تلك الرسالة &mdash; <code>numpy.linalg.LinAlgError: Singular matrix</code> &mdash; فهي التي ترفعها نمباي في <em>كلتا</em> الحالتين العَصيّتين. غيّر الطرف الأيمن إلى <code>[2., 5.]</code> فتُحوّل «أجوبةً لا تُحصى» إلى «لا جواب إطلاقًا»، فتحصل على الرسالة نفسها بالضبط. وليس ذلك تهاونًا: فـ <code>solve</code> تخبرك أن A هي المشكلة، وA واحدةٌ في الحالتين. ولم يتغيّر إلا b.</p>
+
+  <div class="note">
+    <h4><span class="en">Where this goes next</span><span class="ar">إلى أين يمضي هذا</span></h4>
+    <p class="en">Chapter 5 is the practical half of this section: <code>np.linalg.solve</code>, <code>matrix_rank</code>, the determinant, and what to do when <code>LinAlgError</code> appears in code you were sure about. One thing it teaches is worth knowing in advance, because it is the whole shape of Chapter 11.</p>
+    <p class="ar">والفصل الخامس هو النصفُ العملي من هذا القسم: <code>np.linalg.solve</code> و<code>matrix_rank</code> والمحدِّد، وما تفعل حين يظهر <code>LinAlgError</code> في كودٍ كنت واثقًا منه. وفيه شيءٌ واحد يستحق أن تعرفه مقدمًا، لأنه هو شكلُ الفصل الحادي عشر كلِّه.</p>
+    <p class="en">Real data almost never gives case one. A hundred students and three features is a hundred equations in three unknowns, far more equations than unknowns, and they will contradict each other, because measurements do. So there is no exact answer, and asking for one is the wrong question. The right question is: which candidate comes <em>closest</em>? In regression the unknown vector is called w rather than x, so the question reads: which w makes the error vector y &minus; Xw as short as possible, measured with the norm from A6.4? That is called <strong>least squares</strong>, it is what every regression in this course actually computes, and it is Appendix A9.</p>
+    <p class="ar">والبياناتُ الحقيقية لا تعطي الحالةَ الأولى أبدًا تقريبًا. فمئةُ طالب وثلاثُ سمات هي مئةُ معادلة في ثلاثة مجاهيل، ومعادلاتٌ أكثرُ من المجاهيل بكثير، وستتناقض، لأن القياسات تتناقض. فلا جوابَ دقيق إذن، وطلبُه سؤالٌ خاطئ. والسؤالُ الصحيح: أيُّ مرشَّحٍ هو <em>الأقرب</em>؟ ومتجهُ المجاهيل في الانحدار يُسمّى w لا x، فيصير السؤال: أيُّ w يجعل متجه الخطأ y &minus; Xw أقصرَ ما يمكن، مقيسًا بالمِعيار من A6.4؟ وذلك يُسمّى <strong>المربّعات الصغرى</strong>، وهو ما يحسبه كلُّ انحدار في هذا المقرر فعلًا، وهو الملحق A9.</p>
+  </div>
+
+  <h2 id="a6-h10"><span class="en">Self-check</span><span class="ar">فحص ذاتي</span></h2>
+
+  <p class="en">Ten questions on this page alone. Not part of any test and no score is recorded &mdash; they are here so you can find out whether something is still vague before it turns up inside an expression you wrote.</p>
+  <p class="ar">عشرةُ أسئلة على هذه الصفحة وحدها. وهي ليست جزءًا من أي اختبار ولا تُسجَّل نتيجة &mdash; إنما هي هنا لتكتشف هل بقي شيءٌ غامضًا قبل أن يظهر داخل تعبيرٍ كتبتَه.</p>
+
+  <div class="assess" data-bank="appendix-a6" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en"><code>X @ w</code> is not magic any more</span><span class="ar">لم تعد <code>X @ w</code> سحرًا</span></h4>
+    <p class="en">Nothing above is examined. What matters is that you can now read <code>X @ w</code> out loud &mdash; for each student, multiply every mark by its weight and add them up &mdash; and that you can predict the shape of the answer before you run it. <a href="#lesson-15">Chapter 4</a> does that arithmetic at speed; Chapter 5 asks <code>np.linalg</code> the questions of A6.8 and A6.9; Chapter 11 writes a regression with X<sup>T</sup>X in it and expects you to recognise the connector. If one section here is still cloudy, the one to re-read is A6.6: everything after it is a consequence.</p>
+    <p class="ar">لا شيء مما سبق ممتحَن فيه. والمهم أنك تستطيع الآن قراءة <code>X @ w</code> جهرًا &mdash; لكل طالب: اضرب كلَّ علامة في وزنها واجمعها &mdash; وأنك تستطيع التنبّؤ بشكل الجواب قبل تشغيله. فالفصلُ الرابع يُجري ذلك الحساب بسرعة؛ والخامسُ يسأل <code>np.linalg</code> أسئلةَ A6.8 و A6.9؛ والحادي عشر يكتب انحدارًا فيه X<sup>T</sup>X ويتوقع أن تعرف الموصِل. وإن بقي قسمٌ واحد هنا غائمًا فالذي يُعاد قراءته هو A6.6: فكلُّ ما بعده نتيجةٌ له.</p>
+  </div>
+
+
+</section>

@@ -25,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REQUIRED_TYPES = ["tf", "mcq", "multi", "fill", "order", "match",
                   "error", "complete", "compare", "output", "trace"]
 
-PAGE_DIRS = ["chapters", "lessons", "tests", "exams", "labs"]
+PAGE_DIRS = ["chapters", "lessons", "tests", "exams", "labs", "appendices"]
 
 problems = []
 notes = []

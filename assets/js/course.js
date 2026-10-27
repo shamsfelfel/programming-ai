@@ -75,6 +75,153 @@
         { id: "chapter-test-b", kind: "exam", bank: "chapter-test-b", href: "exams/chapter-1-exam-b.html",
           en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
       ]
+    },
+
+    {
+      num: 2,
+      slug: "chapter-2",
+      href: "chapters/chapter-2.html",
+      ready: true,
+      title: { en: "OOP Design Patterns for ML", ar: "أنماط التصميم الكائني للتعلّم الآلي" },
+      blurb: {
+        en: "Four patterns, each arriving because a plain function has just failed in a way that raises nothing.",
+        ar: "أربعة أنماط، يأتي كلٌّ منها لأنّ دالةً عادية فشلت فشلًا لا يرفع خطأً."
+      },
+      stats: { lessons: 2, questions: 56, exercises: 6, traces: 4 },
+      pages: [
+        { id: "chapter-2", kind: "chapter", href: "chapters/chapter-2.html",
+          en: "Chapter 2 home", ar: "صفحة الفصل 2" },
+
+        { id: "lesson-08", kind: "lesson", n: 8, href: "lessons/chapter-2-lesson-8.html",
+          en: "Steps That Remember", ar: "خطواتٌ تتذكّر" },
+        { id: "test-08", kind: "test", of: 8, bank: "test-08", href: "tests/chapter-2-test-8.html",
+          en: "Test 8", ar: "اختبار 8" },
+
+        { id: "lesson-09", kind: "lesson", n: 9, href: "lessons/chapter-2-lesson-9.html",
+          en: "Pipelines & Decorators", ar: "المسارات والمزخرِفات" },
+        { id: "test-09", kind: "test", of: 9, bank: "test-09", href: "tests/chapter-2-test-9.html",
+          en: "Test 9", ar: "اختبار 9" },
+
+        { id: "chapter-02-test-a", kind: "exam", bank: "chapter-02-test-a", href: "exams/chapter-2-exam-a.html",
+          en: "Chapter Test A — Core", ar: "اختبار الفصل أ — الأساسيات" },
+        { id: "chapter-02-test-b", kind: "exam", bank: "chapter-02-test-b", href: "exams/chapter-2-exam-b.html",
+          en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
+      ]
+    },
+
+    {
+      num: 3,
+      slug: "chapter-3",
+      href: "chapters/chapter-3.html",
+      ready: true,
+      title: { en: "NumPy Fundamentals", ar: "أساسيات NumPy" },
+      blurb: {
+        en: "The list version does something absurd, the array version does it in one line — and then the array does something absurd of its own, in silence.",
+        ar: "نسخةُ القائمة تفعل شيئًا عبثيًا، ونسخةُ المصفوفة تفعله في سطر — ثم تفعل المصفوفةُ عبثها الخاص، في صمت."
+      },
+      stats: { lessons: 4, questions: 88, exercises: 12, traces: 4 },
+      pages: [
+        { id: "chapter-3", kind: "chapter", href: "chapters/chapter-3.html",
+          en: "Chapter 3 home", ar: "صفحة الفصل 3" },
+
+        { id: "lesson-10", kind: "lesson", n: 10, href: "lessons/chapter-3-lesson-10.html",
+          en: "One Type, Many Numbers", ar: "نوعٌ واحد وأعداد كثيرة" },
+        { id: "test-10", kind: "test", of: 10, bank: "test-10", href: "tests/chapter-3-test-10.html",
+          en: "Test 10", ar: "اختبار 10" },
+
+        { id: "lesson-11", kind: "lesson", n: 11, href: "lessons/chapter-3-lesson-11.html",
+          en: "Slices That Are Not Copies", ar: "قطعٌ ليست نسخًا" },
+        { id: "test-11", kind: "test", of: 11, bank: "test-11", href: "tests/chapter-3-test-11.html",
+          en: "Test 11", ar: "اختبار 11" },
+
+        { id: "lesson-12", kind: "lesson", n: 12, href: "lessons/chapter-3-lesson-12.html",
+          en: "Shapes That Stretch", ar: "أشكالٌ تتمدّد" },
+        { id: "test-12", kind: "test", of: 12, bank: "test-12", href: "tests/chapter-3-test-12.html",
+          en: "Test 12", ar: "اختبار 12" },
+
+        { id: "lesson-13", kind: "lesson", n: 13, href: "lessons/chapter-3-lesson-13.html",
+          en: "Axes & Masks", ar: "المحاور والأقنعة" },
+        { id: "test-13", kind: "test", of: 13, bank: "test-13", href: "tests/chapter-3-test-13.html",
+          en: "Test 13", ar: "اختبار 13" },
+
+        { id: "chapter-03-test-a", kind: "exam", bank: "chapter-03-test-a", href: "exams/chapter-3-exam-a.html",
+          en: "Chapter Test A — Core", ar: "اختبار الفصل أ — الأساسيات" },
+        { id: "chapter-03-test-b", kind: "exam", bank: "chapter-03-test-b", href: "exams/chapter-3-exam-b.html",
+          en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
+      ]
+    },
+
+    {
+      num: 4,
+      slug: "chapter-4",
+      href: "chapters/chapter-4.html",
+      ready: true,
+      title: { en: "NumPy for ML Math", ar: "NumPy لرياضيات التعلّم الآلي" },
+      blurb: {
+        en: "Loops become operators, and the patient most similar to a feverish new arrival turns out to be the one with no fever, because nobody scaled the columns.",
+        ar: "تصير الحلقاتُ مُعاملات، ويتبيّن أنّ أشبه المرضى بمريضٍ محموم هو الذي لا حُمّى له، لأن أحدًا لم يوحّد الأعمدة."
+      },
+      stats: { lessons: 3, questions: 72, exercises: 9, traces: 3 },
+      pages: [
+        { id: "chapter-4", kind: "chapter", href: "chapters/chapter-4.html",
+          en: "Chapter 4 home", ar: "صفحة الفصل 4" },
+
+        { id: "lesson-14", kind: "lesson", n: 14, href: "lessons/chapter-4-lesson-14.html",
+          en: "Weighted Totals and Distances", ar: "المجاميع الموزونة والمسافات" },
+        { id: "test-14", kind: "test", of: 14, bank: "test-14", href: "tests/chapter-4-test-14.html",
+          en: "Test 14", ar: "اختبار 14" },
+
+        { id: "lesson-15", kind: "lesson", n: 15, href: "lessons/chapter-4-lesson-15.html",
+          en: "Tables That Multiply", ar: "جداولُ تضرب" },
+        { id: "test-15", kind: "test", of: 15, bank: "test-15", href: "tests/chapter-4-test-15.html",
+          en: "Test 15", ar: "اختبار 15" },
+
+        { id: "lesson-16", kind: "lesson", n: 16, href: "lessons/chapter-4-lesson-16.html",
+          en: "Removing the Loop", ar: "إزالةُ الحلقة" },
+        { id: "test-16", kind: "test", of: 16, bank: "test-16", href: "tests/chapter-4-test-16.html",
+          en: "Test 16", ar: "اختبار 16" },
+
+        { id: "chapter-04-test-a", kind: "exam", bank: "chapter-04-test-a", href: "exams/chapter-4-exam-a.html",
+          en: "Chapter Test A — Core", ar: "اختبار الفصل أ — الأساسيات" },
+        { id: "chapter-04-test-b", kind: "exam", bank: "chapter-04-test-b", href: "exams/chapter-4-exam-b.html",
+          en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
+      ]
+    }
+  ];
+
+  /* The appendices belong to no chapter: they are self-study, they are
+     not examined, and they exist so that a lesson can state a result and
+     point at where it is explained instead of deriving it in a lecture.
+
+     They are shaped exactly like a chapter and carry num 0 so that the
+     drawer, the breadcrumbs, the pager and the build all read them with
+     the code that already reads chapters. 0 is never shown: the group
+     has a title of its own, and the UI uses that. */
+  var APPENDICES = [
+    {
+      num: 0,
+      slug: "appendices",
+      ready: true,
+      title: { en: "Appendices", ar: "الملاحق" },
+      blurb: {
+        en: "The mathematics and the vocabulary the lessons lean on, written out properly — for self-study, and never examined.",
+        ar: "الرياضيات والمفردات التي تستند إليها الدروس، مكتوبةً كما ينبغي — للدراسة الذاتية، ولا يُمتحن فيها."
+      },
+      stats: { lessons: 4, questions: 30, exercises: 0, traces: 0 },
+      pages: [
+        { id: "appendix-a3", kind: "appendix", n: 3, bank: "appendix-a3",
+          href: "appendices/appendix-a3.html",
+          en: "A3 — Machine Learning Vocabulary", ar: "A3 — مفردات تعلّم الآلة" },
+        { id: "appendix-a4", kind: "appendix", n: 4, bank: "appendix-a4",
+          href: "appendices/appendix-a4.html",
+          en: "A4 — Numbers in a Computer", ar: "A4 — الأعداد في الحاسوب" },
+        { id: "appendix-a5", kind: "appendix", n: 5, bank: "appendix-a5",
+          href: "appendices/appendix-a5.html",
+          en: "A5 — Reading Mathematical Notation", ar: "A5 — قراءة الرموز الرياضية" },
+        { id: "appendix-a6", kind: "appendix", n: 6, bank: "appendix-a6",
+          href: "appendices/appendix-a6.html",
+          en: "A6 — Vectors and Matrices", ar: "A6 — المتجهات والمصفوفات" }
+      ]
     }
   ];
 
@@ -82,9 +229,6 @@
      the road ahead, greyed out and unlinked, so a reader can see
      where the course is going. Keep in step with README.md. */
   var PLANNED = [
-    { num: 2,  en: "OOP Design Patterns for ML",        ar: "أنماط التصميم الكائني للتعلّم الآلي" },
-    { num: 3,  en: "NumPy Fundamentals",                ar: "أساسيات NumPy" },
-    { num: 4,  en: "NumPy for ML Math",                 ar: "NumPy لرياضيات التعلّم الآلي" },
     { num: 5,  en: "np.linalg and Linear Algebra",      ar: "np.linalg والجبر الخطي" },
     { num: 6,  en: "Pandas Fundamentals",               ar: "أساسيات Pandas" },
     { num: 7,  en: "Pandas Data Wrangling",             ar: "معالجة البيانات بـ Pandas" },
@@ -119,9 +263,12 @@
 
   /* ---------------------------------------------------------- lookups */
 
+  /* The appendices are searched alongside the chapters so that every
+     caller - drawer, crumbs, pager, build - works on either. */
   function chapter(num) {
-    for (var i = 0; i < CHAPTERS.length; i++) {
-      if (CHAPTERS[i].num === +num) return CHAPTERS[i];
+    var all = CHAPTERS.concat(APPENDICES);
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].num === +num) return all[i];
     }
     return null;
   }
@@ -149,9 +296,10 @@
      what the service worker precaches and what the e2e suite walks. */
   function allPages() {
     var out = [];
-    for (var i = 0; i < CHAPTERS.length; i++) {
-      for (var j = 0; j < CHAPTERS[i].pages.length; j++) {
-        out.push({ chapter: CHAPTERS[i].num, page: CHAPTERS[i].pages[j] });
+    var all = CHAPTERS.concat(APPENDICES);
+    for (var i = 0; i < all.length; i++) {
+      for (var j = 0; j < all[i].pages.length; j++) {
+        out.push({ chapter: all[i].num, page: all[i].pages[j] });
       }
     }
     return out;
@@ -159,6 +307,7 @@
 
   window.COURSE = {
     chapters: CHAPTERS,
+    appendices: APPENDICES,
     planned: PLANNED,
     UI: UI,
     chapter: chapter,

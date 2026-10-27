@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Weighted Totals and Distances · Python OOP by Example" data-ar="المجاميع الموزونة والمسافات · البرمجة الكائنية بلغة بايثون">Weighted Totals and Distances · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="4" data-page="lesson-14" data-path="lessons/chapter-4-lesson-14.html">
+<main>
+<section class="page" id="lesson-14">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Lesson 14 &middot; Week 6 &middot; Lecture 16 &middot; 90 min</span><span class="ar">الدرس 14 &middot; الأسبوع 6 &middot; المحاضرة 16 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Weighted Totals and Distances</span><span class="ar">المجاميع الموزونة والمسافات</span></h1>
+
+  <p class="lede en">By the end of this lesson you will replace a weighted-average loop with a single character, measure how far apart two patients are without writing a loop either, and discover that the answer to &ldquo;who is most similar?&rdquo; changes completely depending on which units you happened to measure in.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستستبدل بحلقةِ المعدّل الموزون حرفًا واحدًا، وستقيس كم يبعد مريضان أحدهما عن الآخر بلا حلقة أيضًا، وستكتشف أن جواب سؤال «من الأشبه؟» يتغيّر تمامًا تبعًا للوحدات التي صادف أن قِستَ بها.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-3-lesson-13.html#lesson-13">Chapter 3</a> in full: this lesson uses <a href="../lessons/chapter-3-lesson-10.html#l10-s5">shape</a>, <a href="../lessons/chapter-3-lesson-12.html#l12-s1">broadcasting</a> and <a href="../lessons/chapter-3-lesson-13.html#l13-h1">axes</a> on every other line, and will not slow down for them. Two appendices stand behind it and are worth reading first &mdash; <a href="../appendices/appendix-a5.html#appendix-a5">Appendix A5</a> if a formula with &Sigma; in it still looks like a wall, and <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> for what a dot product and a norm actually <em>mean</em>. Neither is examined anywhere, and this lesson states every result it needs.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-3-lesson-13.html#lesson-13">الفصل 3</a> كاملًا: فهذا الدرس يستعمل <a href="../lessons/chapter-3-lesson-10.html#l10-s5">الشكل</a> و<a href="../lessons/chapter-3-lesson-12.html#l12-s1">البثّ</a> و<a href="../lessons/chapter-3-lesson-13.html#l13-h1">المحاور</a> في كل سطرين، ولن يتمهّل لها. ويقف خلفه ملحقان جديران بالقراءة أولًا &mdash; <a href="../appendices/appendix-a5.html#appendix-a5">الملحق A5</a> إن كانت صيغةٌ فيها &Sigma; لا تزال تبدو جدارًا، و<a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> لِما يعنيه الضربُ القياسي والمعيارُ <em>فعلًا</em>. ولا يُمتحن أيٌّ منهما في مكان، وهذا الدرس يذكر كل نتيجة يحتاجها.</p>
+  </div>
+
+  <div class="note">
+    <h4><span class="en">The setting</span><span class="ar">الإطار</span></h4>
+    <p class="en">Two places you already know. The school of Chapters 2 and 3, where a final mark is three marks combined in fixed proportions; and the clinic of Chapter 1, where a new patient arrives and the question is which of the records already on file most resembles them.</p>
+    <p class="ar">مكانان تعرفهما. مدرسةُ الفصلين 2 و3، حيث العلامة النهائية ثلاثُ علامات تُجمع بنِسَب ثابتة؛ وعيادةُ الفصل 1، حيث يصل مريضٌ جديد والسؤال أيُّ السجلات المحفوظة أشبهُ به.</p>
+  </div>
+
+  <h2 id="l14-h1"><span class="en">Concept 1 &mdash; A weighted total is one operation, not a loop</span><span class="ar">المفهوم 1 &mdash; المجموع الموزون عمليةٌ واحدة لا حلقة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">A final mark is 20% coursework, 30% midterm and 50% the final paper. You have one student's three marks and the three weights, and the obvious code is a loop with an index in it &mdash; the kind you will get wrong once in every ten you write.</p>
+    <p class="ar">العلامة النهائية 20% أعمال فصل و30% امتحان منتصف و50% الورقة النهائية. وعندك علامات طالبٍ واحد الثلاث والأوزان الثلاثة، والكود البديهي حلقةٌ فيها دليل &mdash; من النوع الذي تخطئ فيه مرة في كل عشر تكتبها.</p>
+  </div>
+
+  <h3 id="l14-s1"><span class="en">The starting code</span><span class="ar">الكود الابتدائي</span></h3>
+
+<pre class="code"><code>import numpy as np
+
+marks = np.array([72., 65., 80.])
+weights = np.array([0.2, 0.3, 0.5])
+
+total = 0.0
+for i in range(len(marks)):
+    total += marks[i] * weights[i]
+
+print(round(total, 2))
+</code></pre>
+
+  <div class="output">73.9</div>
+
+  <p class="en">It is correct. It is also four lines, one index, one accumulator starting at zero, and a silent assumption that <code>marks</code> and <code>weights</code> are the same length &mdash; if the weights were one short, the loop would quietly use the shorter of the two and report a final mark that is simply wrong.</p>
+  <p class="ar">إنه صحيح. وهو أيضًا أربعة أسطر ودليلٌ واحد ومُراكِمٌ يبدأ من صفر وافتراضٌ صامت أن <code>marks</code> و<code>weights</code> بالطول نفسه &mdash; فلو نقص وزنٌ واحد لاستعملت الحلقة الأقصر منهما بصمت وأبلغت عن علامةٍ نهائية خاطئة ببساطة.</p>
+
+  <h3 id="l14-s2"><span class="en">Multiply pairwise, then add</span><span class="ar">اضرب موضعًا بموضع ثم اجمع</span></h3>
+
+  <p class="en">That loop does exactly two things, and NumPy has both. <a href="../lessons/chapter-3-lesson-10.html#l10-s3">Multiplying two arrays</a> pairs them up position by position; <a href="../lessons/chapter-3-lesson-13.html#l13-h1">summing</a> adds the result. Written out, the intermediate array is visible:</p>
+  <p class="ar">تلك الحلقة تفعل شيئين بالضبط، وعند نمباي كلاهما. فـ<a href="../lessons/chapter-3-lesson-10.html#l10-s3">ضربُ مصفوفتين</a> يزاوجهما موضعًا بموضع؛ و<a href="../lessons/chapter-3-lesson-13.html#l13-h1">الجمعُ</a> يجمع النتيجة. ومكتوبةً تظهر المصفوفة الوسيطة:</p>
+
+<pre class="code good"><code>print(marks * weights)
+print((marks * weights).sum())
+</code></pre>
+
+  <div class="output">[14.4 19.5 40. ]
+73.9</div>
+
+  <p class="en">&ldquo;Multiply pairwise, then add&rdquo; is called the <strong>dot product</strong>, it is the single most common operation in machine learning, and NumPy gives it its own operator:</p>
+  <p class="ar">«اضرب موضعًا بموضع ثم اجمع» تُسمّى <strong>الضرب القياسي</strong>، وهي أكثر عملية شيوعًا في تعلّم الآلة على الإطلاق، ولنمباي مُعامل خاصّ بها:</p>
+
+<pre class="code good"><code>print(marks @ weights)
+</code></pre>
+
+  <div class="output">73.9</div>
+
+  <div class="note">
+    <h4><span class="en">What the appendix adds</span><span class="ar">ما يضيفه الملحق</span></h4>
+    <p class="en">A dot product is a weighted total, and it is also a measure of how much two vectors agree &mdash; large when they point the same way, zero when they are at right angles. <a href="../appendices/appendix-a6.html#a6-h3">Appendix A6 &sect;3</a> explains that second reading with pictures. You do not need it to write the code, and you will want it by Chapter 11.</p>
+    <p class="ar">الضربُ القياسي مجموعٌ موزون، وهو أيضًا مقياسٌ لمدى اتفاق متجهين &mdash; كبيرٌ حين يشيران الاتجاه نفسه، وصفرٌ حين يتعامدان. و<a href="../appendices/appendix-a6.html#a6-h3">الملحق A6 &sect;3</a> يشرح تلك القراءة الثانية بالصور. ولا تحتاجها لكتابة الكود، وستريدها عند الفصل 11.</p>
+  </div>
+
+  <h3 id="l14-s3"><span class="en">Three spellings, one operation</span><span class="ar">ثلاث كتابات لعملية واحدة</span></h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th><span class="en">Written as</span><span class="ar">يُكتب</span></th>
+        <th><span class="en">Reads as</span><span class="ar">يُقرأ</span></th>
+        <th><span class="en">Use it when</span><span class="ar">استعمله حين</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>(marks * weights).sum()</code></td>
+        <td><span class="en">pair them up, then add</span><span class="ar">زاوِجها ثم اجمع</span></td>
+        <td><span class="en">you want the middle array too, or you are explaining the idea</span><span class="ar">تريد المصفوفة الوسيطة أيضًا، أو تشرح الفكرة</span></td>
+      </tr>
+      <tr>
+        <td><code>np.dot(marks, weights)</code></td>
+        <td><span class="en">dot product of these two</span><span class="ar">الضرب القياسي لهذين</span></td>
+        <td><span class="en">you are reading older code; it still works everywhere</span><span class="ar">تقرأ كودًا أقدم؛ وهي تعمل في كل مكان</span></td>
+      </tr>
+      <tr>
+        <td><code>marks @ weights</code></td>
+        <td><span class="en">marks dot weights</span><span class="ar">marks ضرب weights</span></td>
+        <td><span class="en">always, in new code</span><span class="ar">دائمًا، في الكود الجديد</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="en">All three produce the same number here. Prefer <code>@</code>: it is one character, it says &ldquo;this is a dot product&rdquo; rather than &ldquo;these are two things I multiplied and then happened to add up&rdquo;, and &mdash; the part that matters in the <a href="../lessons/chapter-4-lesson-15.html#lesson-15">next lesson</a> &mdash; it keeps meaning the right thing when the operands stop being single vectors and become whole tables.</p>
+  <p class="ar">الثلاثة تُنتج العدد نفسه هنا. وفضِّل <code>@</code>: فهي حرفٌ واحد، وتقول «هذا ضربٌ قياسي» لا «هذان شيئان ضربتهما ثم صادف أن جمعتهما»، و&mdash; وهذا ما يهمّ في <a href="../lessons/chapter-4-lesson-15.html#lesson-15">الدرس التالي</a> &mdash; تظل تعني الشيء الصحيح حين يكفّ المُعاملان عن كونهما متجهين مفردين ويصيران جداول كاملة.</p>
+
+  <p class="en">And the length assumption the loop made silently is now checked for you:</p>
+  <p class="ar">والافتراضُ الذي افترضته الحلقة بصمت عن الطول يُفحَص لك الآن:</p>
+
+<pre class="code bad"><code>print(marks @ np.array([0.5, 0.5]))
+</code></pre>
+
+  <div class="output">ValueError: matmul: Input operand 1 has a mismatch in its core dimension 0, with gufunc signature (n?,k),(k,m?)-&gt;(n?,m?) (size 2 is different from 3)</div>
+
+  <p class="en">That message is dense, and the only part you need is at the end: <strong>size 2 is different from 3</strong>. Three marks cannot be weighted by two weights, and unlike the loop, nothing will carry on and hand you a plausible number.</p>
+  <p class="ar">تلك الرسالة كثيفة، والجزء الوحيد الذي تحتاجه في آخرها: <strong>size 2 is different from 3</strong>. فثلاثُ علامات لا تُوزن بوزنين، وبخلاف الحلقة لن يمضي شيءٌ ويسلّمك عددًا معقولًا.</p>
+
+  <div data-trace-id="t-dot"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>(marks * weights).sum()</code> give the same answer as <code>marks @ weights</code>?</span><span class="ar">لماذا تعطي <code>(marks * weights).sum()</code> جواب <code>marks @ weights</code> نفسه؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Because that <em>is</em> the definition: a dot product multiplies the two arrays position by position and adds the results. <code>@</code> does both steps without building the middle array.</span><span class="ar">لأن ذلك <em>هو</em> التعريف: فالضربُ القياسي يضرب المصفوفتين موضعًا بموضع ويجمع النتائج. و<code>@</code> تؤدي الخطوتين بلا بناء المصفوفة الوسيطة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Coincidence &mdash; they agree for these numbers but not in general.</span><span class="ar">مصادفة &mdash; فهما يتفقان لهذه الأعداد لا عمومًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because <code>@</code> is shorthand that NumPy rewrites into <code>*</code> followed by <code>.sum()</code>.</span><span class="ar">لأن <code>@</code> اختصارٌ تعيد نمباي كتابته <code>*</code> ثم <code>.sum()</code>.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Because both arrays are one-dimensional; with two dimensions they would differ.</span><span class="ar">لأن المصفوفتين أحاديتا البعد؛ ولو كانتا ثنائيتين لاختلفتا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The third option is wrong in a way worth knowing: <code>@</code> does not build <code>[14.4 19.5 40. ]</code> at all. It runs one loop in compiled code that multiplies and accumulates as it goes, which is why it is both faster and gentler on memory for long vectors. The fourth is also false here but points somewhere true &mdash; with two-dimensional operands <code>*</code> and <code>@</code> are entirely different operations, which is <a href="../lessons/chapter-4-lesson-15.html#lesson-15">Lesson 15</a>'s opening problem.</div>
+      <div class="ar">الخيار الثالث خاطئ بوجهٍ جديرٍ بالمعرفة: فـ <code>@</code> لا تبني <code>[14.4 19.5 40. ]</code> إطلاقًا. بل تشغّل حلقةً واحدة في كود مترجَم تضرب وتراكم وهي تمضي، ولذلك كانت أسرع وأرفق بالذاكرة للمتجهات الطويلة. والرابع كاذبٌ هنا أيضًا لكنه يشير إلى أمرٍ صحيح &mdash; فمع مُعاملين ثنائيّي البعد تكون <code>*</code> و<code>@</code> عمليتين مختلفتين تمامًا، وذلك هو مشكلة <a href="../lessons/chapter-4-lesson-15.html#lesson-15">الدرس 15</a> الافتتاحية.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 14.1 &mdash; Check the weights before you trust the mark</span><span class="ar">تمرين 14.1 &mdash; افحص الأوزان قبل أن تثق بالعلامة</span></h4>
+    <p class="en">A weighting scheme is only valid if its weights add up to 1. Write two lines: one that reports the weighted mark, and one that proves the scheme is valid. Then try it with the broken scheme <code>[0.2, 0.3, 0.4]</code> and say what the reported mark would have been.</p>
+    <p class="ar">نظامُ الترجيح لا يصحّ إلا إذا بلغ مجموع أوزانه 1. اكتب سطرين: أحدهما يُبلغ العلامة الموزونة، والآخر يُثبت صحة النظام. ثم جرّبه بالنظام المعطوب <code>[0.2, 0.3, 0.4]</code> وقل ماذا كانت ستكون العلامة المُبلَّغة.</p>
+
+<pre class="code"><code>marks = np.array([72., 65., 80.])
+good = np.array([0.2, 0.3, 0.5])
+broken = np.array([0.2, 0.3, 0.4])
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(marks @ good, good.sum())
+print(marks @ broken, broken.sum())
+</code></pre>
+      <div class="output">73.9 1.0
+65.9 0.9000000000000001</div>
+      <p class="en">The broken scheme does not raise, does not look odd, and marks the student down by eight. It is the <a href="../lessons/chapter-3-lesson-12.html#l12-h2">silent-wrong-answer</a> shape of bug again, in a new place: the shapes matched, so NumPy had no objection, and only the meaning was wrong. Note the second number: <code>0.9000000000000001</code>, not <code>0.9</code>, which is <a href="../appendices/appendix-a4.html#a4-h2">how decimals are stored</a> and the reason you test <code>abs(w.sum() - 1) &lt; 1e-9</code> rather than <code>w.sum() == 1</code>.</p>
+      <p class="ar">النظامُ المعطوب لا يرفع خطأً ولا يبدو غريبًا ويُنقص الطالب ثماني علامات. وهو شكلُ العيب <a href="../lessons/chapter-3-lesson-12.html#l12-h2">الصامت الخاطئ</a> نفسه في مكان جديد: فالأشكال تطابقت فلم تعترض نمباي، والمعنى وحده كان خاطئًا. ولاحظ العدد الثاني: <code>0.9000000000000001</code> لا <code>0.9</code>، وذلك <a href="../appendices/appendix-a4.html#a4-h2">كيف تُخزَّن العشريات</a> وسببُ أن تفحص <code>abs(w.sum() - 1) &lt; 1e-9</code> لا <code>w.sum() == 1</code>.</p>
+    </details>
+  </section>
+
+  <h2 id="l14-h2"><span class="en">Concept 2 &mdash; Distance is the same idea, turned around</span><span class="ar">المفهوم 2 &mdash; المسافة هي الفكرة نفسها مقلوبة</span></h2>
+
+  <div class="problem">
+    <h4><span class="en">The problem</span><span class="ar">المشكلة</span></h4>
+    <p class="en">A patient arrives with a temperature, a pulse and a blood pressure. Four patients are already on file with the same three measurements each. Which of the four is this new one most like? &ldquo;Most like&rdquo; has to become a number before any code can answer it.</p>
+    <p class="ar">يصل مريضٌ بحرارة ونبض وضغط دم. وأربعةُ مرضى في السجل بالقياسات الثلاثة نفسها لكلٍّ. فأيُّ الأربعة أشبهُ بهذا الجديد؟ و«الأشبه» يجب أن تصير عددًا قبل أن يجيبها أي كود.</p>
+  </div>
+
+  <h3 id="l14-s4"><span class="en">Length first: the norm</span><span class="ar">الطول أولًا: المعيار</span></h3>
+
+  <p class="en">Three measurements for one patient are three numbers that belong together &mdash; what Appendix A6 calls a <a href="../appendices/appendix-a6.html#a6-h1">vector</a>, and what you have been calling a 1-D array since <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lesson 10</a>. Its <strong>length</strong>, written &#8214;x&#8214;, is Pythagoras extended to as many numbers as you like: square each one, add them, take the square root.</p>
+  <p class="ar">ثلاثةُ قياسات لمريضٍ واحد هي ثلاثةُ أعداد تنتمي معًا &mdash; وهو ما يسمّيه الملحق A6 <a href="../appendices/appendix-a6.html#a6-h1">متجهًا</a>، وما تسمّيه أنت مصفوفةً أحادية منذ <a href="../lessons/chapter-3-lesson-10.html#lesson-10">الدرس 10</a>. و<strong>طولُه</strong>، ويُكتب &#8214;x&#8214;، هو فيثاغورس ممدودًا إلى ما شئت من الأعداد: ربِّع كل واحد واجمعها وخذ الجذر.</p>
+
+<pre class="code good"><code>v = np.array([3., 4.])
+
+print(np.sqrt((v**2).sum()))
+print(np.linalg.norm(v))
+</code></pre>
+
+  <div class="output">5.0
+5.0</div>
+
+  <p class="en">Both lines say the same thing; use the second. <code>np.linalg.norm</code> is the name every reader recognises, and it handles the awkward cases &mdash; very large or very small numbers &mdash; more carefully than the spelled-out version does.</p>
+  <p class="ar">السطران يقولان الشيء نفسه؛ استعمل الثاني. فـ <code>np.linalg.norm</code> هو الاسم الذي يعرفه كل قارئ، وهو يعالج الحالات العسيرة &mdash; الأعدادَ الضخمة جدًّا أو الضئيلة جدًّا &mdash; بعنايةٍ أكثر من النسخة المكتوبة بالتفصيل.</p>
+
+  <h3 id="l14-s5"><span class="en">Distance: the length of the difference</span><span class="ar">المسافة: طولُ الفرق</span></h3>
+
+  <p class="en">The distance between two patients is the length of the vector between them &mdash; subtract one from the other, then take the norm. And because <a href="../lessons/chapter-3-lesson-12.html#l12-s1">broadcasting</a> will subtract one patient from a whole table in one line, and <a href="../lessons/chapter-3-lesson-13.html#l13-h1">an axis</a> will reduce each row separately, the whole record is searched without a loop:</p>
+  <p class="ar">المسافةُ بين مريضين هي طولُ المتجه بينهما &mdash; اطرح أحدهما من الآخر ثم خذ المعيار. ولأن <a href="../lessons/chapter-3-lesson-12.html#l12-s1">البثّ</a> سيطرح مريضًا من جدولٍ كامل في سطر، و<a href="../lessons/chapter-3-lesson-13.html#l13-h1">المحور</a> سيخفّض كل صفّ على حدة، فإن السجلّ كله يُبحث بلا حلقة:</p>
+
+<pre class="code good"><code>past = np.array([[36.9,  88., 124.],
+                 [39.2,  95., 150.],
+                 [37.4,  70., 118.],
+                 [38.1, 102., 165.]])
+new = np.array([39.5, 90., 125.])
+
+d = np.linalg.norm(past - new, axis=1)
+print(d.round(2))
+print(d.argmin())
+</code></pre>
+
+  <div class="output">[ 3.43 25.5  21.29 41.78]
+0</div>
+
+  <p class="en">Two details earn their keep here. <code>past - new</code> is <code>(4, 3)</code> minus <code>(3,)</code>, which broadcasts the new patient against every row. And <code>axis=1</code> tells <code>norm</code> to collapse the three measurements of each row into one number, leaving four distances &mdash; <a href="../lessons/chapter-3-lesson-13.html#l13-h1">the axis you name is the one that disappears</a>, exactly as for <code>sum</code> and <code>mean</code>. Leave the axis off and you get one number for the entire table, which is meaningless here.</p>
+  <p class="ar">تفصيلان يستحقان مكانهما هنا. فـ <code>past - new</code> هي <code>(4, 3)</code> ناقص <code>(3,)</code>، فيُبثّ المريض الجديد على كل صفّ. و<code>axis=1</code> تُخبر <code>norm</code> أن تَطبِق قياسات كل صفّ الثلاثة في عدد واحد فتترك أربع مسافات &mdash; <a href="../lessons/chapter-3-lesson-13.html#l13-h1">فالمحور الذي تسمّيه هو الذي يختفي</a>، تمامًا كما في <code>sum</code> و<code>mean</code>. واترك المحور تحصل على عدد واحد للجدول كله، وهو بلا معنى هنا.</p>
+
+  <h3 id="l14-s6"><span class="en">The trap: the units decide the answer</span><span class="ar">الفخّ: الوحداتُ تقرّر الجواب</span></h3>
+
+  <p class="en">The code says patient 0 is the closest. Look at what patient 0 is: temperature 36.9 against the new patient's 39.5. The new patient has a fever of nearly forty degrees and the record the program picked out is the one person with no fever at all.</p>
+  <p class="ar">يقول الكود إن المريض 0 هو الأقرب. وانظر ما المريض 0: حرارة 36.9 مقابل 39.5 للمريض الجديد. فالمريضُ الجديد محمومٌ بقرابة أربعين درجة والسجلّ الذي انتقاه البرنامج هو الشخص الوحيد الذي لا حمّى عنده إطلاقًا.</p>
+
+  <div class="problem">
+    <h4><span class="en">Name the defect</span><span class="ar">سمِّ العيب</span></h4>
+    <p class="en">Blood pressure is measured in numbers around 120 and temperature in numbers around 37. A difference of one degree of fever &mdash; which could be the whole diagnosis &mdash; contributes 1 to the sum of squares, while a difference of 25 in blood pressure contributes 625. Nobody chose that weighting; it arrived with the units. The distance is dominated by whichever measurement happens to be recorded in big numbers.</p>
+    <p class="ar">يُقاس ضغط الدم بأعدادٍ حول 120 والحرارةُ بأعدادٍ حول 37. ففرقُ درجةٍ واحدة من الحمّى &mdash; وقد يكون هو التشخيص كله &mdash; يُسهم بـ 1 في مجموع المربعات، بينما فرقُ 25 في ضغط الدم يُسهم بـ 625. ولم يختر أحدٌ ذلك الترجيح؛ بل جاء مع الوحدات. فالمسافةُ يحكمها أيُّ قياسٍ صادف أن يُسجَّل بأعدادٍ كبيرة.</p>
+  </div>
+
+  <p class="en">The fix is the <a href="../lessons/chapter-2-lesson-8.html#lesson-08">scaler of Lesson 8</a>, applied to every column: put each measurement on a 0-to-1 scale within its own column first, so a degree of fever and a point of blood pressure count as the same amount of difference. That is three lines of <a href="../lessons/chapter-3-lesson-12.html#l12-h1">broadcasting</a>:</p>
+  <p class="ar">والإصلاحُ هو <a href="../lessons/chapter-2-lesson-8.html#lesson-08">مُقيِّس الدرس 8</a> مطبَّقًا على كل عمود: ضع كل قياس على مقياس من 0 إلى 1 داخل عموده أولًا، فتُحسب درجةُ حمّى ونقطةُ ضغطٍ فرقًا بالقدر نفسه. وذلك ثلاثةُ أسطر من <a href="../lessons/chapter-3-lesson-12.html#l12-h1">البثّ</a>:</p>
+
+<pre class="code good"><code>low = past.min(axis=0)
+high = past.max(axis=0)
+
+past_s = (past - low) / (high - low)
+new_s = (new - low) / (high - low)
+
+d = np.linalg.norm(past_s - new_s, axis=1)
+print(d.round(3))
+print(d.argmin())
+</code></pre>
+
+  <div class="output">[1.132 0.57  1.116 1.112]
+1</div>
+
+  <p class="en">The answer changed. Scaled, the nearest record is patient 1 &mdash; the other feverish one &mdash; and the four distances are now close together rather than ranging from 3 to 42, because no single column is shouting over the others. Neither run raised a warning. The first answer was not a bug in the code; it was a bug in the question.</p>
+  <p class="ar">تغيّر الجواب. فبعد التقييس صار أقربُ سجلٍّ المريضَ 1 &mdash; المحموم الآخر &mdash; وصارت المسافات الأربع متقاربة بدل أن تمتد من 3 إلى 42، لأن لا عمودَ يصرخ فوق الآخرين. ولم يرفع أيُّ تشغيلٍ تحذيرًا. فالجوابُ الأول لم يكن عيبًا في الكود؛ بل عيبًا في السؤال.</p>
+
+  <div class="note">
+    <h4><span class="en">Where this goes</span><span class="ar">إلى أين يمضي هذا</span></h4>
+    <p class="en">Every method that measures distance inherits this problem, which is why scaling is a standard step rather than an optional polish. Chapter 9 gives it a chapter of its own; what matters now is that you can see <em>why</em> it exists, from three lines of arithmetic rather than from a rule someone told you to follow.</p>
+    <p class="ar">كلُّ طريقةٍ تقيس المسافة ترث هذه المشكلة، ولذلك كان التقييس خطوةً معيارية لا تحسينًا اختياريًّا. والفصل 9 يفرد له فصلًا كاملًا؛ والمهمّ الآن أن ترى <em>لماذا</em> وُجد، من ثلاثة أسطر حساب لا من قاعدةٍ أمرك أحدهم باتّباعها.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Why does <code>np.linalg.norm(past - new, axis=1)</code> need the <code>axis=1</code>?</span><span class="ar">لماذا تحتاج <code>np.linalg.norm(past - new, axis=1)</code> إلى <code>axis=1</code>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Without it, <code>norm</code> collapses the whole table into one number. <code>axis=1</code> removes the measurement axis instead, leaving one distance per patient.</span><span class="ar">بدونها تَطبِق <code>norm</code> الجدول كله في عدد واحد. و<code>axis=1</code> تزيل محور القياسات بدلًا من ذلك فتترك مسافةً لكل مريض.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Without it the subtraction would not broadcast.</span><span class="ar">بدونها لا يُبثّ الطرح.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It tells <code>norm</code> to use the rows rather than the columns of <code>new</code>.</span><span class="ar">تخبر <code>norm</code> أن تستعمل صفوف <code>new</code> لا أعمدتها.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>norm</code> always requires an axis for a two-dimensional input.</span><span class="ar"><code>norm</code> تشترط محورًا دائمًا للمدخل ثنائي البعد.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The broadcasting in the second option has already happened by the time <code>norm</code> sees anything &mdash; <code>past - new</code> is evaluated first and is a plain <code>(4, 3)</code> array. The fourth is the sort of guess that is worth testing rather than believing: <code>norm</code> without an axis is perfectly legal on a table and returns a single number, which is exactly why a missing <code>axis</code> here gives you one meaningless answer instead of four useful ones.</div>
+      <div class="ar">البثّ في الخيار الثاني قد حدث قبل أن ترى <code>norm</code> شيئًا &mdash; فـ <code>past - new</code> تُحسب أولًا وهي مصفوفة <code>(4, 3)</code> مجردة. والرابع من التخمينات الجديرة بالاختبار لا بالتصديق: فـ <code>norm</code> بلا محور مشروعةٌ تمامًا على جدول وتُعيد عددًا واحدًا، ولذلك بالضبط يعطيك غيابُ <code>axis</code> هنا جوابًا واحدًا بلا معنى بدل أربعة مفيدة.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 14.2 &mdash; Point it in a direction, forget how far</span><span class="ar">تمرين 14.2 &mdash; وجّهه اتجاهًا وانسَ كم يبعد</span></h4>
+    <p class="en">Two shopping baskets contain the same things in the same proportions, one simply ten times larger. Show that dividing each by its own norm makes them identical, and say in one sentence what that division throws away.</p>
+    <p class="ar">سلّتا تسوّق فيهما الأشياء نفسها بالنِّسَب نفسها، إحداهما أكبر عشر مرات فقط. أثبت أن قسمة كلٍّ على معيارها تجعلهما متطابقتين، وقل في جملة ما الذي ترميه تلك القسمة.</p>
+
+<pre class="code"><code>a = np.array([1., 2., 2.])
+b = a * 10
+</code></pre>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>print(np.linalg.norm(a), np.linalg.norm(b))
+print(a / np.linalg.norm(a))
+print(b / np.linalg.norm(b))
+</code></pre>
+      <div class="output">3.0 30.0
+[0.33333333 0.66666667 0.66666667]
+[0.33333333 0.66666667 0.66666667]</div>
+      <p class="en">Dividing a vector by its own norm leaves a vector of length 1 pointing the same way; the shape of the basket survives and the size of it is gone. That is the right thing when you care about proportions &mdash; two customers who buy in the same ratios are now identical whatever they spend &mdash; and exactly the wrong thing when the size <em>is</em> the signal, as it is when the question is how much someone spent.</p>
+      <p class="ar">قسمةُ متجهٍ على معياره تترك متجهًا طولُه 1 يشير الاتجاه نفسه؛ فتبقى هيئةُ السلة ويذهب حجمُها. وذلك الصواب حين تَعنيك النِّسَب &mdash; فزبونان يشتريان بالنِّسَب نفسها صارا متطابقين مهما أنفقا &mdash; وهو الخطأ بعينه حين يكون الحجمُ <em>هو</em> الإشارة، كما حين يكون السؤال كم أنفق أحدهم.</p>
+    </details>
+  </section>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 14.3 &mdash; Rank the whole clinic</span><span class="ar">تمرين 14.3 &mdash; رتّب العيادة كلها</span></h4>
+    <p class="en">Using the scaled table from above, print the four patients in order of similarity to the new arrival, closest first, as a list of row numbers. One line, and <code>np.argsort</code> is the function you have not met yet: it returns the positions that would sort an array, in the same way <code>argmin</code> returns the position of the smallest.</p>
+    <p class="ar">باستعمال الجدول المقيَّس أعلاه، اطبع المرضى الأربعة مرتَّبين بالشبه بالوافد الجديد، الأقربَ أولًا، قائمةَ أرقام صفوف. سطرٌ واحد، و<code>np.argsort</code> هي الدالة التي لم تلقها بعد: تُعيد المواضع التي ترتّب المصفوفة، كما تُعيد <code>argmin</code> موضع الأصغر.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>order = np.argsort(d)
+print(order)
+print(d[order].round(3))
+</code></pre>
+      <div class="output">[1 3 2 0]
+[0.57  1.112 1.116 1.132]</div>
+      <p class="en">Patient 1 first, then 3, 2 and 0. Two things to notice. The second line is <a href="../lessons/chapter-3-lesson-11.html#l11-s3">fancy indexing</a> from Lesson 11 &mdash; indexing an array with an array of positions &mdash; and it gives the distances in sorted order, which is how you check that <code>argsort</code> did what you think. And the last three distances are 1.112, 1.116 and 1.132: so close together that calling any one of them &ldquo;more similar&rdquo; than the others would be reading noise. A ranking is honest only when you also look at the gaps.</p>
+      <p class="ar">المريض 1 أولًا ثم 3 و2 و0. وأمران يُلاحظان. فالسطر الثاني <a href="../lessons/chapter-3-lesson-11.html#l11-s3">فهرسةٌ بمصفوفة مواضع</a> من الدرس 11 &mdash; فهرسةُ مصفوفةٍ بمصفوفة مواضع &mdash; ويعطي المسافات مرتَّبة، وبذلك تفحص أن <code>argsort</code> فعلت ما تظن. والمسافاتُ الثلاث الأخيرة 1.112 و1.116 و1.132: متقاربةٌ إلى حدّ أن تسمية إحداها «أشبه» من الأخريات قراءةٌ للضجيج. فالترتيبُ لا يَصدُق إلا إذا نظرت إلى الفجوات أيضًا.</p>
+    </details>
+  </section>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A colleague measures blood pressure in kilopascals instead of millimetres of mercury, dividing every reading by about 7.5. Nothing else changes. What happens to the <em>unscaled</em> nearest-patient answer?</span><span class="ar">زميلٌ يقيس ضغط الدم بالكيلوباسكال بدل مليمترات الزئبق، فيقسم كل قراءة على 7.5 تقريبًا. ولا شيء آخر يتغيّر. فماذا يحدث لجواب أقرب مريضٍ <em>غير المقيَّس</em>؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">It can change, because the distance depends on the units each column is recorded in &mdash; and a column recorded in smaller numbers now counts for less.</span><span class="ar">قد يتغيّر، لأن المسافة تتوقف على وحدات تسجيل كل عمود &mdash; والعمودُ المسجَّل بأعدادٍ أصغر صار يُحسب أقلّ.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing: distance is a property of the patients, not of the units.</span><span class="ar">لا شيء: فالمسافة خاصّةُ المرضى لا الوحدات.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">All distances shrink by 7.5, so the ranking is unchanged.</span><span class="ar">تنكمش المسافات كلها 7.5 فلا يتغيّر الترتيب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">It raises, because the columns no longer have comparable units.</span><span class="ar">يرفع خطأً، لأن أعمدة الوحدات لم تعد متقارنة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The third option is the tempting one and it would be right if <em>every</em> column had been divided by 7.5 &mdash; scaling an entire table by one number does leave the ranking alone. Here only one column changed, so the balance between the columns changed with it. This is the clearest statement of why the scaled version is not a refinement but a correction: an answer that moves when you switch from millimetres to kilopascals was never an answer about the patients.</div>
+      <div class="ar">الخيار الثالث هو المُغري وكان ليصحّ لو قُسم <em>كل</em> عمود على 7.5 &mdash; فتقييسُ جدولٍ كامل بعددٍ واحد يترك الترتيب كما هو. وهنا تغيّر عمودٌ واحد فقط، فتغيّر معه التوازن بين الأعمدة. وهذا أوضحُ بيانٍ لماذا لم تكن النسخةُ المقيَّسة تحسينًا بل تصحيحًا: فالجوابُ الذي يتحرك حين تنتقل من المليمترات إلى الكيلوباسكال لم يكن قطُّ جوابًا عن المرضى.</div>
+    </div>
+  </div>
+
+  <h3 id="l14-s7"><span class="en">Key takeaways</span><span class="ar">الخلاصة</span></h3>
+
+  <div class="card takeaways">
+    <h3 id="l14-s8"><span class="en">What to carry into the next lesson</span><span class="ar">ما تحمله إلى الدرس التالي</span></h3>
+    <ul>
+      <li><span class="en"><strong>Multiply pairwise, then add</strong> is a dot product, written <code>a @ b</code>. It replaces an accumulator loop and checks the lengths for you.</span><span class="ar"><strong>اضرب موضعًا بموضع ثم اجمع</strong> ضربٌ قياسي يُكتب <code>a @ b</code>. يستبدل بحلقة المُراكِم ويفحص الأطوال عنك.</span></li>
+      <li><span class="en">A weighted total <em>is</em> a dot product. So is a model's prediction, which is where <a href="../lessons/chapter-4-lesson-15.html#lesson-15">Lesson 15</a> goes next.</span><span class="ar">المجموعُ الموزون <em>هو</em> ضربٌ قياسي. وكذلك تنبّؤُ النموذج، وإليه يمضي <a href="../lessons/chapter-4-lesson-15.html#lesson-15">الدرس 15</a>.</span></li>
+      <li><span class="en"><code>np.linalg.norm(x)</code> is the length of a vector; <code>norm(a - b)</code> is the distance between two; <code>norm(table - x, axis=1)</code> is the distance from one thing to every row of a table.</span><span class="ar"><code>np.linalg.norm(x)</code> طولُ المتجه؛ و<code>norm(a - b)</code> المسافةُ بين اثنين؛ و<code>norm(table - x, axis=1)</code> المسافةُ من شيءٍ إلى كل صفّ في جدول.</span></li>
+      <li><span class="en">Distance believes your units. Scale the columns first, or the measurement with the largest numbers quietly decides the answer.</span><span class="ar">المسافةُ تصدّق وحداتك. قيِّس الأعمدة أولًا، وإلا قرّر القياسُ ذو الأعداد الأكبر الجوابَ بصمت.</span></li>
+      <li><span class="en"><code>argmin</code> and <code>argsort</code> give positions, not values &mdash; which is what you need to look a name up in another array.</span><span class="ar"><code>argmin</code> و<code>argsort</code> تعطيان مواضع لا قيمًا &mdash; وهو ما تحتاجه للبحث عن اسمٍ في مصفوفة أخرى.</span></li>
+    </ul>
+  </div>
+
+  <h3 id="l14-s8"><span class="en">What comes next</span><span class="ar">ما التالي</span></h3>
+
+  <p class="en">One student's final mark took one <code>@</code>. A whole class of thirty is the same <code>@</code> with a table on the left instead of a vector &mdash; and that one change brings a shape rule you have to be able to read before you can trust what comes out. <a href="../tests/chapter-4-test-14.html#test-14">Test 14</a> first.</p>
+  <p class="ar">علامةُ طالبٍ واحد النهائية أخذت <code>@</code> واحدة. وصفٌّ كامل من ثلاثين هو <code>@</code> نفسها بجدولٍ يسارها بدل متجه &mdash; وذلك التغيير وحده يجلب قاعدةَ أشكالٍ يجب أن تقدر على قراءتها قبل أن تثق بما يخرج. و<a href="../tests/chapter-4-test-14.html#test-14">الاختبار 14</a> أولًا.</p>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-04.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

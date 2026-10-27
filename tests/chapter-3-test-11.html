@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 11 · Python OOP by Example" data-ar="اختبار 11 · البرمجة الكائنية بلغة بايثون">Test 11 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="3" data-page="test-11" data-path="tests/chapter-3-test-11.html">
+<main>
+<section class="page" id="test-11">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Test 11 &middot; Week 5 &middot; Lecture 13 &middot; last 10 minutes</span><span class="ar">اختبار 11 &middot; الأسبوع 5 &middot; المحاضرة 13 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 11 Test &mdash; Views and Copies</span><span class="ar">اختبار الدرس 11 &mdash; النوافذ والنسخ</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 11 alone. Half of it turns on one sentence: slicing a list copies, slicing an array does not. The syntax is identical and nothing errors either way, so the only defence is knowing the rule.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 11 وحده. ونصفه يدور على جملة واحدة: تقطيعُ القائمة ينسخ، وتقطيعُ المصفوفة لا. والصيغة متطابقة ولا شيء يُخطئ في الحالتين، فالدفاع الوحيد معرفةُ القاعدة.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Finish <a href="../lessons/chapter-3-lesson-11.html#lesson-11">Lesson 11</a>, which assumes <a href="../lessons/chapter-3-lesson-10.html#lesson-10">Lesson 10</a>. If <code>m[:, 1]</code> does not yet read as &ldquo;one subject for every student&rdquo;, re-read <a href="../lessons/chapter-3-lesson-11.html#l11-h2">the table indexing section</a> &mdash; four of these twelve questions depend on it.</p>
+    <p class="ar">أنجز <a href="../lessons/chapter-3-lesson-11.html#lesson-11">الدرس 11</a>، وهو يفترض <a href="../lessons/chapter-3-lesson-10.html#lesson-10">الدرس 10</a>. وإن لم تكن <code>m[:, 1]</code> تُقرأ بعد «مادةٌ واحدة لكل طالب» فأعد قراءة <a href="../lessons/chapter-3-lesson-11.html#l11-h2">قسم فهرسة الجدول</a> &mdash; فأربعة من هذه الأسئلة الاثني عشر تتوقف عليه.</p>
+  </div>
+
+  <div class="assess" data-bank="test-11" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">Next is <a href="../lessons/chapter-3-lesson-12.html#lesson-12">Lesson 12</a>, where two arrays of different shapes are combined without a loop &mdash; and where the mistake is not an error but nine plausible wrong numbers.</p>
+    <p class="ar">التالي هو <a href="../lessons/chapter-3-lesson-12.html#lesson-12">الدرس 12</a>، حيث تُدمج مصفوفتان بشكلين مختلفين بلا حلقة &mdash; وحيث لا يكون الخطأُ خطأً بل تسعةَ أعدادٍ خاطئةٍ معقولة.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-11.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

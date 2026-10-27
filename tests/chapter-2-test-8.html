@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 8 · Python OOP by Example" data-ar="اختبار 8 · البرمجة الكائنية بلغة بايثون">Test 8 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="2" data-page="test-08" data-path="tests/chapter-2-test-8.html">
+<main>
+<section class="page" id="test-08">
+<nav class="crumbs"></nav>
+
+
+
+  <span class="kicker"><span class="en">Test 8 &middot; Week 4 &middot; Lecture 10 &middot; last 10 minutes</span><span class="ar">اختبار 8 &middot; الأسبوع 4 &middot; المحاضرة 10 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 8 Test &mdash; Strategy and Factory</span><span class="ar">اختبار الدرس 8 &mdash; الاستراتيجية والمصنع</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 8 alone: state stored by <code>fit</code>, one class per strategy, the factory, and the abstract base that names the promise. Every question is labelled with its difficulty and the topics it covers, and each topic links back to the paragraph that teaches it.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 8 وحده: الحالة التي تخزّنها <code>fit</code>، وصنفٌ لكل استراتيجية، والمصنع، والأساس المجرّد الذي يسمّي الوعد. وكل سؤال موسوم بمستوى صعوبته والمواضيع التي يغطيها، وكل موضوع يرتبط بالفقرة التي تعلّمه.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Read <a href="../lessons/chapter-2-lesson-8.html#lesson-08">Lesson 8</a> and do its exercises. Nothing here needs <code>Pipeline</code> or the decorator, which arrive in <a href="../lessons/chapter-2-lesson-9.html#lesson-09">Lesson 9</a>, and nothing here is mathematics &mdash; the vocabulary is in <a href="../appendices/appendix-a3.html#appendix-a3">Appendix A3</a>.</p>
+    <p class="ar">اقرأ <a href="../lessons/chapter-2-lesson-8.html#lesson-08">الدرس 8</a> وأنجز تمارينه. ولا شيء هنا يحتاج <code>Pipeline</code> ولا المزخرِف، فهما يصلان في <a href="../lessons/chapter-2-lesson-9.html#lesson-09">الدرس 9</a>، ولا شيء هنا رياضيات &mdash; فالمفردات في <a href="../appendices/appendix-a3.html#appendix-a3">الملحق A3</a>.</p>
+  </div>
+
+  <div class="assess" data-bank="test-08" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">When this test is green, go on to <a href="../lessons/chapter-2-lesson-9.html#lesson-09">Lesson 9</a>, where four of these steps have to run in a fixed order in two different files. If it is not, the links on each question you missed go straight to the paragraph that explains it.</p>
+    <p class="ar">إذا نجحت في هذا الاختبار فتابع إلى <a href="../lessons/chapter-2-lesson-9.html#lesson-09">الدرس 9</a>، حيث يجب أن تُنفَّذ أربع من هذه الخطوات بترتيب ثابت في ملفين مختلفين. وإن لم تنجح فروابط كل سؤال أخطأت فيه تنقلك مباشرة إلى الفقرة التي تشرحه.</p>
+  </div>
+
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-08.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>
