@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter 5 · Python OOP by Example" data-ar="الفصل 5 · البرمجة الكائنية بلغة بايثون">Chapter 5 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+</head>
+<body data-chapter="5" data-page="chapter-5" data-path="chapters/chapter-5.html">
+<main>
+<section class="page" id="chapter-5">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Chapter 5 &middot; Week 7 &middot; Lectures 19&ndash;20</span><span class="ar">الفصل 5 &middot; الأسبوع 7 &middot; المحاضرتان 19&ndash;20</span></span>
+  <h1><span class="en">Linear Algebra, as Four Function Calls</span><span class="ar">الجبر الخطي في أربع دوال</span></h1>
+
+  <p class="lede en">Two lessons on the handful of <code>np.linalg</code> calls that the rest of machine learning is built on. The first asks a question with exactly one answer &mdash; two orders, two unknown prices &mdash; and the second asks one with no exact answer at all, which is the situation you are actually in every time you fit a model. The thread running through both is that the dangerous input is not the one that raises, it is the one that nearly raises and does not.</p>
+  <p class="lede ar">درسان في حفنة دوال <code>np.linalg</code> التي يقوم عليها سائر تعلّم الآلة. الأول يسأل سؤالًا له جوابٌ واحد بالضبط &mdash; أمرانِ وسعرانِ مجهولان &mdash; والثاني يسأل سؤالًا لا جواب مضبوط له أصلًا، وهو حالك فعلًا كلما دربت نموذجًا. والخيط الجاري في كليهما أنّ المدخل الخطير ليس الذي يرفع خطأً، بل الذي يكاد يرفعه ولا يرفعه.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need Chapter 3's shapes and Chapter 4's <code>@</code>. The mathematics is not derived here: <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> says what solving a system, a rank and an inverse actually <em>are</em>, and <a href="../appendices/appendix-a5.html#appendix-a5">Appendix A5</a> reads the notation. Both are self-study and neither is examined. <code>np.linalg</code> ships inside NumPy &mdash; there is nothing to install.</p>
+    <p class="ar">تحتاج أشكالَ الفصل 3 و<code>@</code> الفصل 4. والرياضيات لا تُشتقّ هنا: فـ<a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> يقول ما يكون حلُّ نظامٍ والرتبةُ والمعكوسُ <em>فعلًا</em>، و<a href="../appendices/appendix-a5.html#appendix-a5">الملحق A5</a> يقرأ الرموز. وكلاهما للدراسة الذاتية ولا يُمتحن فيهما. و<code>np.linalg</code> يأتي داخل نمباي &mdash; لا شيء تثبّته.</p>
+  </div>
+
+  <h2 id="ch5-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="../lessons/chapter-5-lesson-17.html#lesson-17">
+      <span class="n">17</span><span class="state" data-page-state="lesson-17" hidden></span>
+      <h3 id="ch5-s1"><span class="en">Two Orders, Two Prices: Solving a System</span><span class="ar">أمرانِ وسعرانِ: حلّ نظام</span></h3>
+      <p class="en">Two totals, two unknown prices, one call. Then the system whose two equations are the same line, and the one that is <em>nearly</em> the same line &mdash; where a penny changes the answer by six thousand pounds and nothing is raised.</p>
+      <p class="ar">مجموعان، سعران مجهولان، نداءٌ واحد. ثم النظام الذي معادلتاه الخطُّ نفسه، والنظام الذي <em>يكاد</em> يكون الخطَّ نفسه &mdash; حيث يغيّر قرشٌ الجوابَ بستة آلاف جنيه ولا خطأ يُرفع.</p>
+    </a>
+
+    <a class="lesson-card" href="../lessons/chapter-5-lesson-18.html#lesson-18">
+      <span class="n">18</span><span class="state" data-page-state="lesson-18" hidden></span>
+      <h3 id="ch5-s2"><span class="en">More Measurements Than Unknowns: Least Squares</span><span class="ar">قياساتٌ أكثر من المجاهيل: المربعات الصغرى</span></h3>
+      <p class="en">Five students, one line, and no line that passes through all five. <code>solve</code> refuses the shape; throwing data away until it fits is worse than the thing it fixes. Plus the three diagnostics &mdash; rank, determinant, condition &mdash; and which of them is lying to you.</p>
+      <p class="ar">خمسة طلبة وخطٌّ واحد، ولا خطَّ يمرّ بالخمسة. ترفض <code>solve</code> الشكل؛ ورميُ البيانات حتى ينطبق أسوأ من العلة التي يعالجها. ثم أدوات التشخيص الثلاث &mdash; الرتبة والمحدِّد وحالة المصفوفة &mdash; وأيُّها يكذب عليك.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch5-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">A test after each lesson, and two for the chapter &mdash; A for the core ideas, B for the harder corners. The execution traces sit inside the lessons: one runs elimination by hand so you can watch what <code>solve</code> is doing, and one watches a best-fit line leave residuals behind.</p>
+  <p class="ar">اختبارٌ بعد كل درس، واثنان للفصل &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب. وآثار التنفيذ داخل الدروس: أحدها يجري الحذف يدويًا لتشاهد ما تفعله <code>solve</code>، والآخر يراقب خطَّ أفضلِ مواءمة يتخلّف عنه بواقٍ.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="../tests/chapter-5-test-17.html#test-17">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 17 &mdash; Solving a System</span><span class="ar">اختبار 17 &mdash; حلّ نظام</span></span>
+      <span class="state" data-page-state="test-17" hidden></span>
+    </a>
+
+    <a class="side-card test" href="../tests/chapter-5-test-18.html#test-18">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 18 &mdash; Least Squares &amp; Diagnostics</span><span class="ar">اختبار 18 &mdash; المربعات الصغرى والتشخيص</span></span>
+      <span class="state" data-page-state="test-18" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-5-exam-a.html#chapter-05-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-05-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="../exams/chapter-5-exam-b.html#chapter-05-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-05-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="../appendices/appendix-a6.html#appendix-a6">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A6 &mdash; vectors and matrices</span><span class="ar">الملحق A6 &mdash; المتجهات والمصفوفات</span></span>
+      <span class="state" data-page-state="appendix-a6" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch5-s3"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">Ask a linear system for an answer and NumPy will give you one; whether that answer means anything depends on a property of the matrix that you have to go and check, because no exception will tell you.</p>
+    <p class="ar">اسأل نظامًا خطيًّا عن جواب فتعطيك نمباي جوابًا؛ وكونُ ذلك الجواب ذا معنًى يتعلّق بخاصيّةٍ في المصفوفة عليك أن تذهب وتفحصها، فلا استثناء سيخبرك.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/js/home.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

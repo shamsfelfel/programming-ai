@@ -1,0 +1,741 @@
+<section class="page" id="chapter-5">
+
+  <span class="kicker"><span class="en">Chapter 5 &middot; Week 7 &middot; Lectures 19&ndash;20</span><span class="ar">الفصل 5 &middot; الأسبوع 7 &middot; المحاضرتان 19&ndash;20</span></span>
+  <h1><span class="en">Linear Algebra, as Four Function Calls</span><span class="ar">الجبر الخطي في أربع دوال</span></h1>
+
+  <p class="lede en">Two lessons on the handful of <code>np.linalg</code> calls that the rest of machine learning is built on. The first asks a question with exactly one answer &mdash; two orders, two unknown prices &mdash; and the second asks one with no exact answer at all, which is the situation you are actually in every time you fit a model. The thread running through both is that the dangerous input is not the one that raises, it is the one that nearly raises and does not.</p>
+  <p class="lede ar">درسان في حفنة دوال <code>np.linalg</code> التي يقوم عليها سائر تعلّم الآلة. الأول يسأل سؤالًا له جوابٌ واحد بالضبط &mdash; أمرانِ وسعرانِ مجهولان &mdash; والثاني يسأل سؤالًا لا جواب مضبوط له أصلًا، وهو حالك فعلًا كلما دربت نموذجًا. والخيط الجاري في كليهما أنّ المدخل الخطير ليس الذي يرفع خطأً، بل الذي يكاد يرفعه ولا يرفعه.</p>
+
+  <div class="note">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">You need Chapter 3's shapes and Chapter 4's <code>@</code>. The mathematics is not derived here: <a href="#appendix-a6">Appendix A6</a> says what solving a system, a rank and an inverse actually <em>are</em>, and <a href="#appendix-a5">Appendix A5</a> reads the notation. Both are self-study and neither is examined. <code>np.linalg</code> ships inside NumPy &mdash; there is nothing to install.</p>
+    <p class="ar">تحتاج أشكالَ الفصل 3 و<code>@</code> الفصل 4. والرياضيات لا تُشتقّ هنا: فـ<a href="#appendix-a6">الملحق A6</a> يقول ما يكون حلُّ نظامٍ والرتبةُ والمعكوسُ <em>فعلًا</em>، و<a href="#appendix-a5">الملحق A5</a> يقرأ الرموز. وكلاهما للدراسة الذاتية ولا يُمتحن فيهما. و<code>np.linalg</code> يأتي داخل نمباي &mdash; لا شيء تثبّته.</p>
+  </div>
+
+  <h2 id="ch5-h1"><span class="en">The lessons</span><span class="ar">الدروس</span></h2>
+
+  <div class="grid">
+
+    <a class="lesson-card" href="#lesson-17">
+      <span class="n">17</span><span class="state" data-page-state="lesson-17" hidden></span>
+      <h3 id="ch5-s1"><span class="en">Two Orders, Two Prices: Solving a System</span><span class="ar">أمرانِ وسعرانِ: حلّ نظام</span></h3>
+      <p class="en">Two totals, two unknown prices, one call. Then the system whose two equations are the same line, and the one that is <em>nearly</em> the same line &mdash; where a penny changes the answer by six thousand pounds and nothing is raised.</p>
+      <p class="ar">مجموعان، سعران مجهولان، نداءٌ واحد. ثم النظام الذي معادلتاه الخطُّ نفسه، والنظام الذي <em>يكاد</em> يكون الخطَّ نفسه &mdash; حيث يغيّر قرشٌ الجوابَ بستة آلاف جنيه ولا خطأ يُرفع.</p>
+    </a>
+
+    <a class="lesson-card" href="#lesson-18">
+      <span class="n">18</span><span class="state" data-page-state="lesson-18" hidden></span>
+      <h3 id="ch5-s2"><span class="en">More Measurements Than Unknowns: Least Squares</span><span class="ar">قياساتٌ أكثر من المجاهيل: المربعات الصغرى</span></h3>
+      <p class="en">Five students, one line, and no line that passes through all five. <code>solve</code> refuses the shape; throwing data away until it fits is worse than the thing it fixes. Plus the three diagnostics &mdash; rank, determinant, condition &mdash; and which of them is lying to you.</p>
+      <p class="ar">خمسة طلبة وخطٌّ واحد، ولا خطَّ يمرّ بالخمسة. ترفض <code>solve</code> الشكل؛ ورميُ البيانات حتى ينطبق أسوأ من العلة التي يعالجها. ثم أدوات التشخيص الثلاث &mdash; الرتبة والمحدِّد وحالة المصفوفة &mdash; وأيُّها يكذب عليك.</p>
+    </a>
+
+  </div>
+
+  <h2 id="ch5-h2"><span class="en">Check what stuck</span><span class="ar">تأكّد ممّا رسخ</span></h2>
+
+  <p class="en">A test after each lesson, and two for the chapter &mdash; A for the core ideas, B for the harder corners. The execution traces sit inside the lessons: one runs elimination by hand so you can watch what <code>solve</code> is doing, and one watches a best-fit line leave residuals behind.</p>
+  <p class="ar">اختبارٌ بعد كل درس، واثنان للفصل &mdash; (أ) للأساسيات و(ب) للزوايا الأصعب. وآثار التنفيذ داخل الدروس: أحدها يجري الحذف يدويًا لتشاهد ما تفعله <code>solve</code>، والآخر يراقب خطَّ أفضلِ مواءمة يتخلّف عنه بواقٍ.</p>
+
+  <div class="grid grid-tight">
+
+    <a class="side-card test" href="#test-17">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 17 &mdash; Solving a System</span><span class="ar">اختبار 17 &mdash; حلّ نظام</span></span>
+      <span class="state" data-page-state="test-17" hidden></span>
+    </a>
+
+    <a class="side-card test" href="#test-18">
+      <span class="ic">✎</span>
+      <span class="t"><span class="en">Test 18 &mdash; Least Squares &amp; Diagnostics</span><span class="ar">اختبار 18 &mdash; المربعات الصغرى والتشخيص</span></span>
+      <span class="state" data-page-state="test-18" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-05-test-a">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test A &mdash; Core</span><span class="ar">اختبار الفصل أ &mdash; الأساسيات</span></span>
+      <span class="state" data-page-state="chapter-05-test-a" hidden></span>
+    </a>
+
+    <a class="side-card exam" href="#chapter-05-test-b">
+      <span class="ic">★</span>
+      <span class="t"><span class="en">Chapter Test B &mdash; Advanced</span><span class="ar">اختبار الفصل ب &mdash; المتقدم</span></span>
+      <span class="state" data-page-state="chapter-05-test-b" hidden></span>
+    </a>
+
+    <a class="side-card appx" href="#appendix-a6">
+      <span class="ic">§</span>
+      <span class="t"><span class="en">Appendix A6 &mdash; vectors and matrices</span><span class="ar">الملحق A6 &mdash; المتجهات والمصفوفات</span></span>
+      <span class="state" data-page-state="appendix-a6" hidden></span>
+    </a>
+
+  </div>
+
+  <div class="card takeaways">
+    <h3 id="ch5-s3"><span class="en">The chapter in one line</span><span class="ar">الفصل في سطر واحد</span></h3>
+    <p class="en">Ask a linear system for an answer and NumPy will give you one; whether that answer means anything depends on a property of the matrix that you have to go and check, because no exception will tell you.</p>
+    <p class="ar">اسأل نظامًا خطيًّا عن جواب فتعطيك نمباي جوابًا؛ وكونُ ذلك الجواب ذا معنًى يتعلّق بخاصيّةٍ في المصفوفة عليك أن تذهب وتفحصها، فلا استثناء سيخبرك.</p>
+  </div>
+
+</section>
+
+<section class="page" id="lesson-17">
+
+  <span class="kicker"><span class="en">Lesson 17 &middot; Week 7 &middot; Lecture 19 &middot; 90 min</span><span class="ar">الدرس 17 &middot; الأسبوع 7 &middot; المحاضرة 19 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Two Orders, Two Prices: Solving a System</span><span class="ar">أمرانِ وسعرانِ: حلّ نظام</span></h1>
+
+  <p class="lede en">By the end of this lesson you will turn a word problem into a matrix and a vector, get its answer in one call, and check that answer in a way that does not lie to you. Then you will meet the two systems that have no single answer &mdash; and the far worse one that <em>nearly</em> has no single answer, where NumPy returns a number with complete confidence and a one-penny change in the question moves that number by six thousand pounds.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستحوّل مسألةً لفظية إلى مصفوفةٍ ومتجه، وتحصل على جوابها في نداء واحد، وتفحص ذلك الجواب فحصًا لا يكذب عليك. ثم ستلقى النظامين اللذين لا جواب واحد لهما &mdash; والنظام الأسوأ بكثير الذي <em>يكاد</em> لا يكون له جواب واحد، حيث تُرجع نمباي عددًا بثقة تامة ويحرّك تغييرٌ بقرشٍ واحد في السؤال ذلك العدد بستة آلاف جنيه.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">This lesson leans on <a href="#l10-s5">shape</a> from Chapter 3 and <a href="#lesson-14">the <code>@</code> operator</a> from Chapter 4, and assumes you can read <code>A @ x</code> without stopping. <a href="#appendix-a6">Appendix A6</a> is what stands behind it: what a system of equations <em>is</em>, and what it means for one to have no single answer. It is worth an hour before this lecture and it is not examined anywhere.</p>
+    <p class="ar">يستند هذا الدرس إلى <a href="#l10-s5">الشكل</a> من الفصل 3 وإلى <a href="#lesson-14">مُعامل <code>@</code></a> من الفصل 4، ويفترض أنك تقرأ <code>A @ x</code> بلا توقّف. و<a href="#appendix-a6">الملحق A6</a> هو ما يقف خلفه: ما يكون نظامُ المعادلات، وما يعني ألّا يكون له جوابٌ واحد. ويستحقّ ساعةً قبل هذه المحاضرة، ولا يُمتحن فيه في مكان.</p>
+  </div>
+
+  <h2 id="l17-h1"><span class="en">A system of equations is a matrix and a vector</span><span class="ar">نظامُ المعادلات مصفوفةٌ ومتجه</span></h2>
+
+  <div class="problem">
+    <p class="en">The school office has two invoices from the same stationery shop and no price list. The first says <strong>3 notebooks and 2 pens came to 13.50</strong>. The second says <strong>5 notebooks and 4 pens came to 23.50</strong>. What does one notebook cost, and what does one pen cost?</p>
+    <p class="ar">في مكتب المدرسة فاتورتان من المكتبة نفسها ولا قائمةَ أسعار. تقول الأولى إنّ <strong>ثلاثة دفاتر وقلمين بلغت 13.50</strong>. وتقول الثانية إنّ <strong>خمسة دفاتر وأربعة أقلام بلغت 23.50</strong>. فكم يكلّف الدفتر الواحد، وكم يكلّف القلم الواحد؟</p>
+  </div>
+
+  <h3 id="l17-s1"><span class="en">Doing it by hand, once</span><span class="ar">الحلّ يدويًا، مرةً واحدة</span></h3>
+
+  <p class="en">Double the first invoice and you have 6 notebooks and 4 pens for 27.00. The second invoice has 5 notebooks and 4 pens for 23.50. The pens cancel, one notebook is the difference, 27.00 &minus; 23.50 = 3.50. Put that back in the first invoice: 3 &times; 3.50 = 10.50, so the two pens cost 3.00 and one pen costs 1.50.</p>
+  <p class="ar">ضاعِف الفاتورة الأولى فتصير ستة دفاتر وأربعة أقلام بـ 27.00. والفاتورة الثانية خمسة دفاتر وأربعة أقلام بـ 23.50. تُحذَف الأقلام، ويكون الفرقُ دفترًا واحدًا، 27.00 &minus; 23.50 = 3.50. أعِد ذلك في الفاتورة الأولى: 3 &times; 3.50 = 10.50، فيكون القلمان بـ 3.00 والقلمُ الواحد بـ 1.50.</p>
+
+  <p class="en">That is the whole method, and it is fine for two unknowns. It is unpleasant for four and unthinkable for a hundred &mdash; and a hundred is the size of problem a model solves before breakfast. So the rest of this lesson is about handing the same question to a function.</p>
+  <p class="ar">تلك هي الطريقة كلها، وهي حسنةٌ لمجهولين. وهي كريهة لأربعة، ولا تُتصوّر لمئة &mdash; والمئة حجمُ مسألةٍ يحلّها نموذجٌ قبل الفطور. فبقيّةُ هذا الدرس في تسليم السؤال نفسه إلى دالة.</p>
+
+  <h3 id="l17-s2"><span class="en">The same question, laid out for NumPy</span><span class="ar">السؤال نفسه، مُهيّأً لنمباي</span></h3>
+
+  <p class="en">Write the two invoices as a table of <em>how many of each item</em>, and the two totals as a column beside it. One row per invoice, one column per item &mdash; always that way round, and getting it the other way round is the commonest mistake in this lesson.</p>
+  <p class="ar">اكتب الفاتورتين جدولًا بـ<em>كم من كل بند</em>، والمجموعين عمودًا بجانبه. صفٌّ لكل فاتورة، وعمودٌ لكل بند &mdash; دائمًا بهذا الترتيب، وعكسُه أشيعُ خطأ في هذا الدرس.</p>
+
+<pre class="code good"><code>import numpy as np
+
+A = np.array([[3., 2.],
+              [5., 4.]])
+b = np.array([13.50, 23.50])
+
+print(A.shape, b.shape)
+</code></pre>
+
+  <div class="output">(2, 2) (2,)</div>
+
+  <p class="en">The unknowns are a vector too &mdash; call it <code>x</code>, holding the notebook price and the pen price in that order. Then the two invoices are a single statement: <code>A @ x</code> must equal <code>b</code>. Read it row by row and you get the two sentences back: row one says 3 &times; notebook + 2 &times; pen = 13.50.</p>
+  <p class="ar">والمجاهيلُ متجهٌ أيضًا &mdash; سمّه <code>x</code>، يحمل سعر الدفتر وسعر القلم بهذا الترتيب. فتصير الفاتورتان جملةً واحدة: <code>A @ x</code> يجب أن تساوي <code>b</code>. اقرأها صفًّا صفًّا فتعود إليك الجملتان: يقول الصف الأول 3 &times; دفتر + 2 &times; قلم = 13.50.</p>
+
+  <h3 id="l17-s3"><span class="en">One call</span><span class="ar">نداءٌ واحد</span></h3>
+
+<pre class="code good"><code>x = np.linalg.solve(A, b)
+print(x)
+print(f"notebook {x[0]:.2f}, pen {x[1]:.2f}")
+</code></pre>
+
+  <div class="output">[3.5 1.5]
+notebook 3.50, pen 1.50</div>
+
+  <p class="en">The same two numbers the hand method gave. <code>np.linalg.solve</code> takes the table and the totals and returns the unknowns, in the order the columns were written. The order of the columns is yours to decide and yours to remember: nothing in the output says which number is the notebook.</p>
+  <p class="ar">العددان نفساهما الذين أعطتهما الطريقة اليدوية. تأخذ <code>np.linalg.solve</code> الجدولَ والمجاميع وتُرجع المجاهيل، بترتيب كتابة الأعمدة. وترتيبُ الأعمدة قرارُك وعليك تذكّره: فليس في الخَرج ما يقول أيُّ عددٍ هو الدفتر.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">The office hands you a third invoice: 4 notebooks and 1 pen came to 15.50. You want to use invoices one and three instead. What changes in the code?</span><span class="ar">يسلّمك المكتب فاتورةً ثالثة: أربعة دفاتر وقلمٌ واحد بلغت 15.50. وتريد استعمال الفاتورتين الأولى والثالثة. فما الذي يتغيّر في الكود؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The second row of <code>A</code> becomes <code>[4., 1.]</code> and the second entry of <code>b</code> becomes <code>15.50</code>. Nothing else &mdash; not the call, not the shapes.</span><span class="ar">يصير الصفُّ الثاني من <code>A</code> هو <code>[4., 1.]</code> ويصير المدخلُ الثاني من <code>b</code> هو <code>15.50</code>. ولا شيء غير ذلك &mdash; لا النداء ولا الأشكال.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The second <em>column</em> of <code>A</code> becomes <code>[4., 1.]</code>, because each invoice is a column.</span><span class="ar">يصير العمودُ الثاني من <code>A</code> هو <code>[4., 1.]</code>، لأن كل فاتورة عمود.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">All three invoices must go in, so <code>A</code> becomes 3&times;2 and <code>b</code> becomes length 3.</span><span class="ar">يجب إدخال الفواتير الثلاث، فتصير <code>A</code> بحجم 3&times;2 وتصير <code>b</code> بطول 3.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing: <code>solve</code> reads the invoices from <code>b</code> and <code>A</code> only holds the prices.</span><span class="ar">لا شيء: فـ<code>solve</code> تقرأ الفواتير من <code>b</code>، و<code>A</code> لا تحمل إلا الأسعار.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">One row per equation, one column per unknown. The option that transposes the layout is the mistake worth making once in private: it builds a perfectly valid 2&times;2 matrix, <code>solve</code> answers without complaint, and it returns <code>[-31.75  21.75]</code> &mdash; a notebook costing minus thirty-one pounds. Absurd enough to catch here, and the reason to notice is the sign, not the arithmetic: on a table of plausible-looking quantities a transposed layout returns plausible-looking prices, and there is nothing in the output to appeal to. The option that puts all three invoices in is not wrong so much as early: that is a 3&times;2 matrix, <code>solve</code> will refuse the shape, and it is <a href="#lesson-18">Lesson 18</a>'s entire subject.</div>
+      <div class="ar">صفٌّ لكل معادلة، وعمودٌ لكل مجهول. والخيارُ الذي يقلب التخطيط هو الخطأ الذي يستحقّ أن تقع فيه مرةً على انفراد: فهو يبني مصفوفةً 2&times;2 صحيحةً تمامًا، وتجيب <code>solve</code> بلا اعتراض، وتُرجع <code>[-31.75  21.75]</code> &mdash; دفترًا بسالب واحدٍ وثلاثين جنيهًا. وهو عبثٌ يكفي لالتقاطه هنا، وسببُ الالتقاط الإشارةُ لا الحساب: فعلى جدولِ كمياتٍ تبدو معقولة يُرجع التخطيطُ المقلوب أسعارًا تبدو معقولة، وليس في الخَرج ما تحتكم إليه. والخيارُ الذي يُدخل الفواتير الثلاث ليس خاطئًا بقدر ما هو سابقٌ لوقته: فتلك مصفوفة 3&times;2، وسترفض <code>solve</code> الشكل، وهو موضوع <a href="#lesson-18">الدرس 18</a> كلُّه.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.1 &mdash; Three items, three invoices</span><span class="ar">تمرين 17.1 &mdash; ثلاثة بنود وثلاث فواتير</span></h4>
+    <p class="en">The shop also sells rulers. Three invoices: 3 notebooks + 2 pens + 1 ruler came to 13.50; 5 notebooks + 4 pens + 2 rulers came to 23.50; 1 notebook + 1 pen + 4 rulers came to 10.00. Find the three prices, and print them rounded to two decimals.</p>
+    <p class="ar">تبيع المكتبةُ مساطرَ أيضًا. ثلاث فواتير: ثلاثة دفاتر وقلمان ومسطرة بلغت 13.50؛ وخمسة دفاتر وأربعة أقلام ومسطرتان بلغت 23.50؛ ودفترٌ وقلمٌ وأربع مساطر بلغت 10.00. جِد الأسعار الثلاثة، واطبعها مقرّبةً إلى منزلتين.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+x = np.linalg.solve(A, b)
+print(x)
+print(np.round(x, 2))
+</code></pre>
+      <div class="output">[3.5        0.78571429 1.42857143]
+[3.5  0.79 1.43]</div>
+      <p class="en">The call did not change at all &mdash; only the shapes did, from 2&times;2 to 3&times;3. That is the whole point of handing the problem to a function. Note that the prices are no longer round numbers: real invoice data gives answers like <code>0.78571429</code>, and rounding them for display is a reporting decision, not a correction.</p>
+      <p class="ar">لم يتغيّر النداء إطلاقًا &mdash; تغيّرت الأشكال وحدها، من 2&times;2 إلى 3&times;3. وذلك كلُّ المقصود من تسليم المسألة إلى دالة. ولاحظ أن الأسعار لم تبقَ أعدادًا صحيحة: فبيانات الفواتير الحقيقية تعطي أجوبةً مثل <code>0.78571429</code>، وتقريبُها للعرض قرارُ إبلاغ لا تصحيح.</p>
+    </details>
+  </section>
+
+  <h2 id="l17-h2"><span class="en">Never trust it without checking, and never check with <code>==</code></span><span class="ar">لا تثق به بلا فحص، ولا تفحصه بـ <code>==</code></span></h2>
+
+  <h3 id="l17-s4"><span class="en">Put the answer back in</span><span class="ar">أعِد الجواب إلى مكانه</span></h3>
+
+  <p class="en">You have an <code>x</code>. The question was "which <code>x</code> makes <code>A @ x</code> equal <code>b</code>?", so the check writes itself: compute <code>A @ x</code> and compare. Here it is on the three-item system from Exercise 17.1, because the two-item one is too tidy to show what is coming.</p>
+  <p class="ar">لديك <code>x</code>. وكان السؤال: «أيُّ <code>x</code> يجعل <code>A @ x</code> تساوي <code>b</code>؟»، فالفحصُ يكتب نفسه: احسب <code>A @ x</code> وقارن. وها هو على نظام البنود الثلاثة من تمرين 17.1، فنظامُ البندين أنظفُ من أن يُظهر ما هو آتٍ.</p>
+
+<pre class="code good"><code>A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+x = np.linalg.solve(A, b)
+
+print(A @ x)
+print(A @ x - b)
+print(A @ x == b)
+</code></pre>
+
+  <div class="output">[13.5 23.5 10. ]
+[-1.77635684e-15  0.00000000e+00  0.00000000e+00]
+[False  True  True]</div>
+
+  <p class="en">Read the last line again. Two of the three equations came back exactly, and the first came back wrong by <code>0.00000000000000177</code> &mdash; and <code>==</code> reports that as <code>False</code>. The answer is not wrong; the comparison is. This is <a href="#a4-h2">how decimals are stored</a>, met in Appendix A4 and again in <a href="#l13-h2">Chapter 3</a>, and it is why a correctness check on floating-point arithmetic uses a tolerance.</p>
+  <p class="ar">أعِد قراءة السطر الأخير. عادت معادلتان من الثلاث مضبوطتين، وعادت الأولى خاطئةً بمقدار <code>0.00000000000000177</code> &mdash; و<code>==</code> تُبلغ عن ذلك بـ <code>False</code>. فالجوابُ ليس خاطئًا، بل المقارنةُ هي الخاطئة. وهذا <a href="#a4-h2">كيف تُخزَّن العشريات</a>، وقد لقيناه في الملحق A4 ثم في <a href="#l13-h2">الفصل 3</a>، وهو سببُ أن يستعمل فحصُ صحةِ حسابٍ عشري سماحيّة.</p>
+
+<pre class="code good"><code>print(np.allclose(A @ x, b))
+</code></pre>
+
+  <div class="output">True</div>
+
+  <div class="note">
+    <p class="en"><code>np.allclose(p, q)</code> asks whether every pair of entries agrees to within a small tolerance, and returns one <code>True</code> or <code>False</code> for the whole comparison. It is the function to reach for whenever you want to say "these two arrays are the same" about numbers that have been through arithmetic. <code>==</code> is for integers, strings and flags.</p>
+    <p class="ar"><code>np.allclose(p, q)</code> تسأل هل يتفق كل زوج من المداخل في حدود سماحيّةٍ صغيرة، وتُرجع <code>True</code> أو <code>False</code> واحدة للمقارنة كلها. وهي الدالة التي تمتدّ إليها كلما أردت أن تقول «هاتان المصفوفتان سواء» عن أعدادٍ مرّت بحساب. أمّا <code>==</code> فللأعداد الصحيحة والنصوص والأعلام.</p>
+  </div>
+
+  <h3 id="l17-s5"><span class="en">The tool you were taught, and why not</span><span class="ar">الأداةُ التي عُلِّمتها، ولماذا لا</span></h3>
+
+  <p class="en">School algebra teaches a different route: find the inverse of <code>A</code> and multiply. NumPy will do it, and for this system it agrees.</p>
+  <p class="ar">يعلّم جبرُ المدرسة طريقًا آخر: جِد معكوس <code>A</code> واضرب. ونمباي تفعل ذلك، وهي توافق في هذا النظام.</p>
+
+<pre class="code good"><code>A = np.array([[3., 2.],
+              [5., 4.]])
+b = np.array([13.50, 23.50])
+print(np.linalg.inv(A) @ b)
+</code></pre>
+
+  <div class="output">[3.5 1.5]</div>
+
+  <p class="en">Use <code>solve</code> anyway, for two reasons and in that order. The second is speed: on a 500&times;500 system here, <code>inv(A) @ b</code> measured 0.0057&nbsp;s against <code>solve</code>'s 0.0024&nbsp;s &mdash; about two and a half times, not a hundred, so speed alone would be a thin argument. The first reason is the real one: computing an inverse does strictly more arithmetic than answering the question, and every extra operation is another rounding error. On the well-behaved systems in this lesson you will not see the difference. On an awkward one you will, and you will not be told.</p>
+  <p class="ar">استعمل <code>solve</code> على أي حال، لسببين وبهذا الترتيب. الثاني السرعة: على نظام 500&times;500 هنا، قيست <code>inv(A) @ b</code> بـ 0.0057 ثانية مقابل 0.0024 ثانية لـ <code>solve</code> &mdash; أي مرتين ونصفًا تقريبًا لا مئة مرة، فالسرعةُ وحدها حجّةٌ واهية. والسببُ الأول هو الحقيقي: فحسابُ المعكوس يؤدّي حسابًا أكثر ممّا تحتاجه الإجابة، وكلُّ عملية زائدة خطأُ تقريبٍ آخر. ولن ترى الفرق في الأنظمة حسنةِ السلوك في هذا الدرس. وسترَاه في نظامٍ عسِر، ولن تُخبَر.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A colleague checks a solution with <code>if (A @ x == b).all():</code> and reports that <code>solve</code> is broken, because the check fails on about half their systems. What is actually happening?</span><span class="ar">يفحص زميلٌ حلًّا بـ <code>if (A @ x == b).all():</code> ويُبلغ أنّ <code>solve</code> معطوبة، لأن الفحص يفشل في نحو نصف أنظمته. فما الذي يحدث فعلًا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The solutions are right to about fifteen digits, and <code>==</code> demands all seventeen. Their check is testing the storage of decimals, not the answer.</span><span class="ar">الحلول صحيحةٌ إلى نحو خمسة عشر رقمًا، و<code>==</code> تطالب بالسبعة عشر كلها. ففحصُه يختبر تخزينَ العشريات لا الجواب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>solve</code> returns an approximation on purpose and <code>inv</code> would be exact.</span><span class="ar">تُرجع <code>solve</code> تقريبًا على سبيل القصد، و<code>inv</code> كانت ستكون مضبوطة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>.all()</code> is the bug: it needs <code>.any()</code> to pass.</span><span class="ar"><code>.all()</code> هي العيب: فهي تحتاج <code>.any()</code> لتنجح.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Their matrices are singular, and <code>solve</code> should have raised instead of answering.</span><span class="ar">مصفوفاته شاذّة، وكان على <code>solve</code> أن ترفع خطأً بدل أن تجيب.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The option about <code>.any()</code> is worth refuting out loud, because swapping in <code>.any()</code> would make the check pass and would be far more dangerous than the failure it replaced: a wrong answer usually satisfies one equation of a system by luck, so <code>.any()</code> says <code>True</code> for solutions that are badly wrong. Loosening a test until it passes is how a silent bug gets a certificate. <code>np.allclose</code> loosens it by a stated tolerance instead, which is a different thing entirely.</div>
+      <div class="ar">الخيارُ الذي يذكر <code>.any()</code> يستحقّ ردًّا صريحًا، فاستبدالُها كان سيجعل الفحص ينجح وكان سيكون أخطر بكثير من الفشل الذي حلّ محله: فالجوابُ الخاطئ يحقّق عادةً معادلةً واحدة من النظام بالحظ، فتقول <code>.any()</code> <code>True</code> لحلولٍ خاطئةٍ خطأً فاحشًا. وتوسيعُ الاختبار حتى ينجح هو كيف يحصل عيبٌ صامت على شهادة. أمّا <code>np.allclose</code> فتوسّعه بسماحيّةٍ معلنة، وذاك أمرٌ مختلف تمامًا.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.2 &mdash; A check you can put in a function</span><span class="ar">تمرين 17.2 &mdash; فحصٌ تضعه في دالة</span></h4>
+    <p class="en">Write <code>price_items(A, b)</code> that solves the system, verifies its own answer with <code>np.allclose</code>, raises <code>ValueError</code> with a useful message if the check fails, and otherwise returns the prices. Then call it on the three-item system from Exercise 17.1.</p>
+    <p class="ar">اكتب <code>price_items(A, b)</code> تحلّ النظام، وتتحقّق من جوابها بنفسها بـ <code>np.allclose</code>، وترفع <code>ValueError</code> برسالةٍ مفيدة إن فشل الفحص، وتُرجع الأسعار فيما عدا ذلك. ثم نادِها على نظام البنود الثلاثة من تمرين 17.1.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def price_items(A, b):
+    x = np.linalg.solve(A, b)
+    if not np.allclose(A @ x, b):
+        raise ValueError("solved, but the answer does not satisfy the system")
+    return x
+
+A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+print(np.round(price_items(A, b), 2))
+</code></pre>
+      <div class="output">[3.5  0.79 1.43]</div>
+      <p class="en">The check will almost never fire, and that is fine: it costs one matrix multiply and it is the only thing standing between you and a silently wrong price list. Note what the function does <em>not</em> do &mdash; it does not round. Rounding inside a function that returns prices would throw away precision that the next calculation may need; round where you print.</p>
+      <p class="ar">لن يُطلَق الفحص إلا نادرًا، ولا بأس: فهو يكلّف ضربَ مصفوفةٍ واحدًا وهو وحده ما يقف بينك وبين قائمةِ أسعارٍ خاطئةٍ في صمت. ولاحظ ما <em>لا</em> تفعله الدالة &mdash; فهي لا تقرّب. فالتقريبُ داخل دالةٍ تُرجع أسعارًا يرمي دقةً قد يحتاجها الحسابُ التالي؛ قرّب حيث تطبع.</p>
+    </details>
+  </section>
+
+  <h2 id="l17-h3"><span class="en">When there is no single answer</span><span class="ar">حين لا يكون هناك جوابٌ واحد</span></h2>
+
+  <h3 id="l17-s6"><span class="en">Two invoices that say the same thing</span><span class="ar">فاتورتان تقولان الشيء نفسه</span></h3>
+
+  <p class="en">Suppose the second invoice is just the first one doubled: 6 notebooks and 4 pens for 27.00. It is true, it is consistent, and it tells you nothing new. Any notebook price at all has a matching pen price that fits both lines.</p>
+  <p class="ar">افترض أن الفاتورة الثانية هي الأولى مضاعفة: ستة دفاتر وأربعة أقلام بـ 27.00. وهي صحيحة ومتّسقة ولا تخبرك بجديد. فأيُّ سعرٍ للدفتر مهما كان له سعرُ قلمٍ مقابلٌ ينطبق على الخطّين.</p>
+
+<pre class="code bad"><code>A = np.array([[3., 2.],
+              [6., 4.]])
+print(np.linalg.solve(A, np.array([13.50, 27.00])))
+</code></pre>
+
+  <div class="output">LinAlgError: Singular matrix</div>
+
+  <p class="en">Now suppose instead the shop made an arithmetic mistake and the second invoice reads 28.00 for the same 6 notebooks and 4 pens. Now the two statements contradict each other: there is no pair of prices that satisfies both.</p>
+  <p class="ar">وافترض بدلًا من ذلك أن المكتبة أخطأت في الحساب وأن الفاتورة الثانية تقول 28.00 للستة دفاتر والأربعة أقلام نفسها. فالجملتان الآن تتناقضان: ولا زوجَ أسعارٍ يحقّقهما.</p>
+
+<pre class="code bad"><code>print(np.linalg.solve(A, np.array([13.50, 28.00])))
+</code></pre>
+
+  <div class="output">LinAlgError: Singular matrix</div>
+
+  <p class="en">The same four words for both. One system has infinitely many answers and the other has none, and <code>solve</code> does not distinguish them, because the distinction is not in <code>A</code> &mdash; it is in how <code>b</code> sits relative to <code>A</code>, and <code>solve</code> gave up before looking. <a href="#lesson-18">Lesson 18</a> has the tool that tells them apart. For now, read <em>singular</em> as "this matrix does not pin down an answer", and look at your matrix rather than your totals &mdash; and read the note below before trusting the error to appear at all.</p>
+  <p class="ar">الكلماتُ الأربع نفسها لكليهما. لأحد النظامين أجوبةٌ لا نهائية وللآخر لا جواب، و<code>solve</code> لا تفرّق بينهما، لأن الفرق ليس في <code>A</code> &mdash; بل في كيف تقع <code>b</code> بالنسبة إلى <code>A</code>، وقد استسلمت <code>solve</code> قبل أن تنظر. وفي <a href="#lesson-18">الدرس 18</a> الأداةُ التي تميّز بينهما. والآن اقرأ <em>شاذّة</em> بمعنى «هذه المصفوفة لا تحدّد جوابًا»، وانظر في مصفوفتك لا في مجاميعك &mdash; واقرأ الملاحظة أدناه قبل أن تثق بظهور الخطأ أصلًا.</p>
+
+  <div class="note">
+    <h4><span class="en">And the error is not a guarantee</span><span class="ar">والخطأُ ليس ضمانًا</span></h4>
+    <p class="en">Worth knowing before you rely on <code>LinAlgError</code> to protect you: a matrix can be exactly singular and still be answered. Here the third row is the first plus the second, which makes the system genuinely singular &mdash; and this is what happens.</p>
+    <p class="ar">جديرٌ بالمعرفة قبل أن تعتمد على <code>LinAlgError</code> لتحميك: فقد تكون المصفوفة شاذّةً بالضبط ويُجاب عنها مع ذلك. فالصفُّ الثالث هنا هو الأول زائد الثاني، وهو ما يجعل النظام شاذًّا حقًّا &mdash; وهذا ما يحدث.</p>
+<pre class="code bad"><code>A = np.array([[1., 1., 1.],
+              [2., 1., 3.],
+              [3., 2., 4.]])
+b = np.array([6., 13., 19.])
+
+x = np.linalg.solve(A, b)
+print(x)
+print(np.allclose(A @ x, b))
+print(np.linalg.matrix_rank(A), np.linalg.det(A))
+</code></pre>
+    <div class="output">[1.75  1.625 2.625]
+True
+2 4.4408920985006143e-16</div>
+    <p class="en">No exception. An answer that satisfies the system, so <code>allclose</code> says <code>True</code>. And it is one of <em>infinitely many</em> answers, chosen arbitrarily. The reason nothing raised is on the last line: the determinant of a matrix that is mathematically zero came out as 4.4&times;10<sup>-16</sup>, so the check inside <code>solve</code> found a pivot it could divide by. The rank &mdash; 2, for a 3&times;3 &mdash; is the only one of these numbers telling the truth, and <a href="#l18-s5">Lesson 18</a> is where it gets used.</p>
+    <p class="ar">لا استثناء. وجوابٌ يحقّق النظام، فتقول <code>allclose</code> <code>True</code>. وهو واحدٌ من أجوبةٍ <em>لا نهائية</em>، مختارٌ اعتباطًا. وسببُ ألّا يُرفع شيء في السطر الأخير: فمحدِّدُ مصفوفةٍ هو رياضيًّا صفر خرج 4.4&times;10<sup>-16</sup>، فوجد الفحصُ داخل <code>solve</code> محورًا يقسم عليه. والرتبةُ &mdash; 2 لمصفوفة 3&times;3 &mdash; هي وحدها من هذه الأعداد ما يقول الحقيقة، و<a href="#l18-s5">الدرس 18</a> حيث تُستعمل.</p>
+  </div>
+
+  <h3 id="l17-s7"><span class="en">The one that does not raise</span><span class="ar">النظامُ الذي لا يرفع خطأً</span></h3>
+
+  <div class="problem">
+    <p class="en">Change one digit. The second invoice is for 6 notebooks and <strong>4.000001</strong> pens &mdash; which is what you get when a quantity was computed from a weight, or a price per gram, or any measurement at all. The matrix is no longer singular. Nothing will be raised. Watch what happens when the total is out by one penny.</p>
+    <p class="ar">غيّر رقمًا واحدًا. فالفاتورة الثانية لستة دفاتر و<strong>4.000001</strong> قلم &mdash; وهو ما تحصل عليه حين تُحسب كميةٌ من وزن، أو من سعرٍ للغرام، أو من أي قياسٍ كان. فلم تبقَ المصفوفةُ شاذّة. ولن يُرفع خطأ. فراقب ما يحدث حين يختلّ المجموع بقرشٍ واحد.</p>
+  </div>
+
+<pre class="code bad"><code>A = np.array([[3., 2.],
+              [6., 4.000001]])
+
+print(np.linalg.solve(A, np.array([13.50, 27.00])))
+print(np.linalg.solve(A, np.array([13.50, 27.01])))
+</code></pre>
+
+  <div class="output">[ 4.5 -0. ]
+[-6662.16666574  9999.9999986 ]</div>
+
+  <p class="en">A penny on one invoice turns a notebook costing 4.50 into a notebook costing <em>minus six thousand six hundred and sixty-two pounds</em>, and a pen costing nothing into a pen costing ten thousand. No exception, no warning, no hint. Both answers satisfy their own system to fifteen digits, so <code>np.allclose</code> says <code>True</code> for both &mdash; the check from the last section passes and tells you nothing, because the answer is not wrong for the question asked. The question was unanswerable, and that is a property of the matrix.</p>
+  <p class="ar">قرشٌ في فاتورةٍ واحدة يحوّل دفترًا بـ 4.50 إلى دفترٍ بـ <em>سالب ستة آلاف وستمئة واثنين وستين جنيهًا</em>، وقلمًا بلا ثمن إلى قلمٍ بعشرة آلاف. لا استثناء ولا تحذير ولا إشارة. وكلا الجوابين يحقّق نظامه إلى خمسة عشر رقمًا، فتقول <code>np.allclose</code> <code>True</code> لكليهما &mdash; فينجح فحصُ القسم السابق ولا يخبرك بشيء، لأن الجواب ليس خاطئًا للسؤال المطروح. بل السؤالُ كان غيرَ قابلٍ للإجابة، وذلك خاصيّةٌ في المصفوفة.</p>
+
+  <h3 id="l17-s8"><span class="en">The number that would have warned you</span><span class="ar">العددُ الذي كان سيحذّرك</span></h3>
+
+<pre class="code good"><code>good = np.array([[3., 2.],
+                 [5., 4.]])
+near = np.array([[3., 2.],
+                 [6., 4.000001]])
+
+print(np.linalg.cond(good))
+print(np.linalg.cond(near))
+</code></pre>
+
+  <div class="output">26.962912017836388
+21666669.2880473</div>
+
+  <p class="en"><code>np.linalg.cond</code> is the <em>condition number</em>: roughly, how much an error in the question is multiplied on its way to the answer. Twenty-seven means a penny of error stays about a penny. Twenty-two million means a penny of error comes out the other end as tens of thousands, which is exactly what you just watched. A rule of thumb worth carrying: double-precision arithmetic has about sixteen digits to spend, so a condition number near 10<sup>16</sup> leaves you none, and anything past about 10<sup>8</sup> deserves a look at where the data came from.</p>
+  <p class="ar"><code>np.linalg.cond</code> هي <em>عددُ الحالة</em>: وبتقريبٍ، كم يُضاعَف خطأٌ في السؤال في طريقه إلى الجواب. فسبعةٌ وعشرون تعني أن قرشَ خطأٍ يبقى نحو قرش. وأمّا اثنان وعشرون مليونًا فتعني أن قرشَ خطأٍ يخرج من الطرف الآخر عشراتَ الآلاف، وهو بالضبط ما شاهدته. وقاعدةٌ عملية تستحقّ الحمل: للحساب المزدوج الدقة نحو ستة عشر رقمًا يُنفقها، فعددُ حالةٍ قرب 10<sup>16</sup> لا يُبقي لك شيئًا، وما تجاوز نحو 10<sup>8</sup> يستحقّ نظرةً في مصدر البيانات.</p>
+
+  <div data-trace-id="t-solve"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which of these would have caught the one-penny disaster before the price list went out?</span><span class="ar">أيُّ هذه كان سيلتقط كارثةَ القرش الواحد قبل أن تصدر قائمةُ الأسعار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Looking at <code>np.linalg.cond(A)</code> before trusting the result, or noticing that a negative price is not a price.</span><span class="ar">النظرُ في <code>np.linalg.cond(A)</code> قبل الوثوق بالنتيجة، أو ملاحظةُ أنّ سعرًا سالبًا ليس سعرًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Checking <code>np.allclose(A @ x, b)</code>, which is what that check is for.</span><span class="ar">فحصُ <code>np.allclose(A @ x, b)</code>، وهو ما وُضع الفحص له.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Using <code>inv(A) @ b</code> instead, which is more careful with awkward matrices.</span><span class="ar">استعمالُ <code>inv(A) @ b</code> بدلًا منها، فهي أدقّ مع المصفوفات العسِرة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Wrapping the call in <code>try</code> / <code>except LinAlgError</code>.</span><span class="ar">تغليفُ النداء بـ <code>try</code> / <code>except LinAlgError</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The <code>allclose</code> option and the <code>try</code> option are both things you should be doing, and neither would have made a sound here: the residual really is tiny, and nothing was raised to catch. That is the shape of this whole chapter &mdash; the checks that catch mistakes in <em>your code</em> are silent about a question that was never answerable. The <code>inv</code> option has it backwards: an inverse is more exposed to an awkward matrix, not less. And the cheapest guard of all is in the first option's second half: a notebook cannot cost minus six thousand pounds, and a line that asserts prices are positive would have stopped this before any arithmetic was questioned.</div>
+      <div class="ar">خيارُ <code>allclose</code> وخيارُ <code>try</code> كلاهما ممّا ينبغي أن تفعله، وما كان أيٌّ منهما سيُصدر صوتًا هنا: فالباقي صغيرٌ فعلًا، ولم يُرفع شيءٌ ليُلتقَط. وذاك شكلُ هذا الفصل كلِّه &mdash; فالفحوص التي تلتقط أخطاء <em>كودك</em> صامتةٌ عن سؤالٍ لم يكن قابلًا للإجابة أصلًا. وخيارُ <code>inv</code> مقلوب: فالمعكوسُ أكثرُ تعرّضًا للمصفوفة العسِرة لا أقلّ. وأرخصُ حرزٍ على الإطلاق في النصف الثاني من الخيار الأول: فالدفترُ لا يكلّف سالب ستة آلاف جنيه، وسطرٌ يؤكّد أن الأسعار موجبة كان سيوقف هذا قبل أن يُسأل عن أي حساب.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.3 &mdash; Refuse to answer</span><span class="ar">تمرين 17.3 &mdash; ارفض الإجابة</span></h4>
+    <p class="en">Extend <code>price_items</code> so that it refuses a question it cannot answer meaningfully: raise <code>ValueError</code> if <code>np.linalg.cond(A)</code> is above <code>1e8</code>, and again if any returned price is negative. Report the condition number in the message. Then run it on the <code>4.000001</code> system with the total 27.01 and read what it says.</p>
+    <p class="ar">وسّع <code>price_items</code> لترفض سؤالًا لا تستطيع إجابته إجابةً ذات معنى: ارفع <code>ValueError</code> إن كانت <code>np.linalg.cond(A)</code> أكبر من <code>1e8</code>، وارفعها مرةً أخرى إن كان أيُّ سعرٍ راجعٍ سالبًا. واذكر عددَ الحالة في الرسالة. ثم شغّلها على نظام <code>4.000001</code> بمجموع 27.01 واقرأ ما تقول.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def price_items(A, b):
+    c = np.linalg.cond(A)
+    if c > 1e8:
+        raise ValueError(f"these invoices barely pin down a price (cond={c:.3g})")
+    x = np.linalg.solve(A, b)
+    if not np.allclose(A @ x, b):
+        raise ValueError("solved, but the answer does not satisfy the system")
+    if (x &lt; 0).any():
+        raise ValueError(f"a negative price came out: {x}")
+    return x
+
+A = np.array([[3., 2.],
+              [6., 4.000001]])
+try:
+    price_items(A, np.array([13.50, 27.01]))
+except ValueError as e:
+    print(e)
+</code></pre>
+      <div class="output">a negative price came out: [-6662.16666574  9999.9999986 ]</div>
+      <p class="en">Read which guard fired. Not the condition check &mdash; <code>cond</code> for this matrix is 2.17&times;10<sup>7</sup>, comfortably under the <code>1e8</code> threshold a sensible person would pick, so it passed. The catastrophe was caught by the line that knows a notebook cannot cost minus six thousand pounds. That is the lesson, and it is not the one the exercise looked like it was teaching: a numerical threshold is a guess, and the guess was wrong here by a factor of two hundred. Lower it to <code>1e6</code> and this system is caught &mdash; and so are plenty of perfectly answerable ones. The domain check needs no threshold, costs one line, and is the only one of the two a colleague who does not write code can read and confirm.</p>
+      <p class="ar">انظر أيُّ حرزٍ انطلق. ليس فحصَ الحالة &mdash; فـ<code>cond</code> لهذه المصفوفة 2.17&times;10<sup>7</sup>، أي دون حدّ <code>1e8</code> الذي يختاره عاقلٌ بفسحة، فمرّ الفحص. بل التقطَ الكارثةَ السطرُ الذي يعرف أنّ دفترًا لا يكلّف سالب ستة آلاف جنيه. وذاك هو الدرس، وليس الدرسَ الذي بدا أنّ التمرين يعلّمه: فالحدُّ العددي تخمين، وقد أخطأ التخمينُ هنا بمقدار مئتي ضعف. أنزِله إلى <code>1e6</code> فيُلتقَط هذا النظام &mdash; ويُلتقَط معه كثيرٌ من الأنظمة القابلة للإجابة تمامًا. أمّا الفحصُ الموضوعي فلا يحتاج حدًّا، ويكلّف سطرًا واحدًا، وهو وحده من الاثنين ما يقرأه زميلٌ لا يكتب كودًا ويصدّقه.</p>
+    </details>
+  </section>
+
+  <div class="card takeaways">
+    <h3 id="l17-s9"><span class="en">What to carry out of Lesson 17</span><span class="ar">ما تحمله من الدرس 17</span></h3>
+    <ul>
+      <li><span class="en"><strong>One row per equation, one column per unknown,</strong> and <code>np.linalg.solve(A, b)</code> for the answer. Transposing that layout produces a valid matrix and a meaningless answer.</span><span class="ar"><strong>صفٌّ لكل معادلة وعمودٌ لكل مجهول،</strong> و<code>np.linalg.solve(A, b)</code> للجواب. وقلبُ ذلك التخطيط يُنتج مصفوفةً صحيحةً وجوابًا بلا معنى.</span></li>
+      <li><span class="en"><strong>Check with <code>np.allclose(A @ x, b)</code>, never with <code>==</code>.</strong> A correct answer is routinely wrong in the fifteenth digit, and <code>==</code> calls that a failure.</span><span class="ar"><strong>افحص بـ <code>np.allclose(A @ x, b)</code> لا بـ <code>==</code> أبدًا.</strong> فالجوابُ الصحيح يخطئ عادةً في الرقم الخامس عشر، وتسمّي <code>==</code> ذلك فشلًا.</span></li>
+      <li><span class="en"><strong><code>solve</code>, not <code>inv(A) @ b</code>.</strong> Measurably faster, and it does less arithmetic, which means fewer places to lose a digit.</span><span class="ar"><strong><code>solve</code> لا <code>inv(A) @ b</code>.</strong> أسرعُ بمقدارٍ يُقاس، وتؤدّي حسابًا أقلّ، ومعناه مواضعُ أقلّ لفقد رقم.</span></li>
+      <li><span class="en"><strong><code>LinAlgError: Singular matrix</code> means two things</strong> &mdash; no answer, or infinitely many &mdash; and does not say which. It also does not always appear: an exactly singular system can be answered silently, so <code>matrix_rank</code> is the check and the exception is a courtesy.</span><span class="ar"><strong><code>LinAlgError: Singular matrix</code> تعني أمرين</strong> &mdash; لا جواب، أو أجوبةٌ لا نهائية &mdash; ولا تقول أيَّهما. وهي أيضًا لا تظهر دائمًا: فقد يُجاب عن نظامٍ شاذٍّ بالضبط في صمت، فتكون <code>matrix_rank</code> هي الفحص ويكون الاستثناء مجاملة.</span></li>
+      <li><span class="en"><strong>The dangerous matrix is the nearly-singular one,</strong> because it answers. <code>np.linalg.cond</code> is how you find out, and a domain check &mdash; prices are positive &mdash; is how you survive not having looked.</span><span class="ar"><strong>المصفوفةُ الخطيرة هي التي تكاد تكون شاذّة،</strong> لأنها تجيب. و<code>np.linalg.cond</code> هي كيف تعرف، والفحصُ الموضوعي &mdash; الأسعارُ موجبة &mdash; هو كيف تنجو إن لم تنظر.</span></li>
+      <li><span class="en"><strong>Next:</strong> every system here had exactly as many equations as unknowns. <a href="#lesson-18">Lesson 18</a> has five equations and two unknowns, which is the shape every real measurement arrives in, and <code>solve</code> will not touch it.</span><span class="ar"><strong>التالي:</strong> كان لكل نظامٍ هنا من المعادلات بعددِ المجاهيل بالضبط. وفي <a href="#lesson-18">الدرس 18</a> خمسُ معادلات ومجهولان، وهو الشكلُ الذي يصل به كلُّ قياسٍ حقيقي، ولن تلمسه <code>solve</code>.</span></li>
+    </ul>
+  </div>
+
+</section>
+
+<section class="page" id="lesson-18">
+
+  <span class="kicker"><span class="en">Lesson 18 &middot; Week 7 &middot; Lecture 20 &middot; 90 min</span><span class="ar">الدرس 18 &middot; الأسبوع 7 &middot; المحاضرة 20 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">More Measurements Than Unknowns: Least Squares</span><span class="ar">قياساتٌ أكثر من المجاهيل: المربعات الصغرى</span></h1>
+
+  <p class="lede en">By the end of this lesson you will fit a line to five measurements that no line passes through, watch <code>solve</code> refuse the job and see why throwing away data to make it accept is measurably worse, and read all four things <code>lstsq</code> hands back. Then the three diagnostics &mdash; rank, determinant, condition number &mdash; and which of the three will tell you a matrix is fine when it is not. The function you meet here is the engine inside linear regression, which is where this course ends.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستُلائم خطًّا لخمسة قياسات لا يمرّ بها خطٌّ واحد، وستشاهد <code>solve</code> ترفض المهمة وترى لماذا كان رميُ البيانات لتقبلها أسوأ بمقدارٍ يُقاس، وستقرأ الأشياء الأربعة التي تُرجعها <code>lstsq</code>. ثم أدوات التشخيص الثلاث &mdash; الرتبة والمحدِّد وعدد الحالة &mdash; وأيُّها سيقول لك إنّ مصفوفةً سليمة وهي ليست كذلك. والدالةُ التي تلقاها هنا هي المحرّكُ داخل الانحدار الخطي، وهو حيث ينتهي هذا المقرر.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish <a href="#lesson-17">Lesson 17</a>: this one assumes you lay out a system without thinking about it and that <code>LinAlgError</code> no longer surprises you. <a href="#appendix-a6">Appendix A6</a> covers rank and the inverse properly, and the derivation of why the best line is the one it is belongs to an appendix on least squares that comes with Chapter 11. Nothing here derives anything, and no appendix is examined.</p>
+    <p class="ar">أنجز <a href="#lesson-17">الدرس 17</a>: فهذا يفترض أنك تخطّط نظامًا بلا تفكير وأنّ <code>LinAlgError</code> لم تبقَ تفاجئك. ويغطّي <a href="#appendix-a6">الملحق A6</a> الرتبةَ والمعكوسَ كما ينبغي، أمّا اشتقاقُ لماذا كان أفضلُ خطٍّ هو ما هو فينتمي إلى ملحقٍ في المربعات الصغرى يأتي مع الفصل 11. ولا يشتقّ شيءٌ هنا شيئًا، ولا يُمتحن في ملحق.</p>
+  </div>
+
+  <h2 id="l18-h1"><span class="en">Five students, one line, and no line that fits</span><span class="ar">خمسة طلبة وخطٌّ واحد، ولا خطَّ ينطبق</span></h2>
+
+  <div class="problem">
+    <p class="en">Five students recorded the hours they revised and the mark they got: 1 hour &rarr; 52, 2 &rarr; 55, 3 &rarr; 61, 4 &rarr; 64, 5 &rarr; 70. You want a rule of the form <strong>mark = c + m &times; hours</strong>, so the school can tell a student what another hour is worth. Two unknowns, <code>c</code> and <code>m</code> &mdash; and five equations, because every student is an equation. No straight line passes through all five points, so the honest question is not "which line is right" but "which line is least wrong".</p>
+    <p class="ar">سجّل خمسةُ طلبة ساعاتِ مراجعتهم والعلامةَ التي نالوها: ساعة &rarr; 52، وساعتان &rarr; 55، وثلاث &rarr; 61، وأربع &rarr; 64، وخمس &rarr; 70. وتريد قاعدةً على صورة <strong>العلامة = ج + م &times; الساعات</strong>، لتقول المدرسةُ للطالب ما تساويه ساعةٌ إضافية. مجهولان، <code>c</code> و<code>m</code> &mdash; وخمسُ معادلات، لأن كل طالب معادلة. ولا خطَّ مستقيمٍ يمرّ بالنقاط الخمس، فالسؤالُ الصادق ليس «أيُّ خطٍّ صحيح» بل «أيُّ خطٍّ أقلُّ خطأً».</p>
+  </div>
+
+  <h3 id="l18-s1"><span class="en">Laying it out, and being refused</span><span class="ar">التخطيط، ثم الرفض</span></h3>
+
+  <p class="en">One row per student, one column per unknown &mdash; the same rule as Lesson 17. The second column is the hours. The first column is all ones, and that is not a trick: the equation <code>c + m &times; hours</code> has <code>c</code> multiplied by 1 every time, so a column of ones is literally the coefficient of <code>c</code>.</p>
+  <p class="ar">صفٌّ لكل طالب، وعمودٌ لكل مجهول &mdash; القاعدةُ نفسها من الدرس 17. والعمودُ الثاني هو الساعات. والعمودُ الأول كلُّه آحاد، وليست حيلة: فمعادلة <code>c + m &times; hours</code> فيها <code>c</code> مضروبةٌ بـ 1 كلَّ مرة، فعمودُ الآحاد هو حرفيًّا معاملُ <code>c</code>.</p>
+
+<pre class="code good"><code>import numpy as np
+
+hours = np.array([1., 2., 3., 4., 5.])
+marks = np.array([52., 55., 61., 64., 70.])
+
+A = np.column_stack([np.ones(5), hours])
+print(A)
+print(A.shape, marks.shape)
+</code></pre>
+
+  <div class="output">[[1. 1.]
+ [1. 2.]
+ [1. 3.]
+ [1. 4.]
+ [1. 5.]]
+(5, 2) (5,)</div>
+
+<pre class="code bad"><code>print(np.linalg.solve(A, marks))
+</code></pre>
+
+  <div class="output">LinAlgError: Last 2 dimensions of the array must be square</div>
+
+  <p class="en">Refused, and rightly. <code>solve</code> answers the question "which <code>x</code> satisfies all of these exactly", and here nothing does. It will not invent an approximation for you, which is the correct behaviour even though it is the inconvenient one.</p>
+  <p class="ar">رُفض، وبحقّ. فـ<code>solve</code> تجيب سؤال «أيُّ <code>x</code> يحقّق هذه كلها بالضبط»، ولا شيء هنا يحقّقها. ولن تختلق لك تقريبًا، وهو السلوكُ الصحيح وإن كان غيرَ المريح.</p>
+
+  <h3 id="l18-s2"><span class="en">The tempting fix, and what it costs</span><span class="ar">الإصلاحُ المُغري، وثمنُه</span></h3>
+
+  <p class="en">The obvious way to make the shape acceptable is to drop rows until the matrix is square. Keep the first student and the last and you have two equations and two unknowns, which <code>solve</code> is happy to take.</p>
+  <p class="ar">الطريقةُ البديهية لجعل الشكل مقبولًا حذفُ صفوفٍ حتى تصير المصفوفة مربعة. أبقِ الطالب الأول والأخير فتكون لك معادلتان ومجهولان، وتقبلهما <code>solve</code> راضية.</p>
+
+<pre class="code bad"><code>two = np.linalg.solve(A[[0, 4]], marks[[0, 4]])
+print(two)
+print(A @ two)
+print(((marks - A @ two) ** 2).sum())
+</code></pre>
+
+  <div class="output">[47.5  4.5]
+[52.  56.5 61.  65.5 70. ]
+4.5</div>
+
+  <p class="en">It worked, in the sense that it produced numbers. The line passes exactly through the two students it was given and misses the three it ignored, and the total squared miss across all five is <strong>4.5</strong>. Hold on to that number. Three students' data was thrown away to satisfy a shape requirement, and nothing in the output records that it happened.</p>
+  <p class="ar">نجحَ، بمعنى أنه أنتج أعدادًا. فالخطُّ يمرّ بالطالبين المُعطَيين بالضبط ويفوته الثلاثةُ الذين أُهملوا، ومجموعُ الخطأ المربّع على الخمسة كلهم <strong>4.5</strong>. أمسِك بهذا العدد. فقد رُميت بياناتُ ثلاثة طلبة لتحقيق شرطِ شكل، وليس في الخَرج ما يسجّل أن ذلك حدث.</p>
+
+  <h3 id="l18-s3"><span class="en">The call that uses all five</span><span class="ar">النداءُ الذي يستعمل الخمسة</span></h3>
+
+<pre class="code good"><code>coef, ssr, rank, sv = np.linalg.lstsq(A, marks, rcond=None)
+print(coef)
+print(f"mark = {coef[0]:.2f} + {coef[1]:.2f} * hours")
+print(ssr)
+</code></pre>
+
+  <div class="output">[46.9  4.5]
+mark = 46.90 + 4.50 * hours
+[2.7]</div>
+
+  <p class="en"><code>np.linalg.lstsq</code> &mdash; least squares &mdash; answers the question <code>solve</code> refused: of all the lines, which one makes the sum of the squared misses as small as possible? Its total is <strong>2.7</strong> against the two-point line's <strong>4.5</strong>. Using all the data is not a matter of taste; it is 40% less wrong, measured in the only units that were available.</p>
+  <p class="ar"><code>np.linalg.lstsq</code> &mdash; المربعاتُ الصغرى &mdash; تجيب السؤالَ الذي رفضته <code>solve</code>: من بين الخطوط كلها، أيُّها يجعل مجموعَ الأخطاء المربّعة أصغرَ ما يمكن؟ ومجموعُها <strong>2.7</strong> مقابل <strong>4.5</strong> لخطّ النقطتين. فاستعمالُ البيانات كلها ليس مسألةَ ذوق؛ بل هو أقلُّ خطأً بنسبة 40%، مقيسًا بالوحدات الوحيدة المتاحة.</p>
+
+  <div class="note">
+    <p class="en">Why <em>squared</em> misses and not plain ones? Because the misses go both ways &mdash; some students are above the line and some below &mdash; and plain errors would cancel out, so a terrible line could score zero. Squaring makes every miss count as a miss. Why not the absolute value, which also does that? Because squaring has a derivative everywhere, which is what makes the answer computable in one step instead of searched for. The derivation is in the least-squares appendix that comes with Chapter 11; this lesson needs only the result.</p>
+    <p class="ar">ولماذا الأخطاءُ <em>المربّعة</em> لا المجرّدة؟ لأن الأخطاء تذهب في الجهتين &mdash; فبعضُ الطلبة فوق الخطّ وبعضُهم تحته &mdash; والأخطاءُ المجرّدة كانت ستتلاشى بالتقابل، فيُحرز خطٌّ فظيعٌ صفرًا. والتربيعُ يجعل كلَّ خطأٍ يُحسب خطأً. ولماذا لا القيمةُ المطلقة، وهي تفعل ذلك أيضًا؟ لأن للتربيع مشتقًّا في كل موضع، وهو ما يجعل الجواب محسوبًا في خطوةٍ واحدة لا مبحوثًا عنه. والاشتقاقُ في ملحق المربعات الصغرى الذي يأتي مع الفصل 11؛ وهذا الدرس لا يحتاج غير النتيجة.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A sixth student is added: 3 hours &rarr; 59. What must change in the code?</span><span class="ar">يُضاف طالبٌ سادس: ثلاث ساعات &rarr; 59. فما الذي يجب أن يتغيّر في الكود؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Append to <code>hours</code> and <code>marks</code>, and change <code>np.ones(5)</code> to <code>np.ones(6)</code> &mdash; or better, to <code>np.ones(len(hours))</code> so it never needs changing again.</span><span class="ar">أضِف إلى <code>hours</code> و<code>marks</code>، وغيّر <code>np.ones(5)</code> إلى <code>np.ones(6)</code> &mdash; أو الأفضل إلى <code>np.ones(len(hours))</code> فلا يحتاج التغيير مرةً أخرى.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing: <code>lstsq</code> takes any number of rows, so the column of ones stretches to match.</span><span class="ar">لا شيء: فـ<code>lstsq</code> تأخذ أي عددٍ من الصفوف، فيتمدّد عمودُ الآحاد ليطابق.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">A second column of hours must be added, because two students now share 3 hours.</span><span class="ar">يجب إضافةُ عمودِ ساعاتٍ ثانٍ، لأن طالبين يشتركان الآن في ثلاث ساعات.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The new student contradicts the student with 3 hours and 61, so one of them must be dropped first.</span><span class="ar">الطالبُ الجديد يناقض الطالبَ ذا الثلاث ساعات و61، فيجب حذفُ أحدهما أولًا.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The option that says "nothing" is the one to think about: <code>np.column_stack</code> does not broadcast, so a 6-long <code>hours</code> beside a 5-long column of ones raises immediately &mdash; a rare case of the shapes protecting you, and the reason <code>np.ones(len(hours))</code> is worth writing even for five students. The last option has the whole method backwards. Two students with the same hours and different marks do not contradict each other; they are exactly what least squares exists for, and keeping both is how the fit learns that three hours does not determine a mark.</div>
+      <div class="ar">الخيارُ الذي يقول «لا شيء» هو ما يستحقّ التفكير: فـ<code>np.column_stack</code> لا تبثّ، فمصفوفةُ <code>hours</code> بطول 6 بجوار عمودِ آحادٍ بطول 5 ترفع خطأً فورًا &mdash; وهي حالةٌ نادرة تحميك فيها الأشكال، وسببُ أنّ <code>np.ones(len(hours))</code> تستحقّ الكتابة ولو لخمسة طلبة. والخيارُ الأخير يقلب الطريقةَ كلها. فطالبان بالساعات نفسها وعلامتين مختلفتين لا يتناقضان؛ بل هما بالضبط ما وُجدت المربعاتُ الصغرى له، وإبقاؤهما كيف تتعلّم المواءمةُ أنّ ثلاثَ ساعاتٍ لا تحدّد علامة.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 18.1 &mdash; Fit it, then use it</span><span class="ar">تمرين 18.1 &mdash; لائِمه ثم استعمله</span></h4>
+    <p class="en">Fit the line with <code>lstsq</code>, then print what the rule predicts for a student who revises 6 hours and for one who revises none. Then say in one sentence why the second number should be treated with suspicion.</p>
+    <p class="ar">لائِم الخطَّ بـ <code>lstsq</code>، ثم اطبع ما تتوقّعه القاعدةُ لطالبٍ يراجع ستّ ساعات ولطالبٍ لا يراجع. ثم قل في جملةٍ واحدة لماذا يجب التعامل مع العدد الثاني بحذر.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>coef, ssr, rank, sv = np.linalg.lstsq(A, marks, rcond=None)
+for h in (6., 0.):
+    print(h, coef[0] + coef[1] * h)
+</code></pre>
+      <div class="output">6.0 73.9
+0.0 46.89999999999998</div>
+      <p class="en">Six hours predicts 73.9, which is a short step past the data and reasonable. Zero hours predicts 46.9 &mdash; printed here as <code>46.89999999999998</code>, which is the same number and <a href="#a4-h2">the same storage of decimals</a> as ever; this is why a report rounds at the moment of printing and not before. And that figure deserves suspicion for a different reason &mdash; and no student in the sample revised fewer than one hour, so that number is the line's opinion about a region it has never seen. A fitted rule is only evidence inside the range it was fitted on; outside it, the line keeps going because lines do, not because the world does.</p>
+      <p class="ar">ستُّ ساعات تتوقّع 73.9، وهي خطوةٌ قصيرة بعد البيانات ومعقولة. وصفرُ ساعات يتوقّع 46.9 &mdash; مطبوعًا هنا <code>46.89999999999998</code>، وهو العددُ نفسه و<a href="#a4-h2">تخزينُ العشريات</a> نفسه كما كان؛ ولذلك يقرّب التقريرُ في لحظة الطباعة لا قبلها. ويستحقّ ذلك الرقمُ الحذرَ لسببٍ آخر &mdash; ولم يراجع أيُّ طالبٍ في العيّنة أقلَّ من ساعة، فذلك العددُ رأيُ الخطّ في منطقةٍ لم يرَها قطّ. والقاعدةُ المُلائَمة ليست بيّنةً إلا داخل المدى الذي لوئمت عليه؛ وخارجه يمضي الخطُّ لأن الخطوط تمضي، لا لأن العالَم يمضي.</p>
+    </details>
+  </section>
+
+  <h2 id="l18-h2"><span class="en">Reading what <code>lstsq</code> hands back</span><span class="ar">قراءةُ ما تُرجعه <code>lstsq</code></span></h2>
+
+  <h3 id="l18-s4"><span class="en">Four returns, and the two worth reading every time</span><span class="ar">أربعةُ رواجع، واثنان يستحقّان القراءة كلَّ مرة</span></h3>
+
+<pre class="code good"><code>print(coef)
+print(ssr)
+print(rank)
+print(sv)
+print(A @ coef)
+print(marks - A @ coef)
+</code></pre>
+
+  <div class="output">[46.9  4.5]
+[2.7]
+2
+[7.69121313 0.91936964]
+[51.4 55.9 60.4 64.9 69.4]
+[ 0.6 -0.9  0.6 -0.9  0.6]</div>
+
+  <p class="en"><code>coef</code> is the answer. <code>ssr</code> is the sum of the squared residuals &mdash; an array, not a number, and an <em>empty</em> array in some cases, which is a trap worth knowing before it costs you an afternoon. <code>rank</code> is how many of your columns actually carried independent information, and it is the one everybody ignores; the next section is about what it is trying to tell you. <code>sv</code> are the singular values, whose ratio is the condition number from Lesson 17: 7.69 / 0.92 is about 8.4, which is a well-behaved fit.</p>
+  <p class="ar"><code>coef</code> هو الجواب. و<code>ssr</code> مجموعُ الأخطاء المربّعة &mdash; مصفوفةٌ لا عدد، ومصفوفةٌ <em>فارغة</em> في بعض الحالات، وهو فخٌّ يستحقّ المعرفة قبل أن يكلّفك عصرًا. و<code>rank</code> كم عمودٍ من أعمدتك حمل فعلًا معلومةً مستقلة، وهو الذي يتجاهله الجميع؛ والقسمُ التالي في ما تحاول أن تقوله لك. و<code>sv</code> القيمُ المفردة، ونسبتُها عددُ الحالة من الدرس 17: فـ 7.69 ÷ 0.92 نحو 8.4، وهي مواءمةٌ حسنةُ السلوك.</p>
+
+  <p class="en">The residuals &mdash; <code>[0.6, -0.9, 0.6, -0.9, 0.6]</code> &mdash; are worth a look of their own. They alternate. The line is above three students and below two in a regular pattern, which hints that the relationship bends slightly rather than being straight. Five points is far too few to act on that, but residuals are where you look for it, and a residual column that is all positive at one end and all negative at the other is a fitted line telling you it is the wrong shape.</p>
+  <p class="ar">والبواقي &mdash; <code>[0.6, -0.9, 0.6, -0.9, 0.6]</code> &mdash; تستحقّ نظرةً خاصة. فهي تتبادل. فالخطُّ فوق ثلاثة طلبة وتحت اثنين في نمطٍ منتظم، وهو ما يُلمح إلى أنّ العلاقة تنحني قليلًا لا أنها مستقيمة. وخمسُ نقاط أقلُّ بكثير من أن يُبنى على ذلك، لكن البواقيَ هي حيث تبحث عنه، وعمودُ بواقٍ موجبٍ كلُّه في طرفٍ وسالبٍ كلُّه في الطرف الآخر خطٌّ مُلائَمٌ يخبرك أنه الشكلُ الخطأ.</p>
+
+  <h3 id="l18-s5"><span class="en">A column that says nothing new</span><span class="ar">عمودٌ لا يقول جديدًا</span></h3>
+
+  <div class="problem">
+    <p class="en">Someone helpfully adds the revision time in minutes as well as hours, on the grounds that more columns is more information. It is the same column in different units. Watch what happens: not an error, an answer.</p>
+    <p class="ar">يضيف أحدهم متبرّعًا زمنَ المراجعة بالدقائق إلى جانب الساعات، بحجة أنّ أعمدةً أكثر معلوماتٌ أكثر. وهو العمودُ نفسه بوحداتٍ أخرى. فراقب ما يحدث: لا خطأ، بل جواب.</p>
+  </div>
+
+<pre class="code bad"><code>minutes = hours * 60
+Adup = np.column_stack([np.ones(5), hours, minutes])
+print(np.linalg.matrix_rank(Adup), Adup.shape)
+
+c2, _, r2, _ = np.linalg.lstsq(Adup, marks, rcond=None)
+print(c2)
+print(r2)
+print(np.allclose(Adup @ c2, A @ coef))
+</code></pre>
+
+  <div class="output">2 (5, 3)
+[4.69000000e+01 1.24965288e-03 7.49791725e-02]
+2
+True</div>
+
+  <p class="en">Three columns, rank 2. The matrix knows that one of its columns is a repeat. <code>lstsq</code> does not complain &mdash; it hands back three coefficients, and the <em>predictions are identical</em> to the two-column fit, which <code>allclose</code> confirms. So the model is exactly as good and the coefficients have become nonsense: the slope of 4.5 per hour has been split arbitrarily into 0.00125 per hour plus 0.075 per minute. Those two numbers are not findings. There are infinitely many pairs that would do just as well, and you got the one LAPACK happened to pick.</p>
+  <p class="ar">ثلاثةُ أعمدة ورتبتها 2. فالمصفوفةُ تعرف أنّ أحد أعمدتها مكرّر. و<code>lstsq</code> لا تعترض &mdash; بل تُرجع ثلاثة معاملات، و<em>التوقّعاتُ مطابقة</em> لمواءمة العمودين، وتؤكّد ذلك <code>allclose</code>. فالنموذجُ بالجودة نفسها بالضبط والمعاملاتُ صارت هراءً: فميلُ 4.5 للساعة قُسِّم اعتباطًا إلى 0.00125 للساعة زائد 0.075 للدقيقة. وهذان العددان ليسا نتائج. فهناك أزواجٌ لا نهائية تؤدّي الغرض نفسه تمامًا، وقد نلتَ ما صادف أن اختارته LAPACK.</p>
+
+  <div class="note">
+    <p class="en">This is the shape of a real and common failure. Nobody adds a minutes column on purpose. They add height in centimetres and height in inches, or a total alongside the parts that sum to it, or a one-hot encoding with every category present and no column dropped. Then they read the coefficients as "what each feature contributes" and publish it. <strong>Compare <code>matrix_rank(A)</code> with <code>A.shape[1]</code> before you interpret a single coefficient.</strong> If the rank is lower, the predictions are fine and the explanation is fiction.</p>
+    <p class="ar">هذا شكلُ فشلٍ حقيقيٍّ وشائع. فلا أحد يضيف عمودَ دقائق عن قصد. بل يضيفون الطولَ بالسنتيمترات والطولَ بالبوصات، أو مجموعًا إلى جانب أجزائه التي تجمعه، أو ترميزًا أحاديًّا بكل الفئات حاضرةً وبلا عمودٍ محذوف. ثم يقرأون المعاملات بوصفها «ما يُسهم به كلُّ متغيّر» وينشرونه. <strong>قارِن <code>matrix_rank(A)</code> بـ <code>A.shape[1]</code> قبل أن تفسّر معاملًا واحدًا.</strong> فإن كانت الرتبةُ أدنى فالتوقّعاتُ سليمة والتفسيرُ خيال.</p>
+  </div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You fit a model on six columns and <code>rank</code> comes back 5. Which statement is true?</span><span class="ar">تلائم نموذجًا على ستة أعمدة فتعود <code>rank</code> بـ 5. فأيُّ الجمل صحيحة؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The predictions are trustworthy; the individual coefficients are not, because one column is a combination of the others and the fit had to split its effect arbitrarily.</span><span class="ar">التوقّعاتُ موثوقة؛ والمعاملاتُ الفردية ليست كذلك، لأن عمودًا تركيبةٌ من الأخرى فاضطرت المواءمةُ إلى تقسيم أثره اعتباطًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The fit failed and <code>coef</code> should not be used at all.</span><span class="ar">فشلت المواءمةُ ولا يجوز استعمال <code>coef</code> إطلاقًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">One of the six measurements was missing, and the fit used five.</span><span class="ar">كان أحدُ القياسات الستة مفقودًا، فاستعملت المواءمةُ خمسة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The sixth column had no effect on the outcome, so it can simply be deleted with nothing lost.</span><span class="ar">لم يكن للعمود السادس أثرٌ في النتيجة، فيمكن حذفُه بلا خسارة.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">Rank counts columns, not rows, so the option about a missing measurement is reading the number off the wrong axis &mdash; missing values are Chapter 10's subject and look nothing like this. The last option is the tempting half-truth: <em>some</em> column can be deleted with nothing lost in predictive terms, but not necessarily the sixth, and "no effect on the outcome" is the wrong description &mdash; the redundant column had an effect, it is just indistinguishable from the effect of the columns it duplicates. Which one you drop is a modelling decision, and it changes every coefficient you then report.</div>
+      <div class="ar">الرتبةُ تعدّ الأعمدة لا الصفوف، فالخيارُ الذي يذكر قياسًا مفقودًا يقرأ العددَ من المحور الخطأ &mdash; فالقيمُ المفقودة موضوعُ الفصل 10 ولا تشبه هذا في شيء. والخيارُ الأخير نصفُ حقيقةٍ مُغرٍ: فـ<em>عمودٌ ما</em> يمكن حذفه بلا خسارةٍ في التوقّع، لكن ليس بالضرورة السادس، و«لا أثر له في النتيجة» وصفٌ خاطئ &mdash; فللعمود المكرّر أثرٌ، إنما لا يُميَّز عن أثر الأعمدة التي يكرّرها. وأيَّها تحذف قرارٌ نمذجيّ، وهو يغيّر كلَّ معامِلٍ تُبلغ عنه بعد ذلك.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 18.2 &mdash; A guard against a fiction</span><span class="ar">تمرين 18.2 &mdash; حرزٌ من خيال</span></h4>
+    <p class="en">Write <code>fit_line(A, y)</code> that fits with <code>lstsq</code> but refuses to return coefficients when the columns are not independent: compare the rank with the number of columns and raise <code>ValueError</code> naming both. Run it on the hours-only matrix and on the hours-and-minutes one.</p>
+    <p class="ar">اكتب <code>fit_line(A, y)</code> تلائم بـ <code>lstsq</code> لكنها ترفض إرجاع معاملات حين لا تكون الأعمدةُ مستقلة: قارِن الرتبةَ بعدد الأعمدة وارفع <code>ValueError</code> تذكر الاثنين. شغّلها على مصفوفة الساعات وحدها وعلى مصفوفة الساعات والدقائق.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def fit_line(A, y):
+    coef, ssr, rank, sv = np.linalg.lstsq(A, y, rcond=None)
+    if rank &lt; A.shape[1]:
+        raise ValueError(
+            f"{A.shape[1]} columns but rank {rank}: the coefficients are not "
+            f"individually meaningful")
+    return coef
+
+print(fit_line(A, marks))
+try:
+    fit_line(Adup, marks)
+except ValueError as e:
+    print(e)
+</code></pre>
+      <div class="output">[46.9  4.5]
+3 columns but rank 2: the coefficients are not individually meaningful</div>
+      <p class="en">Three lines of guard, and note that it refuses rather than warns. That is a judgement call and it is the right one for a function whose return value people quote in reports: a warning gets filtered out of a log, and the coefficients get quoted anyway. If you genuinely only want predictions, take a different function out of the module &mdash; the point is that the two uses have different requirements, so they should not share one entry point that is honest about neither.</p>
+      <p class="ar">ثلاثةُ أسطرِ حرز، ولاحظ أنها ترفض ولا تحذّر. وذاك حكمٌ تقديري وهو الصحيح لدالةٍ يُقتبس راجعُها في التقارير: فالتحذيرُ يُرشَّح من السجلّ، وتُقتبس المعاملاتُ على أي حال. وإن كنت تريد التوقّعات وحدها حقًّا فخُذ دالةً أخرى من الوحدة &mdash; والمقصودُ أنّ للاستعمالين شرطين مختلفين، فلا ينبغي أن يتشاركا مدخلًا واحدًا لا يصدُق مع أيٍّ منهما.</p>
+    </details>
+  </section>
+
+  <h2 id="l18-h3"><span class="en">Three diagnostics, and the one that lies</span><span class="ar">ثلاثُ أدوات تشخيص، وواحدةٌ تكذب</span></h2>
+
+  <h3 id="l18-s6"><span class="en">The determinant is almost never the test you want</span><span class="ar">المحدِّدُ ليس الفحصَ الذي تريده في الغالب</span></h3>
+
+  <p class="en">School mathematics teaches that a matrix is singular exactly when its determinant is zero, so the obvious guard is <code>if det(A) != 0</code>. Here is why that fails in practice.</p>
+  <p class="ar">يعلّم جبرُ المدرسة أنّ المصفوفة شاذّةٌ بالضبط حين يكون محدِّدُها صفرًا، فالحرزُ البديهي <code>if det(A) != 0</code>. وهذا سببُ فشله عمليًّا.</p>
+
+<pre class="code good"><code>good = np.array([[3., 2.], [5., 4.]])
+near = np.array([[3., 2.], [6., 4.000001]])
+sing = np.array([[3., 2.], [6., 4.]])
+
+print(np.linalg.det(good), np.linalg.det(sing))
+print(np.linalg.det(near))
+print(np.linalg.det(good * 10))
+print(np.linalg.matrix_rank(near), np.linalg.matrix_rank(sing))
+print(np.linalg.cond(near))
+</code></pre>
+
+  <div class="output">2.0000000000000013 0.0
+3.0000000004193335e-06
+199.99999999999991
+2 1
+21666669.2880473</div>
+
+  <p class="en">Three things, in order. The determinant of the <em>good</em> matrix is 2.0000000000000013, not 2 &mdash; so <code>det(A) == 0</code> is as unusable as any other floating-point equality. The determinant of the disastrous near-singular matrix is 0.000003, which is <em>not</em> zero, so the guard passes it. And multiplying a perfectly ordinary matrix by 10 multiplied its determinant by 100, which means "small" has no meaning without knowing the scale of your data &mdash; there is no threshold you can write down.</p>
+  <p class="ar">ثلاثةُ أمور بالترتيب. محدِّدُ المصفوفة <em>الحسنة</em> 2.0000000000000013 لا 2 &mdash; فـ<code>det(A) == 0</code> غيرُ قابلٍ للاستعمال كأي مساواةٍ عشرية أخرى. ومحدِّدُ المصفوفة الكارثية التي تكاد تكون شاذّة 0.000003، وهو <em>ليس</em> صفرًا، فيمرّره الحرز. وضربُ مصفوفةٍ عاديةٍ تمامًا في 10 ضرب محدِّدَها في 100، ومعناه أنّ «الصغير» لا معنى له بلا معرفةِ مقياس بياناتك &mdash; فلا حدَّ تستطيع كتابته.</p>
+
+  <p class="en">Now read the last two lines. <code>matrix_rank(near)</code> is 2 &mdash; full rank, columns independent, nothing to report. <code>cond(near)</code> is twenty-two million. Both are correct, and they are answering different questions. Rank asks "are any of my columns redundant?" and the answer is genuinely no. Condition asks "will small errors in my data survive the journey?" and the answer is absolutely not. A matrix can pass rank and fail condition, which is exactly the case that cost you six thousand pounds a notebook in Lesson 17.</p>
+  <p class="ar">واقرأ الآن السطرين الأخيرين. <code>matrix_rank(near)</code> تساوي 2 &mdash; رتبةٌ كاملة، وأعمدةٌ مستقلة، ولا شيء يُبلَّغ. و<code>cond(near)</code> اثنان وعشرون مليونًا. وكلتاهما صحيحة، وهما تجيبان سؤالين مختلفين. فالرتبةُ تسأل: «هل أيٌّ من أعمدتي مكرّر؟» والجوابُ لا حقًّا. والحالةُ تسأل: «هل ستنجو أخطاءٌ صغيرة في بياناتي من الرحلة؟» والجوابُ قطعًا لا. فالمصفوفةُ تنجح في الرتبة وتفشل في الحالة، وهي بالضبط الحالةُ التي كلّفتك ستة آلاف جنيه للدفتر في الدرس 17.</p>
+
+  <div class="card">
+    <h4><span class="en">Which one to reach for</span><span class="ar">أيَّها تمتدّ إليه</span></h4>
+    <ul>
+      <li><span class="en"><code>matrix_rank(A)</code> against <code>A.shape[1]</code> &mdash; before you interpret coefficients. Catches a duplicated or derived column.</span><span class="ar"><code>matrix_rank(A)</code> مقابل <code>A.shape[1]</code> &mdash; قبل أن تفسّر المعاملات. يلتقط عمودًا مكرّرًا أو مشتقًّا.</span></li>
+      <li><span class="en"><code>cond(A)</code> &mdash; before you trust an answer that came out of awkward data. Catches the matrix that answers and should not have.</span><span class="ar"><code>cond(A)</code> &mdash; قبل أن تثق بجوابٍ خرج من بياناتٍ عسِرة. يلتقط المصفوفةَ التي تجيب وما كان ينبغي لها.</span></li>
+      <li><span class="en"><code>det(A)</code> &mdash; when the determinant itself is the quantity you need, which in this course is never. Not as a singularity test.</span><span class="ar"><code>det(A)</code> &mdash; حين يكون المحدِّدُ نفسه الكميةَ التي تحتاجها، وذلك في هذا المقرر أبدًا. وليس فحصًا للشذوذ.</span></li>
+    </ul>
+  </div>
+
+  <h3 id="l18-s7"><span class="en">The inverse, and the one case for it</span><span class="ar">المعكوس، والحالةُ الواحدة له</span></h3>
+
+  <p class="en">Lesson 17 said to use <code>solve</code> rather than <code>inv</code>. The usual reason given for wanting <code>inv</code> is "I have several right-hand sides" &mdash; several sets of totals, one price table. <code>solve</code> already does that: give it a <code>b</code> with one column per question.</p>
+  <p class="ar">قال الدرس 17 أن تستعمل <code>solve</code> لا <code>inv</code>. والسببُ المعتاد لإرادة <code>inv</code> هو «لديّ عدةُ أطرافٍ يمنى» &mdash; عدةُ مجموعاتٍ من المجاميع، وجدولُ أسعارٍ واحد. و<code>solve</code> تفعل ذلك فعلًا: أعطِها <code>b</code> بعمودٍ لكل سؤال.</p>
+
+<pre class="code good"><code>B = np.column_stack([np.array([13.50, 23.50]),
+                     np.array([9.00, 16.00])])
+print(np.linalg.solve(good, B))
+print(np.linalg.inv(good))
+</code></pre>
+
+  <div class="output">[[3.5 2. ]
+ [1.5 1.5]]
+[[ 2.  -1. ]
+ [-2.5  1.5]]</div>
+
+  <p class="en">One call, one column of prices per column of totals: the first order prices a notebook at 3.50 and a pen at 1.50, the second at 2.00 and 1.50. Reach for <code>inv</code> when the entries of the inverse are themselves the thing you want to look at &mdash; in statistics they sometimes are &mdash; and not as a step on the way to solving something.</p>
+  <p class="ar">نداءٌ واحد، وعمودُ أسعارٍ لكل عمود مجاميع: فالأمرُ الأول يسعّر الدفترَ بـ 3.50 والقلمَ بـ 1.50، والثاني بـ 2.00 و1.50. وامتدّ إلى <code>inv</code> حين تكون مداخلُ المعكوس نفسها ما تريد النظر فيه &mdash; وهي كذلك أحيانًا في الإحصاء &mdash; لا خطوةً في طريق حلّ شيء.</p>
+
+  <div data-trace-id="t-lstsq"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">You are asked to write one guard, in one line, for a function that fits a line to measured data and reports its slope. Which one?</span><span class="ar">يُطلب إليك كتابةُ حرزٍ واحد، في سطرٍ واحد، لدالةٍ تلائم خطًّا لبياناتٍ مقيسة وتُبلغ عن ميله. فأيُّها؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en"><code>matrix_rank(A)</code> against the column count &mdash; because a reported slope is exactly the thing rank deficiency makes meaningless.</span><span class="ar"><code>matrix_rank(A)</code> مقابل عدد الأعمدة &mdash; لأن الميلَ المُبلَّغ هو بالضبط ما يجعله نقصُ الرتبة بلا معنى.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>det(A) != 0</code>, the standard singularity test.</span><span class="ar"><code>det(A) != 0</code>، فحصُ الشذوذ المعياري.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>np.allclose(A @ coef, y)</code>, to confirm the fit is correct.</span><span class="ar"><code>np.allclose(A @ coef, y)</code>، لتأكيد صحة المواءمة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>ssr &lt; 1.0</code>, to confirm the line is close enough to the data to be worth reporting.</span><span class="ar"><code>ssr &lt; 1.0</code>، لتأكيد أن الخطَّ قريبٌ من البيانات بما يستحقّ الإبلاغ.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The <code>allclose</code> option is not a guard at all here, it is a contradiction: a least-squares fit is the line that does <em>not</em> pass through the data, so <code>A @ coef</code> will never equal <code>y</code> and the check fails on every correct fit. That is the difference between this lesson and the last one &mdash; in Lesson 17 an exact residual was the proof of correctness, and here a zero residual would mean you had as many unknowns as measurements and had learned nothing. The <code>ssr</code> option fails for a subtler reason: the sum of squared residuals grows with the number of data points and with the units of <code>y</code>, so <code>1.0</code> means nothing without both. Any fixed threshold on it is the determinant mistake wearing different clothes.</div>
+      <div class="ar">خيارُ <code>allclose</code> ليس حرزًا هنا بحال، بل هو تناقض: فمواءمةُ المربعات الصغرى هي الخطُّ الذي <em>لا</em> يمرّ بالبيانات، فلن تساوي <code>A @ coef</code> يومًا <code>y</code> ويفشل الفحص في كل مواءمةٍ صحيحة. وذاك الفرقُ بين هذا الدرس والذي قبله &mdash; ففي الدرس 17 كان الباقي المضبوط دليلَ الصحة، وهنا كان الباقي الصفري سيعني أنّ مجاهيلك بعدد قياساتك وأنك لم تتعلّم شيئًا. وخيارُ <code>ssr</code> يفشل لسببٍ أدقّ: فمجموعُ الأخطاء المربّعة يكبر بعدد نقاط البيانات وبوحدات <code>y</code>، فـ<code>1.0</code> لا تعني شيئًا بلا الاثنين. وأيُّ حدٍّ ثابتٍ عليه هو خطأُ المحدِّد بثيابٍ أخرى.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 18.3 &mdash; Compare two shapes of rule</span><span class="ar">تمرين 18.3 &mdash; قارِن شكلين من القاعدة</span></h4>
+    <p class="en">The residuals alternated, which hinted the relationship bends. Fit a curve as well as a line by adding an <code>hours ** 2</code> column, and print the sum of squared residuals for each. Then say in one sentence why the smaller number is not by itself a reason to prefer the curve.</p>
+    <p class="ar">تبادلت البواقي، فأُلمح إلى أنّ العلاقة تنحني. لائِم منحنًى إلى جانب الخطّ بإضافة عمود <code>hours ** 2</code>، واطبع مجموعَ الأخطاء المربّعة لكلٍّ منهما. ثم قل في جملةٍ واحدة لماذا لا يكون العددُ الأصغر وحده سببًا لتفضيل المنحنى.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>Acurve = np.column_stack([np.ones(5), hours, hours ** 2])
+print(np.linalg.matrix_rank(Acurve), Acurve.shape[1])
+
+for name, M in (("line ", A), ("curve", Acurve)):
+    c, ssr, rank, sv = np.linalg.lstsq(M, marks, rcond=None)
+    print(name, np.round(c, 3), ssr, "cond", round(float(np.linalg.cond(M)), 1))
+</code></pre>
+      <div class="output">3 3
+line  [46.9  4.5] [2.7] cond 8.4
+curve [48.4    3.214  0.214] [2.05714286] cond 85.9</div>
+      <p class="en">The curve fits better &mdash; 2.06 against 2.7 &mdash; and it fits better <em>by construction</em>. Adding a column can never increase the sum of squared residuals, so "it fits better" is guaranteed and is therefore evidence of nothing at all. Weigh what the improvement cost. The residual fell by 0.64. The condition number went from 8.4 to 85.9, more than ten times worse, because <code>hours</code> and <code>hours ** 2</code> march up together and are nearly the same column in disguise &mdash; which is the <a href="#l18-s5">rank problem</a> from earlier in the lesson, arriving not as a duplicate but as a near-duplicate, with no rank deficiency to report it. Three columns to describe five points is most of the way to drawing a line through every point and calling it a law. Deciding honestly between the two needs data the fit has never seen, and that is the train/test split in Chapter 10.</p>
+      <p class="ar">يلائم المنحنى أفضل &mdash; 2.06 مقابل 2.7 &mdash; وهو يلائم أفضل <em>بحكم البناء</em>. فإضافةُ عمودٍ لا تزيد مجموعَ الأخطاء المربّعة أبدًا، فـ«يلائم أفضل» مضمونٌ ولذلك ليس دليلًا على شيء إطلاقًا. فزِن ما كلّفه التحسّن. نزل الباقي بمقدار 0.64. وانتقل عددُ الحالة من 8.4 إلى 85.9، أسوأ بأكثر من عشرة أضعاف، لأن <code>hours</code> و<code>hours ** 2</code> تصعدان معًا وتكادان تكونان العمودَ نفسه متخفّيًا &mdash; وهي <a href="#l18-s5">مشكلة الرتبة</a> من أول الدرس، تأتي لا مكرّرةً بل شبهَ مكرّرة، وبلا نقصِ رتبةٍ يُبلغ عنها. وثلاثةُ أعمدة لوصف خمس نقاط معظمُ الطريق إلى رسم خطٍّ بكل نقطةٍ وتسميته قانونًا. والفصلُ الصادق بينهما يحتاج بياناتٍ لم ترَها المواءمةُ قطّ، وذاك تقسيمُ التدريب والاختبار في الفصل 10.</p>
+    </details>
+  </section>
+
+  <div class="card takeaways">
+    <h3 id="l18-s8"><span class="en">What to carry out of Lesson 18</span><span class="ar">ما تحمله من الدرس 18</span></h3>
+    <ul>
+      <li><span class="en"><strong>More equations than unknowns is the normal case,</strong> not an error. <code>solve</code> refuses it; <code>np.linalg.lstsq(A, y, rcond=None)</code> answers it.</span><span class="ar"><strong>معادلاتٌ أكثر من المجاهيل هي الحالةُ الطبيعية،</strong> لا خطأ. ترفضها <code>solve</code>؛ وتجيبها <code>np.linalg.lstsq(A, y, rcond=None)</code>.</span></li>
+      <li><span class="en"><strong>A column of ones is the intercept.</strong> Leave it out and you have forced the line through the origin without meaning to.</span><span class="ar"><strong>عمودُ الآحاد هو المقطع.</strong> أسقِطه فتكون أجبرت الخطَّ على المرور بنقطة الأصل بلا قصد.</span></li>
+      <li><span class="en"><strong>Never drop rows to make a matrix square.</strong> Measured here: 4.5 against 2.7, and nothing in the output would have told you.</span><span class="ar"><strong>لا تحذف صفوفًا لتربيع مصفوفة.</strong> وقد قيس هنا: 4.5 مقابل 2.7، ولم يكن في الخَرج ما يخبرك.</span></li>
+      <li><span class="en"><strong>Compare <code>matrix_rank(A)</code> with the column count before you interpret a coefficient.</strong> A rank-deficient fit predicts perfectly well and explains nothing, and it does not warn.</span><span class="ar"><strong>قارِن <code>matrix_rank(A)</code> بعدد الأعمدة قبل أن تفسّر معاملًا.</strong> فالمواءمةُ ناقصةُ الرتبة تتوقّع جيدًا ولا تفسّر شيئًا، وهي لا تحذّر.</span></li>
+      <li><span class="en"><strong><code>det</code> is not a singularity test.</strong> It is non-zero for disastrous matrices, it is never exactly zero in floating point, and it scales with your units. Use <code>rank</code> and <code>cond</code>.</span><span class="ar"><strong><code>det</code> ليس فحصًا للشذوذ.</strong> فهو غيرُ صفريٍّ لمصفوفاتٍ كارثية، ولا يكون صفرًا مضبوطًا في الحساب العشري أبدًا، ويتغيّر بوحداتك. استعمل <code>rank</code> و<code>cond</code>.</span></li>
+      <li><span class="en"><strong>A better fit is not a better model.</strong> Adding a column can only reduce the residual, so the residual cannot be what decides.</span><span class="ar"><strong>المواءمةُ الأفضل ليست النموذجَ الأفضل.</strong> فإضافةُ عمودٍ لا تفعل غير إنقاص الباقي، فلا يكون الباقي هو الفاصل.</span></li>
+      <li><span class="en"><strong>Next:</strong> this is linear regression. Chapter 11 does the same arithmetic through scikit-learn, with a name attached and the derivation in an appendix &mdash; and everything in between is about getting data into a shape these two functions will accept, which starts with <a href="#home-h2">Chapter 6</a>.</span><span class="ar"><strong>التالي:</strong> هذا هو الانحدار الخطي. ويؤدّي الفصل 11 الحسابَ نفسه عبر scikit-learn، باسمٍ ملحَق واشتقاقٍ في ملحق &mdash; وكلُّ ما بينهما في إحضار البيانات إلى شكلٍ تقبله هاتان الدالتان، وهو ما يبدأ بـ<a href="#home-h2">الفصل 6</a>.</span></li>
+    </ul>
+  </div>
+
+</section>
+

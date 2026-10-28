@@ -1,0 +1,95 @@
+<section class="page" id="test-17">
+
+  <span class="kicker"><span class="en">Test 17 &middot; Week 7 &middot; Lecture 19 &middot; last 10 minutes</span><span class="ar">اختبار 17 &middot; الأسبوع 7 &middot; المحاضرة 19 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 17 Test &mdash; Solving a System</span><span class="ar">اختبار الدرس 17 &mdash; حلّ نظام</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 17 alone: laying a word problem out as a matrix and a vector, <code>np.linalg.solve</code>, checking an answer without <code>==</code>, and the two kinds of system that cannot be answered &mdash; one of which answers anyway. Every question is labelled with its difficulty and the topics it covers, and each topic links back to the paragraph that teaches it.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 17 وحده: تخطيطُ مسألةٍ لفظية مصفوفةً ومتجهًا، و<code>np.linalg.solve</code>، وفحصُ جوابٍ بلا <code>==</code>، ونوعا النظام الذي لا يمكن إجابته &mdash; وأحدهما يجيب مع ذلك. وكل سؤال موسوم بمستوى صعوبته والمواضيع التي يغطيها، وكل موضوع يرتبط بالفقرة التي تعلّمه.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Read <a href="#lesson-17">Lesson 17</a> and do its three exercises. Nothing here needs least squares, rank or the determinant, which arrive in <a href="#lesson-18">Lesson 18</a>. <a href="#appendix-a6">Appendix A6</a> explains what solving a system <em>means</em>; no question here depends on it.</p>
+    <p class="ar">اقرأ <a href="#lesson-17">الدرس 17</a> وأنجز تمارينه الثلاثة. ولا شيء هنا يحتاج المربعاتَ الصغرى ولا الرتبةَ ولا المحدِّد، فهي تصل في <a href="#lesson-18">الدرس 18</a>. و<a href="#appendix-a6">الملحق A6</a> يشرح ما يعنيه حلُّ نظام؛ ولا سؤال هنا يتوقف عليه.</p>
+  </div>
+
+  <div class="assess" data-bank="test-17" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">When this test is green, go on to <a href="#lesson-18">Lesson 18</a>, where there are more equations than unknowns and <code>solve</code> refuses to help. If it is not, the links on each question you missed go straight to the paragraph that explains it.</p>
+    <p class="ar">إذا نجحت في هذا الاختبار فتابع إلى <a href="#lesson-18">الدرس 18</a>، حيث المعادلاتُ أكثر من المجاهيل وترفض <code>solve</code> المساعدة. وإن لم تنجح فروابط كل سؤال أخطأت فيه تنقلك مباشرة إلى الفقرة التي تشرحه.</p>
+  </div>
+
+</section>
+
+<section class="page" id="test-18">
+
+  <span class="kicker"><span class="en">Test 18 &middot; Week 7 &middot; Lecture 20 &middot; last 10 minutes</span><span class="ar">اختبار 18 &middot; الأسبوع 7 &middot; المحاضرة 20 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 18 Test &mdash; Least Squares and Diagnostics</span><span class="ar">اختبار الدرس 18 &mdash; المربعات الصغرى والتشخيص</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 18 alone: the overdetermined system, the column of ones, what <code>lstsq</code> hands back, and the three diagnostics &mdash; rank, determinant, condition number &mdash; one of which will tell you a matrix is fine when it is not.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 18 وحده: النظامُ فائضُ التحديد، وعمودُ الآحاد، وما تُرجعه <code>lstsq</code>، وأدواتُ التشخيص الثلاث &mdash; الرتبة والمحدِّد وعدد الحالة &mdash; وإحداها ستقول لك إنّ مصفوفةً سليمة وهي ليست كذلك.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Read <a href="#lesson-18">Lesson 18</a> and do its three exercises, and have <a href="#lesson-17">Lesson 17</a> behind you &mdash; several questions here apply Lesson 17's checking habits to a fit, and two of them turn on the fact that one of those habits is wrong here.</p>
+    <p class="ar">اقرأ <a href="#lesson-18">الدرس 18</a> وأنجز تمارينه الثلاثة، وليكن <a href="#lesson-17">الدرس 17</a> وراءك &mdash; فأسئلةٌ هنا تطبّق عاداتِ الفحص من الدرس 17 على مواءمة، واثنان منها يدوران على أنّ إحدى تلك العادات خاطئةٌ هنا.</p>
+  </div>
+
+  <div class="assess" data-bank="test-18" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">When this test is green, both chapter tests are open: <a href="#chapter-05-test-a">Test A</a> for the core of both lessons, <a href="#chapter-05-test-b">Test B</a> for the harder corners where the two lessons meet.</p>
+    <p class="ar">إذا نجحت في هذا الاختبار فاختبارا الفصل مفتوحان: <a href="#chapter-05-test-a">اختبار أ</a> لأساسيات الدرسين، و<a href="#chapter-05-test-b">اختبار ب</a> للزوايا الأصعب حيث يلتقي الدرسان.</p>
+  </div>
+
+</section>
+
+<section class="page" id="chapter-05-test-a">
+
+  <span class="kicker"><span class="en">Chapter 5 Test A &middot; Week 7 &middot; homework</span><span class="ar">اختبار الفصل 5 أ &middot; الأسبوع 7 &middot; واجب</span></span>
+  <h1><span class="en">Chapter 5 Test A &mdash; Core</span><span class="ar">اختبار الفصل 5 أ &mdash; الأساسيات</span></h1>
+
+  <p class="lede en">Sixteen questions across both lessons, at easy and medium difficulty. Almost all of them are answered by saying which way the rows run and then asking what would have warned you.</p>
+  <p class="lede ar">ستة عشر سؤالًا على الدرسين، بمستويي السهل والمتوسط. وأكثرها يُجاب بقول أيِّ اتجاهٍ تجري فيه الصفوف ثم السؤال عمّا كان سيحذّرك.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish both lessons and their tests first. If <a href="#test-17">Test 17</a> or <a href="#test-18">Test 18</a> is still red, do that one again before this &mdash; this test samples both lessons, and a weak one shows up here as a run of wrong answers.</p>
+    <p class="ar">أنجز الدرسين واختباريهما أولًا. وإن كان <a href="#test-17">الاختبار 17</a> أو <a href="#test-18">18</a> لا يزال متعثرًا فأعده قبل هذا &mdash; فهذا الاختبار يأخذ من الدرسين، والدرس الضعيف يظهر هنا سلسلةَ أجوبة خاطئة.</p>
+  </div>
+
+  <div class="assess" data-bank="chapter-05-test-a" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">After this test</span><span class="ar">بعد هذا الاختبار</span></h4>
+    <p class="en">Score 80% or more and go to <a href="#chapter-05-test-b">Chapter 5 Test B</a>, which stops asking what each function does and starts asking what each check fails to notice. Below 80%, the result panel lists your weak topics with a link each.</p>
+    <p class="ar">إذا حصلت على 80% أو أكثر فانتقل إلى <a href="#chapter-05-test-b">اختبار الفصل 5 ب</a>، الذي يكفّ عن السؤال ماذا تفعل كل دالة ويبدأ بالسؤال ما يفوت كلَّ فحصٍ ملاحظتُه. وتحت 80% تسرد لوحة النتيجة مواضيعك الضعيفة مع رابط لكل منها.</p>
+  </div>
+
+</section>
+
+<section class="page" id="chapter-05-test-b">
+
+  <span class="kicker"><span class="en">Chapter 5 Test B &middot; Week 7 &middot; homework</span><span class="ar">اختبار الفصل 5 ب &middot; الأسبوع 7 &middot; واجب</span></span>
+  <h1><span class="en">Chapter 5 Test B &mdash; Advanced</span><span class="ar">اختبار الفصل 5 ب &mdash; المتقدم</span></h1>
+
+  <p class="lede en">Sixteen harder questions, most of them crossing both lessons. The recurring theme is the failure that produces a number instead of an exception: every question here has at least one option that runs cleanly and means nothing.</p>
+  <p class="lede ar">ستة عشر سؤالًا أصعب، أكثرها يعبر الدرسين. والموضوعُ المتكرّر هو الفشلُ الذي يُنتج عددًا لا استثناءً: فلكل سؤالٍ هنا خيارٌ واحد على الأقل يعمل نظيفًا ولا يعني شيئًا.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Sit <a href="#chapter-05-test-a">Test A</a> first and clear 80%. Several questions here hand you a check that passed and ask what it did not cover, so they are unfair before the easier version of the same material is solid.</p>
+    <p class="ar">أدِّ <a href="#chapter-05-test-a">اختبار أ</a> أولًا واجتَز 80%. فأسئلةٌ هنا تسلّمك فحصًا نجح وتسأل ما لم يغطّه، فهي غيرُ منصفةٍ قبل أن تَرسُخ النسخةُ الأسهل من المادة نفسها.</p>
+  </div>
+
+  <div class="assess" data-bank="chapter-05-test-b" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">After this test</span><span class="ar">بعد هذا الاختبار</span></h4>
+    <p class="en">That is Chapter 5. Everything from here on is about getting data into a shape these functions will accept, and that starts with <a href="#home-h2">Chapter 6</a>, where a table arrives with names on its columns and a missing mark in the middle of it.</p>
+    <p class="ar">وبذلك ينتهي الفصل 5. وكلُّ ما بعده في إحضار البيانات إلى شكلٍ تقبله هذه الدوال، وذلك يبدأ بـ<a href="#home-h2">الفصل 6</a>، حيث يصل جدولٌ بأسماءٍ على أعمدته وعلامةٌ مفقودة في وسطه.</p>
+  </div>
+
+</section>

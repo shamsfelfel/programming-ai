@@ -44,6 +44,8 @@ CONTENT = [
     "src/content/chapter-03-tests.html",
     "src/content/chapter-04.html",
     "src/content/chapter-04-tests.html",
+    "src/content/chapter-05.html",
+    "src/content/chapter-05-tests.html",
     "src/content/appendix-a3.html",
     "src/content/appendix-a4.html",
     "src/content/appendix-a5.html",
@@ -221,6 +223,11 @@ BANK_FILE = {
     "test-16": "assets/data/questions-lesson-16.js",
     "chapter-04-test-a": "assets/data/questions-chapter-04.js",
     "chapter-04-test-b": "assets/data/questions-chapter-04.js",
+
+    "test-17": "assets/data/questions-lesson-17.js",
+    "test-18": "assets/data/questions-lesson-18.js",
+    "chapter-05-test-a": "assets/data/questions-chapter-05.js",
+    "chapter-05-test-b": "assets/data/questions-chapter-05.js",
 
     "appendix-a3": "assets/data/questions-appendix-a3.js",
     "appendix-a4": "assets/data/questions-appendix-a4.js",

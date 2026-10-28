@@ -186,6 +186,38 @@
         { id: "chapter-04-test-b", kind: "exam", bank: "chapter-04-test-b", href: "exams/chapter-4-exam-b.html",
           en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
       ]
+    },
+
+    {
+      num: 5,
+      slug: "chapter-5",
+      href: "chapters/chapter-5.html",
+      ready: true,
+      title: { en: "np.linalg and Linear Algebra", ar: "np.linalg والجبر الخطي" },
+      blurb: {
+        en: "The handful of calls the rest of machine learning is built on, and the input that does not raise: a system that nearly has no answer and returns one anyway.",
+        ar: "حفنةُ الدوال التي يقوم عليها سائر تعلّم الآلة، والمدخلُ الذي لا يرفع خطأً: نظامٌ يكاد لا يكون له جواب ويُرجع واحدًا مع ذلك."
+      },
+      stats: { lessons: 2, questions: 56, exercises: 6, traces: 2 },
+      pages: [
+        { id: "chapter-5", kind: "chapter", href: "chapters/chapter-5.html",
+          en: "Chapter 5 home", ar: "صفحة الفصل 5" },
+
+        { id: "lesson-17", kind: "lesson", n: 17, href: "lessons/chapter-5-lesson-17.html",
+          en: "Solving a System", ar: "حلّ نظام" },
+        { id: "test-17", kind: "test", of: 17, bank: "test-17", href: "tests/chapter-5-test-17.html",
+          en: "Test 17", ar: "اختبار 17" },
+
+        { id: "lesson-18", kind: "lesson", n: 18, href: "lessons/chapter-5-lesson-18.html",
+          en: "Least Squares", ar: "المربعات الصغرى" },
+        { id: "test-18", kind: "test", of: 18, bank: "test-18", href: "tests/chapter-5-test-18.html",
+          en: "Test 18", ar: "اختبار 18" },
+
+        { id: "chapter-05-test-a", kind: "exam", bank: "chapter-05-test-a", href: "exams/chapter-5-exam-a.html",
+          en: "Chapter Test A — Core", ar: "اختبار الفصل أ — الأساسيات" },
+        { id: "chapter-05-test-b", kind: "exam", bank: "chapter-05-test-b", href: "exams/chapter-5-exam-b.html",
+          en: "Chapter Test B — Advanced", ar: "اختبار الفصل ب — المتقدم" }
+      ]
     }
   ];
 
@@ -229,7 +261,6 @@
      the road ahead, greyed out and unlinked, so a reader can see
      where the course is going. Keep in step with README.md. */
   var PLANNED = [
-    { num: 5,  en: "np.linalg and Linear Algebra",      ar: "np.linalg والجبر الخطي" },
     { num: 6,  en: "Pandas Fundamentals",               ar: "أساسيات Pandas" },
     { num: 7,  en: "Pandas Data Wrangling",             ar: "معالجة البيانات بـ Pandas" },
     { num: 8,  en: "Pandas Reshaping",                  ar: "إعادة تشكيل البيانات بـ Pandas" },

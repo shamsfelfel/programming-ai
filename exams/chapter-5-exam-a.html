@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Chapter Test A — Core · Python OOP by Example" data-ar="اختبار الفصل أ — الأساسيات · البرمجة الكائنية بلغة بايثون">Chapter Test A — Core · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="5" data-page="chapter-05-test-a" data-path="exams/chapter-5-exam-a.html">
+<main>
+<section class="page" id="chapter-05-test-a">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Chapter 5 Test A &middot; Week 7 &middot; homework</span><span class="ar">اختبار الفصل 5 أ &middot; الأسبوع 7 &middot; واجب</span></span>
+  <h1><span class="en">Chapter 5 Test A &mdash; Core</span><span class="ar">اختبار الفصل 5 أ &mdash; الأساسيات</span></h1>
+
+  <p class="lede en">Sixteen questions across both lessons, at easy and medium difficulty. Almost all of them are answered by saying which way the rows run and then asking what would have warned you.</p>
+  <p class="lede ar">ستة عشر سؤالًا على الدرسين، بمستويي السهل والمتوسط. وأكثرها يُجاب بقول أيِّ اتجاهٍ تجري فيه الصفوف ثم السؤال عمّا كان سيحذّرك.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">Finish both lessons and their tests first. If <a href="../tests/chapter-5-test-17.html#test-17">Test 17</a> or <a href="../tests/chapter-5-test-18.html#test-18">Test 18</a> is still red, do that one again before this &mdash; this test samples both lessons, and a weak one shows up here as a run of wrong answers.</p>
+    <p class="ar">أنجز الدرسين واختباريهما أولًا. وإن كان <a href="../tests/chapter-5-test-17.html#test-17">الاختبار 17</a> أو <a href="../tests/chapter-5-test-18.html#test-18">18</a> لا يزال متعثرًا فأعده قبل هذا &mdash; فهذا الاختبار يأخذ من الدرسين، والدرس الضعيف يظهر هنا سلسلةَ أجوبة خاطئة.</p>
+  </div>
+
+  <div class="assess" data-bank="chapter-05-test-a" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">After this test</span><span class="ar">بعد هذا الاختبار</span></h4>
+    <p class="en">Score 80% or more and go to <a href="../exams/chapter-5-exam-b.html#chapter-05-test-b">Chapter 5 Test B</a>, which stops asking what each function does and starts asking what each check fails to notice. Below 80%, the result panel lists your weak topics with a link each.</p>
+    <p class="ar">إذا حصلت على 80% أو أكثر فانتقل إلى <a href="../exams/chapter-5-exam-b.html#chapter-05-test-b">اختبار الفصل 5 ب</a>، الذي يكفّ عن السؤال ماذا تفعل كل دالة ويبدأ بالسؤال ما يفوت كلَّ فحصٍ ملاحظتُه. وتحت 80% تسرد لوحة النتيجة مواضيعك الضعيفة مع رابط لكل منها.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-chapter-05.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

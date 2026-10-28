@@ -158,4 +158,23 @@ Object.assign(window.OOPTopics, {
   "la-inverse":   { href: "a6-h8", en: "identity and inverse", ar: "المحايدة والمعكوس" },
   "la-rank":      { href: "a6-h9", en: "rank and singular matrices", ar: "الرتبة والمصفوفات الشاذة" },
 
+  /* ---- chapter 5: np.linalg ---- */
+  "system":        { href: "l17-h1", en: "a system as a matrix and a vector", ar: "النظام مصفوفةً ومتجهًا" },
+  "layout":        { href: "l17-s2", en: "rows are equations, columns are unknowns", ar: "الصفوف معادلات والأعمدة مجاهيل" },
+  "solve":         { href: "l17-s3", en: "np.linalg.solve", ar: "np.linalg.solve" },
+  "allclose":      { href: "l17-s4", en: "checking a solution with allclose", ar: "فحص الحل بـ allclose" },
+  "inv-vs-solve":  { href: "l17-s5", en: "solve rather than inv", ar: "solve لا inv" },
+  "singular":      { href: "l17-s6", en: "LinAlgError: Singular matrix", ar: "خطأ المصفوفة الشاذة" },
+  "ill-cond":      { href: "l17-s7", en: "the nearly singular system that answers", ar: "النظام الذي يكاد يشذّ ويجيب" },
+  "cond":          { href: "l17-s8", en: "the condition number", ar: "عدد الحالة" },
+  "overdetermined":{ href: "l18-h1", en: "more equations than unknowns", ar: "معادلات أكثر من المجاهيل" },
+  "intercept":     { href: "l18-s1", en: "the column of ones", ar: "عمود الآحاد" },
+  "drop-rows":     { href: "l18-s2", en: "what dropping rows costs", ar: "ثمن حذف الصفوف" },
+  "lstsq":         { href: "l18-s3", en: "np.linalg.lstsq", ar: "np.linalg.lstsq" },
+  "residuals":     { href: "l18-s4", en: "residuals and what they show", ar: "البواقي وما تُظهره" },
+  "rank-check":    { href: "l18-s5", en: "matrix_rank against the column count", ar: "الرتبة مقابل عدد الأعمدة" },
+  "det":           { href: "l18-s6", en: "why det is not a singularity test", ar: "لماذا ليس المحدِّد فحصًا للشذوذ" },
+  "inverse-use":   { href: "l18-s7", en: "when an inverse is the thing you want", ar: "متى يكون المعكوس مرادك" },
+  "more-columns":  { href: "l18-h3", en: "a better fit is not a better model", ar: "المواءمة الأفضل ليست النموذج الأفضل" },
+
 });

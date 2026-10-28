@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Test 18 · Python OOP by Example" data-ar="اختبار 18 · البرمجة الكائنية بلغة بايثون">Test 18 · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/assess.css">
+</head>
+<body data-chapter="5" data-page="test-18" data-path="tests/chapter-5-test-18.html">
+<main>
+<section class="page" id="test-18">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Test 18 &middot; Week 7 &middot; Lecture 20 &middot; last 10 minutes</span><span class="ar">اختبار 18 &middot; الأسبوع 7 &middot; المحاضرة 20 &middot; آخر 10 دقائق</span></span>
+  <h1><span class="en">Lesson 18 Test &mdash; Least Squares and Diagnostics</span><span class="ar">اختبار الدرس 18 &mdash; المربعات الصغرى والتشخيص</span></h1>
+
+  <p class="lede en">A mixed test on Lesson 18 alone: the overdetermined system, the column of ones, what <code>lstsq</code> hands back, and the three diagnostics &mdash; rank, determinant, condition number &mdash; one of which will tell you a matrix is fine when it is not.</p>
+  <p class="lede ar">اختبار متنوع على الدرس 18 وحده: النظامُ فائضُ التحديد، وعمودُ الآحاد، وما تُرجعه <code>lstsq</code>، وأدواتُ التشخيص الثلاث &mdash; الرتبة والمحدِّد وعدد الحالة &mdash; وإحداها ستقول لك إنّ مصفوفةً سليمة وهي ليست كذلك.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start this test</span><span class="ar">قبل أن تبدأ هذا الاختبار</span></h4>
+    <p class="en">Read <a href="../lessons/chapter-5-lesson-18.html#lesson-18">Lesson 18</a> and do its three exercises, and have <a href="../lessons/chapter-5-lesson-17.html#lesson-17">Lesson 17</a> behind you &mdash; several questions here apply Lesson 17's checking habits to a fit, and two of them turn on the fact that one of those habits is wrong here.</p>
+    <p class="ar">اقرأ <a href="../lessons/chapter-5-lesson-18.html#lesson-18">الدرس 18</a> وأنجز تمارينه الثلاثة، وليكن <a href="../lessons/chapter-5-lesson-17.html#lesson-17">الدرس 17</a> وراءك &mdash; فأسئلةٌ هنا تطبّق عاداتِ الفحص من الدرس 17 على مواءمة، واثنان منها يدوران على أنّ إحدى تلك العادات خاطئةٌ هنا.</p>
+  </div>
+
+  <div class="assess" data-bank="test-18" data-mode="test"></div>
+
+  <div class="callout ahead">
+    <h4><span class="en">What comes next</span><span class="ar">ما التالي</span></h4>
+    <p class="en">When this test is green, both chapter tests are open: <a href="../exams/chapter-5-exam-a.html#chapter-05-test-a">Test A</a> for the core of both lessons, <a href="../exams/chapter-5-exam-b.html#chapter-05-test-b">Test B</a> for the harder corners where the two lessons meet.</p>
+    <p class="ar">إذا نجحت في هذا الاختبار فاختبارا الفصل مفتوحان: <a href="../exams/chapter-5-exam-a.html#chapter-05-test-a">اختبار أ</a> لأساسيات الدرسين، و<a href="../exams/chapter-5-exam-b.html#chapter-05-test-b">اختبار ب</a> للزوايا الأصعب حيث يلتقي الدرسان.</p>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/topics.js"></script>
+<script src="../assets/data/questions-lesson-18.js"></script>
+<script src="../assets/js/assess.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

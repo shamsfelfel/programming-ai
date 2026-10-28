@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Object-oriented Python taught one problem at a time, in English and Arabic, with tests, worked solutions and a step-through execution lab.">
+<title data-en="Solving a System · Python OOP by Example" data-ar="حلّ نظام · البرمجة الكائنية بلغة بايثون">Solving a System · Python OOP by Example</title>
+<script>
+/* Theme, language and the path back to the site root, all before the
+   first paint: a dark reader must not see a white flash, and an Arabic
+   reader must not see a left-to-right page redraw itself. */
+(function () {
+  window.OOP_BASE = "../";
+  try {
+    var l = localStorage.getItem("oop.lang");
+    if (l === "ar" || l === "en") {
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    }
+    var t = localStorage.getItem("oop.theme");
+    if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      document.documentElement.setAttribute("data-theme", "dark");
+    }
+  } catch (e) {}
+})();
+</script>
+<meta name="theme-color" content="#1f6feb">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" href="../icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Python OOP">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/chrome.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/trace.css">
+</head>
+<body data-chapter="5" data-page="lesson-17" data-path="lessons/chapter-5-lesson-17.html">
+<main>
+<section class="page" id="lesson-17">
+<nav class="crumbs"></nav>
+
+
+  <span class="kicker"><span class="en">Lesson 17 &middot; Week 7 &middot; Lecture 19 &middot; 90 min</span><span class="ar">الدرس 17 &middot; الأسبوع 7 &middot; المحاضرة 19 &middot; 90 دقيقة</span></span>
+  <h1><span class="en">Two Orders, Two Prices: Solving a System</span><span class="ar">أمرانِ وسعرانِ: حلّ نظام</span></h1>
+
+  <p class="lede en">By the end of this lesson you will turn a word problem into a matrix and a vector, get its answer in one call, and check that answer in a way that does not lie to you. Then you will meet the two systems that have no single answer &mdash; and the far worse one that <em>nearly</em> has no single answer, where NumPy returns a number with complete confidence and a one-penny change in the question moves that number by six thousand pounds.</p>
+  <p class="lede ar">بنهاية هذا الدرس ستحوّل مسألةً لفظية إلى مصفوفةٍ ومتجه، وتحصل على جوابها في نداء واحد، وتفحص ذلك الجواب فحصًا لا يكذب عليك. ثم ستلقى النظامين اللذين لا جواب واحد لهما &mdash; والنظام الأسوأ بكثير الذي <em>يكاد</em> لا يكون له جواب واحد، حيث تُرجع نمباي عددًا بثقة تامة ويحرّك تغييرٌ بقرشٍ واحد في السؤال ذلك العدد بستة آلاف جنيه.</p>
+
+  <div class="callout prereq">
+    <h4><span class="en">Before you start</span><span class="ar">قبل أن تبدأ</span></h4>
+    <p class="en">This lesson leans on <a href="../lessons/chapter-3-lesson-10.html#l10-s5">shape</a> from Chapter 3 and <a href="../lessons/chapter-4-lesson-14.html#lesson-14">the <code>@</code> operator</a> from Chapter 4, and assumes you can read <code>A @ x</code> without stopping. <a href="../appendices/appendix-a6.html#appendix-a6">Appendix A6</a> is what stands behind it: what a system of equations <em>is</em>, and what it means for one to have no single answer. It is worth an hour before this lecture and it is not examined anywhere.</p>
+    <p class="ar">يستند هذا الدرس إلى <a href="../lessons/chapter-3-lesson-10.html#l10-s5">الشكل</a> من الفصل 3 وإلى <a href="../lessons/chapter-4-lesson-14.html#lesson-14">مُعامل <code>@</code></a> من الفصل 4، ويفترض أنك تقرأ <code>A @ x</code> بلا توقّف. و<a href="../appendices/appendix-a6.html#appendix-a6">الملحق A6</a> هو ما يقف خلفه: ما يكون نظامُ المعادلات، وما يعني ألّا يكون له جوابٌ واحد. ويستحقّ ساعةً قبل هذه المحاضرة، ولا يُمتحن فيه في مكان.</p>
+  </div>
+
+  <h2 id="l17-h1"><span class="en">A system of equations is a matrix and a vector</span><span class="ar">نظامُ المعادلات مصفوفةٌ ومتجه</span></h2>
+
+  <div class="problem">
+    <p class="en">The school office has two invoices from the same stationery shop and no price list. The first says <strong>3 notebooks and 2 pens came to 13.50</strong>. The second says <strong>5 notebooks and 4 pens came to 23.50</strong>. What does one notebook cost, and what does one pen cost?</p>
+    <p class="ar">في مكتب المدرسة فاتورتان من المكتبة نفسها ولا قائمةَ أسعار. تقول الأولى إنّ <strong>ثلاثة دفاتر وقلمين بلغت 13.50</strong>. وتقول الثانية إنّ <strong>خمسة دفاتر وأربعة أقلام بلغت 23.50</strong>. فكم يكلّف الدفتر الواحد، وكم يكلّف القلم الواحد؟</p>
+  </div>
+
+  <h3 id="l17-s1"><span class="en">Doing it by hand, once</span><span class="ar">الحلّ يدويًا، مرةً واحدة</span></h3>
+
+  <p class="en">Double the first invoice and you have 6 notebooks and 4 pens for 27.00. The second invoice has 5 notebooks and 4 pens for 23.50. The pens cancel, one notebook is the difference, 27.00 &minus; 23.50 = 3.50. Put that back in the first invoice: 3 &times; 3.50 = 10.50, so the two pens cost 3.00 and one pen costs 1.50.</p>
+  <p class="ar">ضاعِف الفاتورة الأولى فتصير ستة دفاتر وأربعة أقلام بـ 27.00. والفاتورة الثانية خمسة دفاتر وأربعة أقلام بـ 23.50. تُحذَف الأقلام، ويكون الفرقُ دفترًا واحدًا، 27.00 &minus; 23.50 = 3.50. أعِد ذلك في الفاتورة الأولى: 3 &times; 3.50 = 10.50، فيكون القلمان بـ 3.00 والقلمُ الواحد بـ 1.50.</p>
+
+  <p class="en">That is the whole method, and it is fine for two unknowns. It is unpleasant for four and unthinkable for a hundred &mdash; and a hundred is the size of problem a model solves before breakfast. So the rest of this lesson is about handing the same question to a function.</p>
+  <p class="ar">تلك هي الطريقة كلها، وهي حسنةٌ لمجهولين. وهي كريهة لأربعة، ولا تُتصوّر لمئة &mdash; والمئة حجمُ مسألةٍ يحلّها نموذجٌ قبل الفطور. فبقيّةُ هذا الدرس في تسليم السؤال نفسه إلى دالة.</p>
+
+  <h3 id="l17-s2"><span class="en">The same question, laid out for NumPy</span><span class="ar">السؤال نفسه، مُهيّأً لنمباي</span></h3>
+
+  <p class="en">Write the two invoices as a table of <em>how many of each item</em>, and the two totals as a column beside it. One row per invoice, one column per item &mdash; always that way round, and getting it the other way round is the commonest mistake in this lesson.</p>
+  <p class="ar">اكتب الفاتورتين جدولًا بـ<em>كم من كل بند</em>، والمجموعين عمودًا بجانبه. صفٌّ لكل فاتورة، وعمودٌ لكل بند &mdash; دائمًا بهذا الترتيب، وعكسُه أشيعُ خطأ في هذا الدرس.</p>
+
+<pre class="code good"><code>import numpy as np
+
+A = np.array([[3., 2.],
+              [5., 4.]])
+b = np.array([13.50, 23.50])
+
+print(A.shape, b.shape)
+</code></pre>
+
+  <div class="output">(2, 2) (2,)</div>
+
+  <p class="en">The unknowns are a vector too &mdash; call it <code>x</code>, holding the notebook price and the pen price in that order. Then the two invoices are a single statement: <code>A @ x</code> must equal <code>b</code>. Read it row by row and you get the two sentences back: row one says 3 &times; notebook + 2 &times; pen = 13.50.</p>
+  <p class="ar">والمجاهيلُ متجهٌ أيضًا &mdash; سمّه <code>x</code>، يحمل سعر الدفتر وسعر القلم بهذا الترتيب. فتصير الفاتورتان جملةً واحدة: <code>A @ x</code> يجب أن تساوي <code>b</code>. اقرأها صفًّا صفًّا فتعود إليك الجملتان: يقول الصف الأول 3 &times; دفتر + 2 &times; قلم = 13.50.</p>
+
+  <h3 id="l17-s3"><span class="en">One call</span><span class="ar">نداءٌ واحد</span></h3>
+
+<pre class="code good"><code>x = np.linalg.solve(A, b)
+print(x)
+print(f"notebook {x[0]:.2f}, pen {x[1]:.2f}")
+</code></pre>
+
+  <div class="output">[3.5 1.5]
+notebook 3.50, pen 1.50</div>
+
+  <p class="en">The same two numbers the hand method gave. <code>np.linalg.solve</code> takes the table and the totals and returns the unknowns, in the order the columns were written. The order of the columns is yours to decide and yours to remember: nothing in the output says which number is the notebook.</p>
+  <p class="ar">العددان نفساهما الذين أعطتهما الطريقة اليدوية. تأخذ <code>np.linalg.solve</code> الجدولَ والمجاميع وتُرجع المجاهيل، بترتيب كتابة الأعمدة. وترتيبُ الأعمدة قرارُك وعليك تذكّره: فليس في الخَرج ما يقول أيُّ عددٍ هو الدفتر.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">The office hands you a third invoice: 4 notebooks and 1 pen came to 15.50. You want to use invoices one and three instead. What changes in the code?</span><span class="ar">يسلّمك المكتب فاتورةً ثالثة: أربعة دفاتر وقلمٌ واحد بلغت 15.50. وتريد استعمال الفاتورتين الأولى والثالثة. فما الذي يتغيّر في الكود؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The second row of <code>A</code> becomes <code>[4., 1.]</code> and the second entry of <code>b</code> becomes <code>15.50</code>. Nothing else &mdash; not the call, not the shapes.</span><span class="ar">يصير الصفُّ الثاني من <code>A</code> هو <code>[4., 1.]</code> ويصير المدخلُ الثاني من <code>b</code> هو <code>15.50</code>. ولا شيء غير ذلك &mdash; لا النداء ولا الأشكال.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">The second <em>column</em> of <code>A</code> becomes <code>[4., 1.]</code>, because each invoice is a column.</span><span class="ar">يصير العمودُ الثاني من <code>A</code> هو <code>[4., 1.]</code>، لأن كل فاتورة عمود.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">All three invoices must go in, so <code>A</code> becomes 3&times;2 and <code>b</code> becomes length 3.</span><span class="ar">يجب إدخال الفواتير الثلاث، فتصير <code>A</code> بحجم 3&times;2 وتصير <code>b</code> بطول 3.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Nothing: <code>solve</code> reads the invoices from <code>b</code> and <code>A</code> only holds the prices.</span><span class="ar">لا شيء: فـ<code>solve</code> تقرأ الفواتير من <code>b</code>، و<code>A</code> لا تحمل إلا الأسعار.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">One row per equation, one column per unknown. The option that transposes the layout is the mistake worth making once in private: it builds a perfectly valid 2&times;2 matrix, <code>solve</code> answers without complaint, and it returns <code>[-31.75  21.75]</code> &mdash; a notebook costing minus thirty-one pounds. Absurd enough to catch here, and the reason to notice is the sign, not the arithmetic: on a table of plausible-looking quantities a transposed layout returns plausible-looking prices, and there is nothing in the output to appeal to. The option that puts all three invoices in is not wrong so much as early: that is a 3&times;2 matrix, <code>solve</code> will refuse the shape, and it is <a href="../lessons/chapter-5-lesson-18.html#lesson-18">Lesson 18</a>'s entire subject.</div>
+      <div class="ar">صفٌّ لكل معادلة، وعمودٌ لكل مجهول. والخيارُ الذي يقلب التخطيط هو الخطأ الذي يستحقّ أن تقع فيه مرةً على انفراد: فهو يبني مصفوفةً 2&times;2 صحيحةً تمامًا، وتجيب <code>solve</code> بلا اعتراض، وتُرجع <code>[-31.75  21.75]</code> &mdash; دفترًا بسالب واحدٍ وثلاثين جنيهًا. وهو عبثٌ يكفي لالتقاطه هنا، وسببُ الالتقاط الإشارةُ لا الحساب: فعلى جدولِ كمياتٍ تبدو معقولة يُرجع التخطيطُ المقلوب أسعارًا تبدو معقولة، وليس في الخَرج ما تحتكم إليه. والخيارُ الذي يُدخل الفواتير الثلاث ليس خاطئًا بقدر ما هو سابقٌ لوقته: فتلك مصفوفة 3&times;2، وسترفض <code>solve</code> الشكل، وهو موضوع <a href="../lessons/chapter-5-lesson-18.html#lesson-18">الدرس 18</a> كلُّه.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.1 &mdash; Three items, three invoices</span><span class="ar">تمرين 17.1 &mdash; ثلاثة بنود وثلاث فواتير</span></h4>
+    <p class="en">The shop also sells rulers. Three invoices: 3 notebooks + 2 pens + 1 ruler came to 13.50; 5 notebooks + 4 pens + 2 rulers came to 23.50; 1 notebook + 1 pen + 4 rulers came to 10.00. Find the three prices, and print them rounded to two decimals.</p>
+    <p class="ar">تبيع المكتبةُ مساطرَ أيضًا. ثلاث فواتير: ثلاثة دفاتر وقلمان ومسطرة بلغت 13.50؛ وخمسة دفاتر وأربعة أقلام ومسطرتان بلغت 23.50؛ ودفترٌ وقلمٌ وأربع مساطر بلغت 10.00. جِد الأسعار الثلاثة، واطبعها مقرّبةً إلى منزلتين.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+x = np.linalg.solve(A, b)
+print(x)
+print(np.round(x, 2))
+</code></pre>
+      <div class="output">[3.5        0.78571429 1.42857143]
+[3.5  0.79 1.43]</div>
+      <p class="en">The call did not change at all &mdash; only the shapes did, from 2&times;2 to 3&times;3. That is the whole point of handing the problem to a function. Note that the prices are no longer round numbers: real invoice data gives answers like <code>0.78571429</code>, and rounding them for display is a reporting decision, not a correction.</p>
+      <p class="ar">لم يتغيّر النداء إطلاقًا &mdash; تغيّرت الأشكال وحدها، من 2&times;2 إلى 3&times;3. وذلك كلُّ المقصود من تسليم المسألة إلى دالة. ولاحظ أن الأسعار لم تبقَ أعدادًا صحيحة: فبيانات الفواتير الحقيقية تعطي أجوبةً مثل <code>0.78571429</code>، وتقريبُها للعرض قرارُ إبلاغ لا تصحيح.</p>
+    </details>
+  </section>
+
+  <h2 id="l17-h2"><span class="en">Never trust it without checking, and never check with <code>==</code></span><span class="ar">لا تثق به بلا فحص، ولا تفحصه بـ <code>==</code></span></h2>
+
+  <h3 id="l17-s4"><span class="en">Put the answer back in</span><span class="ar">أعِد الجواب إلى مكانه</span></h3>
+
+  <p class="en">You have an <code>x</code>. The question was "which <code>x</code> makes <code>A @ x</code> equal <code>b</code>?", so the check writes itself: compute <code>A @ x</code> and compare. Here it is on the three-item system from Exercise 17.1, because the two-item one is too tidy to show what is coming.</p>
+  <p class="ar">لديك <code>x</code>. وكان السؤال: «أيُّ <code>x</code> يجعل <code>A @ x</code> تساوي <code>b</code>؟»، فالفحصُ يكتب نفسه: احسب <code>A @ x</code> وقارن. وها هو على نظام البنود الثلاثة من تمرين 17.1، فنظامُ البندين أنظفُ من أن يُظهر ما هو آتٍ.</p>
+
+<pre class="code good"><code>A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+x = np.linalg.solve(A, b)
+
+print(A @ x)
+print(A @ x - b)
+print(A @ x == b)
+</code></pre>
+
+  <div class="output">[13.5 23.5 10. ]
+[-1.77635684e-15  0.00000000e+00  0.00000000e+00]
+[False  True  True]</div>
+
+  <p class="en">Read the last line again. Two of the three equations came back exactly, and the first came back wrong by <code>0.00000000000000177</code> &mdash; and <code>==</code> reports that as <code>False</code>. The answer is not wrong; the comparison is. This is <a href="../appendices/appendix-a4.html#a4-h2">how decimals are stored</a>, met in Appendix A4 and again in <a href="../lessons/chapter-3-lesson-13.html#l13-h2">Chapter 3</a>, and it is why a correctness check on floating-point arithmetic uses a tolerance.</p>
+  <p class="ar">أعِد قراءة السطر الأخير. عادت معادلتان من الثلاث مضبوطتين، وعادت الأولى خاطئةً بمقدار <code>0.00000000000000177</code> &mdash; و<code>==</code> تُبلغ عن ذلك بـ <code>False</code>. فالجوابُ ليس خاطئًا، بل المقارنةُ هي الخاطئة. وهذا <a href="../appendices/appendix-a4.html#a4-h2">كيف تُخزَّن العشريات</a>، وقد لقيناه في الملحق A4 ثم في <a href="../lessons/chapter-3-lesson-13.html#l13-h2">الفصل 3</a>، وهو سببُ أن يستعمل فحصُ صحةِ حسابٍ عشري سماحيّة.</p>
+
+<pre class="code good"><code>print(np.allclose(A @ x, b))
+</code></pre>
+
+  <div class="output">True</div>
+
+  <div class="note">
+    <p class="en"><code>np.allclose(p, q)</code> asks whether every pair of entries agrees to within a small tolerance, and returns one <code>True</code> or <code>False</code> for the whole comparison. It is the function to reach for whenever you want to say "these two arrays are the same" about numbers that have been through arithmetic. <code>==</code> is for integers, strings and flags.</p>
+    <p class="ar"><code>np.allclose(p, q)</code> تسأل هل يتفق كل زوج من المداخل في حدود سماحيّةٍ صغيرة، وتُرجع <code>True</code> أو <code>False</code> واحدة للمقارنة كلها. وهي الدالة التي تمتدّ إليها كلما أردت أن تقول «هاتان المصفوفتان سواء» عن أعدادٍ مرّت بحساب. أمّا <code>==</code> فللأعداد الصحيحة والنصوص والأعلام.</p>
+  </div>
+
+  <h3 id="l17-s5"><span class="en">The tool you were taught, and why not</span><span class="ar">الأداةُ التي عُلِّمتها، ولماذا لا</span></h3>
+
+  <p class="en">School algebra teaches a different route: find the inverse of <code>A</code> and multiply. NumPy will do it, and for this system it agrees.</p>
+  <p class="ar">يعلّم جبرُ المدرسة طريقًا آخر: جِد معكوس <code>A</code> واضرب. ونمباي تفعل ذلك، وهي توافق في هذا النظام.</p>
+
+<pre class="code good"><code>A = np.array([[3., 2.],
+              [5., 4.]])
+b = np.array([13.50, 23.50])
+print(np.linalg.inv(A) @ b)
+</code></pre>
+
+  <div class="output">[3.5 1.5]</div>
+
+  <p class="en">Use <code>solve</code> anyway, for two reasons and in that order. The second is speed: on a 500&times;500 system here, <code>inv(A) @ b</code> measured 0.0057&nbsp;s against <code>solve</code>'s 0.0024&nbsp;s &mdash; about two and a half times, not a hundred, so speed alone would be a thin argument. The first reason is the real one: computing an inverse does strictly more arithmetic than answering the question, and every extra operation is another rounding error. On the well-behaved systems in this lesson you will not see the difference. On an awkward one you will, and you will not be told.</p>
+  <p class="ar">استعمل <code>solve</code> على أي حال، لسببين وبهذا الترتيب. الثاني السرعة: على نظام 500&times;500 هنا، قيست <code>inv(A) @ b</code> بـ 0.0057 ثانية مقابل 0.0024 ثانية لـ <code>solve</code> &mdash; أي مرتين ونصفًا تقريبًا لا مئة مرة، فالسرعةُ وحدها حجّةٌ واهية. والسببُ الأول هو الحقيقي: فحسابُ المعكوس يؤدّي حسابًا أكثر ممّا تحتاجه الإجابة، وكلُّ عملية زائدة خطأُ تقريبٍ آخر. ولن ترى الفرق في الأنظمة حسنةِ السلوك في هذا الدرس. وسترَاه في نظامٍ عسِر، ولن تُخبَر.</p>
+
+  <div class="quiz">
+    <p class="q"><span class="en">A colleague checks a solution with <code>if (A @ x == b).all():</code> and reports that <code>solve</code> is broken, because the check fails on about half their systems. What is actually happening?</span><span class="ar">يفحص زميلٌ حلًّا بـ <code>if (A @ x == b).all():</code> ويُبلغ أنّ <code>solve</code> معطوبة، لأن الفحص يفشل في نحو نصف أنظمته. فما الذي يحدث فعلًا؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">The solutions are right to about fifteen digits, and <code>==</code> demands all seventeen. Their check is testing the storage of decimals, not the answer.</span><span class="ar">الحلول صحيحةٌ إلى نحو خمسة عشر رقمًا، و<code>==</code> تطالب بالسبعة عشر كلها. ففحصُه يختبر تخزينَ العشريات لا الجواب.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>solve</code> returns an approximation on purpose and <code>inv</code> would be exact.</span><span class="ar">تُرجع <code>solve</code> تقريبًا على سبيل القصد، و<code>inv</code> كانت ستكون مضبوطة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en"><code>.all()</code> is the bug: it needs <code>.any()</code> to pass.</span><span class="ar"><code>.all()</code> هي العيب: فهي تحتاج <code>.any()</code> لتنجح.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Their matrices are singular, and <code>solve</code> should have raised instead of answering.</span><span class="ar">مصفوفاته شاذّة، وكان على <code>solve</code> أن ترفع خطأً بدل أن تجيب.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The option about <code>.any()</code> is worth refuting out loud, because swapping in <code>.any()</code> would make the check pass and would be far more dangerous than the failure it replaced: a wrong answer usually satisfies one equation of a system by luck, so <code>.any()</code> says <code>True</code> for solutions that are badly wrong. Loosening a test until it passes is how a silent bug gets a certificate. <code>np.allclose</code> loosens it by a stated tolerance instead, which is a different thing entirely.</div>
+      <div class="ar">الخيارُ الذي يذكر <code>.any()</code> يستحقّ ردًّا صريحًا، فاستبدالُها كان سيجعل الفحص ينجح وكان سيكون أخطر بكثير من الفشل الذي حلّ محله: فالجوابُ الخاطئ يحقّق عادةً معادلةً واحدة من النظام بالحظ، فتقول <code>.any()</code> <code>True</code> لحلولٍ خاطئةٍ خطأً فاحشًا. وتوسيعُ الاختبار حتى ينجح هو كيف يحصل عيبٌ صامت على شهادة. أمّا <code>np.allclose</code> فتوسّعه بسماحيّةٍ معلنة، وذاك أمرٌ مختلف تمامًا.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.2 &mdash; A check you can put in a function</span><span class="ar">تمرين 17.2 &mdash; فحصٌ تضعه في دالة</span></h4>
+    <p class="en">Write <code>price_items(A, b)</code> that solves the system, verifies its own answer with <code>np.allclose</code>, raises <code>ValueError</code> with a useful message if the check fails, and otherwise returns the prices. Then call it on the three-item system from Exercise 17.1.</p>
+    <p class="ar">اكتب <code>price_items(A, b)</code> تحلّ النظام، وتتحقّق من جوابها بنفسها بـ <code>np.allclose</code>، وترفع <code>ValueError</code> برسالةٍ مفيدة إن فشل الفحص، وتُرجع الأسعار فيما عدا ذلك. ثم نادِها على نظام البنود الثلاثة من تمرين 17.1.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def price_items(A, b):
+    x = np.linalg.solve(A, b)
+    if not np.allclose(A @ x, b):
+        raise ValueError("solved, but the answer does not satisfy the system")
+    return x
+
+A = np.array([[3., 2., 1.],
+              [5., 4., 2.],
+              [1., 1., 4.]])
+b = np.array([13.50, 23.50, 10.00])
+print(np.round(price_items(A, b), 2))
+</code></pre>
+      <div class="output">[3.5  0.79 1.43]</div>
+      <p class="en">The check will almost never fire, and that is fine: it costs one matrix multiply and it is the only thing standing between you and a silently wrong price list. Note what the function does <em>not</em> do &mdash; it does not round. Rounding inside a function that returns prices would throw away precision that the next calculation may need; round where you print.</p>
+      <p class="ar">لن يُطلَق الفحص إلا نادرًا، ولا بأس: فهو يكلّف ضربَ مصفوفةٍ واحدًا وهو وحده ما يقف بينك وبين قائمةِ أسعارٍ خاطئةٍ في صمت. ولاحظ ما <em>لا</em> تفعله الدالة &mdash; فهي لا تقرّب. فالتقريبُ داخل دالةٍ تُرجع أسعارًا يرمي دقةً قد يحتاجها الحسابُ التالي؛ قرّب حيث تطبع.</p>
+    </details>
+  </section>
+
+  <h2 id="l17-h3"><span class="en">When there is no single answer</span><span class="ar">حين لا يكون هناك جوابٌ واحد</span></h2>
+
+  <h3 id="l17-s6"><span class="en">Two invoices that say the same thing</span><span class="ar">فاتورتان تقولان الشيء نفسه</span></h3>
+
+  <p class="en">Suppose the second invoice is just the first one doubled: 6 notebooks and 4 pens for 27.00. It is true, it is consistent, and it tells you nothing new. Any notebook price at all has a matching pen price that fits both lines.</p>
+  <p class="ar">افترض أن الفاتورة الثانية هي الأولى مضاعفة: ستة دفاتر وأربعة أقلام بـ 27.00. وهي صحيحة ومتّسقة ولا تخبرك بجديد. فأيُّ سعرٍ للدفتر مهما كان له سعرُ قلمٍ مقابلٌ ينطبق على الخطّين.</p>
+
+<pre class="code bad"><code>A = np.array([[3., 2.],
+              [6., 4.]])
+print(np.linalg.solve(A, np.array([13.50, 27.00])))
+</code></pre>
+
+  <div class="output">LinAlgError: Singular matrix</div>
+
+  <p class="en">Now suppose instead the shop made an arithmetic mistake and the second invoice reads 28.00 for the same 6 notebooks and 4 pens. Now the two statements contradict each other: there is no pair of prices that satisfies both.</p>
+  <p class="ar">وافترض بدلًا من ذلك أن المكتبة أخطأت في الحساب وأن الفاتورة الثانية تقول 28.00 للستة دفاتر والأربعة أقلام نفسها. فالجملتان الآن تتناقضان: ولا زوجَ أسعارٍ يحقّقهما.</p>
+
+<pre class="code bad"><code>print(np.linalg.solve(A, np.array([13.50, 28.00])))
+</code></pre>
+
+  <div class="output">LinAlgError: Singular matrix</div>
+
+  <p class="en">The same four words for both. One system has infinitely many answers and the other has none, and <code>solve</code> does not distinguish them, because the distinction is not in <code>A</code> &mdash; it is in how <code>b</code> sits relative to <code>A</code>, and <code>solve</code> gave up before looking. <a href="../lessons/chapter-5-lesson-18.html#lesson-18">Lesson 18</a> has the tool that tells them apart. For now, read <em>singular</em> as "this matrix does not pin down an answer", and look at your matrix rather than your totals &mdash; and read the note below before trusting the error to appear at all.</p>
+  <p class="ar">الكلماتُ الأربع نفسها لكليهما. لأحد النظامين أجوبةٌ لا نهائية وللآخر لا جواب، و<code>solve</code> لا تفرّق بينهما، لأن الفرق ليس في <code>A</code> &mdash; بل في كيف تقع <code>b</code> بالنسبة إلى <code>A</code>، وقد استسلمت <code>solve</code> قبل أن تنظر. وفي <a href="../lessons/chapter-5-lesson-18.html#lesson-18">الدرس 18</a> الأداةُ التي تميّز بينهما. والآن اقرأ <em>شاذّة</em> بمعنى «هذه المصفوفة لا تحدّد جوابًا»، وانظر في مصفوفتك لا في مجاميعك &mdash; واقرأ الملاحظة أدناه قبل أن تثق بظهور الخطأ أصلًا.</p>
+
+  <div class="note">
+    <h4><span class="en">And the error is not a guarantee</span><span class="ar">والخطأُ ليس ضمانًا</span></h4>
+    <p class="en">Worth knowing before you rely on <code>LinAlgError</code> to protect you: a matrix can be exactly singular and still be answered. Here the third row is the first plus the second, which makes the system genuinely singular &mdash; and this is what happens.</p>
+    <p class="ar">جديرٌ بالمعرفة قبل أن تعتمد على <code>LinAlgError</code> لتحميك: فقد تكون المصفوفة شاذّةً بالضبط ويُجاب عنها مع ذلك. فالصفُّ الثالث هنا هو الأول زائد الثاني، وهو ما يجعل النظام شاذًّا حقًّا &mdash; وهذا ما يحدث.</p>
+<pre class="code bad"><code>A = np.array([[1., 1., 1.],
+              [2., 1., 3.],
+              [3., 2., 4.]])
+b = np.array([6., 13., 19.])
+
+x = np.linalg.solve(A, b)
+print(x)
+print(np.allclose(A @ x, b))
+print(np.linalg.matrix_rank(A), np.linalg.det(A))
+</code></pre>
+    <div class="output">[1.75  1.625 2.625]
+True
+2 4.4408920985006143e-16</div>
+    <p class="en">No exception. An answer that satisfies the system, so <code>allclose</code> says <code>True</code>. And it is one of <em>infinitely many</em> answers, chosen arbitrarily. The reason nothing raised is on the last line: the determinant of a matrix that is mathematically zero came out as 4.4&times;10<sup>-16</sup>, so the check inside <code>solve</code> found a pivot it could divide by. The rank &mdash; 2, for a 3&times;3 &mdash; is the only one of these numbers telling the truth, and <a href="../lessons/chapter-5-lesson-18.html#l18-s5">Lesson 18</a> is where it gets used.</p>
+    <p class="ar">لا استثناء. وجوابٌ يحقّق النظام، فتقول <code>allclose</code> <code>True</code>. وهو واحدٌ من أجوبةٍ <em>لا نهائية</em>، مختارٌ اعتباطًا. وسببُ ألّا يُرفع شيء في السطر الأخير: فمحدِّدُ مصفوفةٍ هو رياضيًّا صفر خرج 4.4&times;10<sup>-16</sup>، فوجد الفحصُ داخل <code>solve</code> محورًا يقسم عليه. والرتبةُ &mdash; 2 لمصفوفة 3&times;3 &mdash; هي وحدها من هذه الأعداد ما يقول الحقيقة، و<a href="../lessons/chapter-5-lesson-18.html#l18-s5">الدرس 18</a> حيث تُستعمل.</p>
+  </div>
+
+  <h3 id="l17-s7"><span class="en">The one that does not raise</span><span class="ar">النظامُ الذي لا يرفع خطأً</span></h3>
+
+  <div class="problem">
+    <p class="en">Change one digit. The second invoice is for 6 notebooks and <strong>4.000001</strong> pens &mdash; which is what you get when a quantity was computed from a weight, or a price per gram, or any measurement at all. The matrix is no longer singular. Nothing will be raised. Watch what happens when the total is out by one penny.</p>
+    <p class="ar">غيّر رقمًا واحدًا. فالفاتورة الثانية لستة دفاتر و<strong>4.000001</strong> قلم &mdash; وهو ما تحصل عليه حين تُحسب كميةٌ من وزن، أو من سعرٍ للغرام، أو من أي قياسٍ كان. فلم تبقَ المصفوفةُ شاذّة. ولن يُرفع خطأ. فراقب ما يحدث حين يختلّ المجموع بقرشٍ واحد.</p>
+  </div>
+
+<pre class="code bad"><code>A = np.array([[3., 2.],
+              [6., 4.000001]])
+
+print(np.linalg.solve(A, np.array([13.50, 27.00])))
+print(np.linalg.solve(A, np.array([13.50, 27.01])))
+</code></pre>
+
+  <div class="output">[ 4.5 -0. ]
+[-6662.16666574  9999.9999986 ]</div>
+
+  <p class="en">A penny on one invoice turns a notebook costing 4.50 into a notebook costing <em>minus six thousand six hundred and sixty-two pounds</em>, and a pen costing nothing into a pen costing ten thousand. No exception, no warning, no hint. Both answers satisfy their own system to fifteen digits, so <code>np.allclose</code> says <code>True</code> for both &mdash; the check from the last section passes and tells you nothing, because the answer is not wrong for the question asked. The question was unanswerable, and that is a property of the matrix.</p>
+  <p class="ar">قرشٌ في فاتورةٍ واحدة يحوّل دفترًا بـ 4.50 إلى دفترٍ بـ <em>سالب ستة آلاف وستمئة واثنين وستين جنيهًا</em>، وقلمًا بلا ثمن إلى قلمٍ بعشرة آلاف. لا استثناء ولا تحذير ولا إشارة. وكلا الجوابين يحقّق نظامه إلى خمسة عشر رقمًا، فتقول <code>np.allclose</code> <code>True</code> لكليهما &mdash; فينجح فحصُ القسم السابق ولا يخبرك بشيء، لأن الجواب ليس خاطئًا للسؤال المطروح. بل السؤالُ كان غيرَ قابلٍ للإجابة، وذلك خاصيّةٌ في المصفوفة.</p>
+
+  <h3 id="l17-s8"><span class="en">The number that would have warned you</span><span class="ar">العددُ الذي كان سيحذّرك</span></h3>
+
+<pre class="code good"><code>good = np.array([[3., 2.],
+                 [5., 4.]])
+near = np.array([[3., 2.],
+                 [6., 4.000001]])
+
+print(np.linalg.cond(good))
+print(np.linalg.cond(near))
+</code></pre>
+
+  <div class="output">26.962912017836388
+21666669.2880473</div>
+
+  <p class="en"><code>np.linalg.cond</code> is the <em>condition number</em>: roughly, how much an error in the question is multiplied on its way to the answer. Twenty-seven means a penny of error stays about a penny. Twenty-two million means a penny of error comes out the other end as tens of thousands, which is exactly what you just watched. A rule of thumb worth carrying: double-precision arithmetic has about sixteen digits to spend, so a condition number near 10<sup>16</sup> leaves you none, and anything past about 10<sup>8</sup> deserves a look at where the data came from.</p>
+  <p class="ar"><code>np.linalg.cond</code> هي <em>عددُ الحالة</em>: وبتقريبٍ، كم يُضاعَف خطأٌ في السؤال في طريقه إلى الجواب. فسبعةٌ وعشرون تعني أن قرشَ خطأٍ يبقى نحو قرش. وأمّا اثنان وعشرون مليونًا فتعني أن قرشَ خطأٍ يخرج من الطرف الآخر عشراتَ الآلاف، وهو بالضبط ما شاهدته. وقاعدةٌ عملية تستحقّ الحمل: للحساب المزدوج الدقة نحو ستة عشر رقمًا يُنفقها، فعددُ حالةٍ قرب 10<sup>16</sup> لا يُبقي لك شيئًا، وما تجاوز نحو 10<sup>8</sup> يستحقّ نظرةً في مصدر البيانات.</p>
+
+  <div data-trace-id="t-solve"></div>
+
+  <div class="quiz">
+    <p class="q"><span class="en">Which of these would have caught the one-penny disaster before the price list went out?</span><span class="ar">أيُّ هذه كان سيلتقط كارثةَ القرش الواحد قبل أن تصدر قائمةُ الأسعار؟</span></p>
+    <ul class="options">
+      <li><button class="opt" data-correct="true"><span class="en">Looking at <code>np.linalg.cond(A)</code> before trusting the result, or noticing that a negative price is not a price.</span><span class="ar">النظرُ في <code>np.linalg.cond(A)</code> قبل الوثوق بالنتيجة، أو ملاحظةُ أنّ سعرًا سالبًا ليس سعرًا.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Checking <code>np.allclose(A @ x, b)</code>, which is what that check is for.</span><span class="ar">فحصُ <code>np.allclose(A @ x, b)</code>، وهو ما وُضع الفحص له.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Using <code>inv(A) @ b</code> instead, which is more careful with awkward matrices.</span><span class="ar">استعمالُ <code>inv(A) @ b</code> بدلًا منها، فهي أدقّ مع المصفوفات العسِرة.</span></button></li>
+      <li><button class="opt" data-correct="false"><span class="en">Wrapping the call in <code>try</code> / <code>except LinAlgError</code>.</span><span class="ar">تغليفُ النداء بـ <code>try</code> / <code>except LinAlgError</code>.</span></button></li>
+    </ul>
+    <div class="feedback" hidden>
+      <div class="en">The <code>allclose</code> option and the <code>try</code> option are both things you should be doing, and neither would have made a sound here: the residual really is tiny, and nothing was raised to catch. That is the shape of this whole chapter &mdash; the checks that catch mistakes in <em>your code</em> are silent about a question that was never answerable. The <code>inv</code> option has it backwards: an inverse is more exposed to an awkward matrix, not less. And the cheapest guard of all is in the first option's second half: a notebook cannot cost minus six thousand pounds, and a line that asserts prices are positive would have stopped this before any arithmetic was questioned.</div>
+      <div class="ar">خيارُ <code>allclose</code> وخيارُ <code>try</code> كلاهما ممّا ينبغي أن تفعله، وما كان أيٌّ منهما سيُصدر صوتًا هنا: فالباقي صغيرٌ فعلًا، ولم يُرفع شيءٌ ليُلتقَط. وذاك شكلُ هذا الفصل كلِّه &mdash; فالفحوص التي تلتقط أخطاء <em>كودك</em> صامتةٌ عن سؤالٍ لم يكن قابلًا للإجابة أصلًا. وخيارُ <code>inv</code> مقلوب: فالمعكوسُ أكثرُ تعرّضًا للمصفوفة العسِرة لا أقلّ. وأرخصُ حرزٍ على الإطلاق في النصف الثاني من الخيار الأول: فالدفترُ لا يكلّف سالب ستة آلاف جنيه، وسطرٌ يؤكّد أن الأسعار موجبة كان سيوقف هذا قبل أن يُسأل عن أي حساب.</div>
+    </div>
+  </div>
+
+  <section class="exercise">
+    <h4><span class="en">Exercise 17.3 &mdash; Refuse to answer</span><span class="ar">تمرين 17.3 &mdash; ارفض الإجابة</span></h4>
+    <p class="en">Extend <code>price_items</code> so that it refuses a question it cannot answer meaningfully: raise <code>ValueError</code> if <code>np.linalg.cond(A)</code> is above <code>1e8</code>, and again if any returned price is negative. Report the condition number in the message. Then run it on the <code>4.000001</code> system with the total 27.01 and read what it says.</p>
+    <p class="ar">وسّع <code>price_items</code> لترفض سؤالًا لا تستطيع إجابته إجابةً ذات معنى: ارفع <code>ValueError</code> إن كانت <code>np.linalg.cond(A)</code> أكبر من <code>1e8</code>، وارفعها مرةً أخرى إن كان أيُّ سعرٍ راجعٍ سالبًا. واذكر عددَ الحالة في الرسالة. ثم شغّلها على نظام <code>4.000001</code> بمجموع 27.01 واقرأ ما تقول.</p>
+
+    <details class="solution">
+      <summary><span class="en">Show solution</span><span class="ar">إظهار الحل</span></summary>
+<pre class="code good"><code>def price_items(A, b):
+    c = np.linalg.cond(A)
+    if c > 1e8:
+        raise ValueError(f"these invoices barely pin down a price (cond={c:.3g})")
+    x = np.linalg.solve(A, b)
+    if not np.allclose(A @ x, b):
+        raise ValueError("solved, but the answer does not satisfy the system")
+    if (x &lt; 0).any():
+        raise ValueError(f"a negative price came out: {x}")
+    return x
+
+A = np.array([[3., 2.],
+              [6., 4.000001]])
+try:
+    price_items(A, np.array([13.50, 27.01]))
+except ValueError as e:
+    print(e)
+</code></pre>
+      <div class="output">a negative price came out: [-6662.16666574  9999.9999986 ]</div>
+      <p class="en">Read which guard fired. Not the condition check &mdash; <code>cond</code> for this matrix is 2.17&times;10<sup>7</sup>, comfortably under the <code>1e8</code> threshold a sensible person would pick, so it passed. The catastrophe was caught by the line that knows a notebook cannot cost minus six thousand pounds. That is the lesson, and it is not the one the exercise looked like it was teaching: a numerical threshold is a guess, and the guess was wrong here by a factor of two hundred. Lower it to <code>1e6</code> and this system is caught &mdash; and so are plenty of perfectly answerable ones. The domain check needs no threshold, costs one line, and is the only one of the two a colleague who does not write code can read and confirm.</p>
+      <p class="ar">انظر أيُّ حرزٍ انطلق. ليس فحصَ الحالة &mdash; فـ<code>cond</code> لهذه المصفوفة 2.17&times;10<sup>7</sup>، أي دون حدّ <code>1e8</code> الذي يختاره عاقلٌ بفسحة، فمرّ الفحص. بل التقطَ الكارثةَ السطرُ الذي يعرف أنّ دفترًا لا يكلّف سالب ستة آلاف جنيه. وذاك هو الدرس، وليس الدرسَ الذي بدا أنّ التمرين يعلّمه: فالحدُّ العددي تخمين، وقد أخطأ التخمينُ هنا بمقدار مئتي ضعف. أنزِله إلى <code>1e6</code> فيُلتقَط هذا النظام &mdash; ويُلتقَط معه كثيرٌ من الأنظمة القابلة للإجابة تمامًا. أمّا الفحصُ الموضوعي فلا يحتاج حدًّا، ويكلّف سطرًا واحدًا، وهو وحده من الاثنين ما يقرأه زميلٌ لا يكتب كودًا ويصدّقه.</p>
+    </details>
+  </section>
+
+  <div class="card takeaways">
+    <h3 id="l17-s9"><span class="en">What to carry out of Lesson 17</span><span class="ar">ما تحمله من الدرس 17</span></h3>
+    <ul>
+      <li><span class="en"><strong>One row per equation, one column per unknown,</strong> and <code>np.linalg.solve(A, b)</code> for the answer. Transposing that layout produces a valid matrix and a meaningless answer.</span><span class="ar"><strong>صفٌّ لكل معادلة وعمودٌ لكل مجهول،</strong> و<code>np.linalg.solve(A, b)</code> للجواب. وقلبُ ذلك التخطيط يُنتج مصفوفةً صحيحةً وجوابًا بلا معنى.</span></li>
+      <li><span class="en"><strong>Check with <code>np.allclose(A @ x, b)</code>, never with <code>==</code>.</strong> A correct answer is routinely wrong in the fifteenth digit, and <code>==</code> calls that a failure.</span><span class="ar"><strong>افحص بـ <code>np.allclose(A @ x, b)</code> لا بـ <code>==</code> أبدًا.</strong> فالجوابُ الصحيح يخطئ عادةً في الرقم الخامس عشر، وتسمّي <code>==</code> ذلك فشلًا.</span></li>
+      <li><span class="en"><strong><code>solve</code>, not <code>inv(A) @ b</code>.</strong> Measurably faster, and it does less arithmetic, which means fewer places to lose a digit.</span><span class="ar"><strong><code>solve</code> لا <code>inv(A) @ b</code>.</strong> أسرعُ بمقدارٍ يُقاس، وتؤدّي حسابًا أقلّ، ومعناه مواضعُ أقلّ لفقد رقم.</span></li>
+      <li><span class="en"><strong><code>LinAlgError: Singular matrix</code> means two things</strong> &mdash; no answer, or infinitely many &mdash; and does not say which. It also does not always appear: an exactly singular system can be answered silently, so <code>matrix_rank</code> is the check and the exception is a courtesy.</span><span class="ar"><strong><code>LinAlgError: Singular matrix</code> تعني أمرين</strong> &mdash; لا جواب، أو أجوبةٌ لا نهائية &mdash; ولا تقول أيَّهما. وهي أيضًا لا تظهر دائمًا: فقد يُجاب عن نظامٍ شاذٍّ بالضبط في صمت، فتكون <code>matrix_rank</code> هي الفحص ويكون الاستثناء مجاملة.</span></li>
+      <li><span class="en"><strong>The dangerous matrix is the nearly-singular one,</strong> because it answers. <code>np.linalg.cond</code> is how you find out, and a domain check &mdash; prices are positive &mdash; is how you survive not having looked.</span><span class="ar"><strong>المصفوفةُ الخطيرة هي التي تكاد تكون شاذّة،</strong> لأنها تجيب. و<code>np.linalg.cond</code> هي كيف تعرف، والفحصُ الموضوعي &mdash; الأسعارُ موجبة &mdash; هو كيف تنجو إن لم تنظر.</span></li>
+      <li><span class="en"><strong>Next:</strong> every system here had exactly as many equations as unknowns. <a href="../lessons/chapter-5-lesson-18.html#lesson-18">Lesson 18</a> has five equations and two unknowns, which is the shape every real measurement arrives in, and <code>solve</code> will not touch it.</span><span class="ar"><strong>التالي:</strong> كان لكل نظامٍ هنا من المعادلات بعددِ المجاهيل بالضبط. وفي <a href="../lessons/chapter-5-lesson-18.html#lesson-18">الدرس 18</a> خمسُ معادلات ومجهولان، وهو الشكلُ الذي يصل به كلُّ قياسٍ حقيقي، ولن تلمسه <code>solve</code>.</span></li>
+    </ul>
+  </div>
+
+</section>
+<nav class="pager"></nav>
+</main>
+<footer class="site">
+  <span class="en">Works fully offline · nothing you answer leaves this device</span>
+  <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
+</footer>
+<script src="../assets/js/course.js"></script>
+<script src="../assets/js/i18n.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/progress.js"></script>
+<script src="../assets/js/anchors.js"></script>
+<script src="../assets/js/chrome.js"></script>
+<script src="../assets/js/code.js"></script>
+<script src="../assets/data/traces-chapter-05.js"></script>
+<script src="../assets/js/trace.js"></script>
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

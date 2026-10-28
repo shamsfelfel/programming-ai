@@ -21,7 +21,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE = 'oop-20261027-7';
+var CACHE = 'oop-20261028-2';
 
 /* Paths are relative to this file, which sits at the site root, so
    they resolve the same whether the course is served from a domain
@@ -45,6 +45,7 @@ var PRECACHE = [
   "assets/data/questions-chapter-02.js",
   "assets/data/questions-chapter-03.js",
   "assets/data/questions-chapter-04.js",
+  "assets/data/questions-chapter-05.js",
   "assets/data/questions-chapter-a.js",
   "assets/data/questions-chapter-b.js",
   "assets/data/questions-lesson-01.js",
@@ -63,10 +64,13 @@ var PRECACHE = [
   "assets/data/questions-lesson-14.js",
   "assets/data/questions-lesson-15.js",
   "assets/data/questions-lesson-16.js",
+  "assets/data/questions-lesson-17.js",
+  "assets/data/questions-lesson-18.js",
   "assets/data/topics.js",
   "assets/data/traces-chapter-02.js",
   "assets/data/traces-chapter-03.js",
   "assets/data/traces-chapter-04.js",
+  "assets/data/traces-chapter-05.js",
   "assets/data/traces.js",
   "assets/js/anchors.js",
   "assets/js/app.js",
@@ -83,6 +87,7 @@ var PRECACHE = [
   "chapters/chapter-2.html",
   "chapters/chapter-3.html",
   "chapters/chapter-4.html",
+  "chapters/chapter-5.html",
   "exams/chapter-1-exam-a.html",
   "exams/chapter-1-exam-b.html",
   "exams/chapter-2-exam-a.html",
@@ -91,6 +96,8 @@ var PRECACHE = [
   "exams/chapter-3-exam-b.html",
   "exams/chapter-4-exam-a.html",
   "exams/chapter-4-exam-b.html",
+  "exams/chapter-5-exam-a.html",
+  "exams/chapter-5-exam-b.html",
   "icons/apple-touch-icon.png",
   "icons/icon-192.png",
   "icons/icon-512.png",
@@ -113,6 +120,8 @@ var PRECACHE = [
   "lessons/chapter-4-lesson-14.html",
   "lessons/chapter-4-lesson-15.html",
   "lessons/chapter-4-lesson-16.html",
+  "lessons/chapter-5-lesson-17.html",
+  "lessons/chapter-5-lesson-18.html",
   "manifest.webmanifest",
   "tests/chapter-1-test-1.html",
   "tests/chapter-1-test-2.html",
@@ -129,7 +138,9 @@ var PRECACHE = [
   "tests/chapter-3-test-13.html",
   "tests/chapter-4-test-14.html",
   "tests/chapter-4-test-15.html",
-  "tests/chapter-4-test-16.html"
+  "tests/chapter-4-test-16.html",
+  "tests/chapter-5-test-17.html",
+  "tests/chapter-5-test-18.html"
 ];
 
 self.addEventListener('install', function (event) {
