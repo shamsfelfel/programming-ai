@@ -14,14 +14,18 @@
    Assets are cache-first -- they are versioned by this file's
    cache name, so there is nothing to revalidate.
 
-   CACHE changes on every build. The activate handler deletes every
-   other cache, which is what makes a stale chapter impossible -- and
-   is why install is all-or-nothing: a cache with holes in it would
-   replace one without.
+   CACHE changes on every build, and its name starts with the
+   course's own prefix "oop-". The activate handler deletes this
+   course's other caches, which is what makes a stale chapter
+   impossible -- and is why install is all-or-nothing: a cache with
+   holes in it would replace one without. It deletes this course's
+   and no others: the sibling courses are served from other paths of
+   this same origin, and Cache Storage is shared across the whole of
+   an origin.
    ============================================================ */
 'use strict';
 
-var CACHE = 'oop-20261028-2';
+var CACHE = 'oop-20261104-1';
 
 /* Paths are relative to this file, which sits at the site root, so
    they resolve the same whether the course is served from a domain
@@ -158,13 +162,13 @@ self.addEventListener('install', function (event) {
       var missing = results.filter(function (u) { return u; });
       if (!missing.length) return self.skipWaiting();
 
-      /* Fail the install, and fail it on purpose. activate deletes every
-         other cache, so activating on a half-filled one would swap a
-         reader's working offline copy for one with holes in it -- and
-         they would find out about the holes on a bus with no signal,
-         which is the worst possible moment. Failing here leaves the old
-         worker and the old cache in charge, and the browser tries again
-         on the next visit.
+      /* Fail the install, and fail it on purpose. activate deletes
+         this course's other caches, so activating on a half-filled
+         one would swap a reader's working offline copy for one with
+         holes in it -- and they would find out about the holes on a
+         bus with no signal, which is the worst possible moment.
+         Failing here leaves the old worker and the old cache in
+         charge, and the browser tries again on the next visit.
 
          The half-filled cache goes first: it was opened under this
          build's name, and leaving it behind would mean the next attempt
@@ -177,11 +181,17 @@ self.addEventListener('install', function (event) {
   );
 });
 
+var PREFIX = 'oop-';
+
 self.addEventListener('activate', function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.map(function (k) {
-        return k === CACHE ? null : caches['delete'](k);
+        /* Only this course's own caches: a sibling course served from
+           another path of the same origin owns the rest, and deleting
+           them would take it offline. */
+        if (k === CACHE) return null;
+        return k.indexOf(PREFIX) === 0 ? caches['delete'](k) : null;
       }));
     }).then(function () { return self.clients.claim(); })
   );
