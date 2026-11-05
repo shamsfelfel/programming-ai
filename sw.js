@@ -25,7 +25,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE = 'oop-20261105-1';
+var CACHE = 'oop-20261105-2';
 
 /* Paths are relative to this file, which sits at the site root, so
    they resolve the same whether the course is served from a domain
