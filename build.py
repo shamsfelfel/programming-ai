@@ -336,6 +336,11 @@ HEAD = u"""<!doctype html>
 
 FOOT = u"""</main>
 <footer class="site">
+  <p class="byline">
+    <img class="byline-face" src="{base}assets/img/shams.jpg" width="34" height="34"
+         alt="" decoding="async">
+    <span class="en">Shams Raed Felfel</span><span class="ar">شمس رائد فلفل</span>
+  </p>
   <span class="en">Works fully offline · nothing you answer leaves this device</span>
   <span class="ar">يعمل دون اتصال بالكامل · لا تغادر إجاباتك هذا الجهاز</span>
 </footer>
@@ -377,7 +382,7 @@ def render(page, chapter_num, body, anchors):
 
     pager = '<nav class="pager"></nav>\n' if page["kind"] != "home" else ""
 
-    return head + section + pager + FOOT.format(scripts=scripts)
+    return head + section + pager + FOOT.format(scripts=scripts, base=base)
 
 
 # --------------------------------------------------------------------------

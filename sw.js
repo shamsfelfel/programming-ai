@@ -25,7 +25,7 @@
    ============================================================ */
 'use strict';
 
-var CACHE = 'oop-20261104-1';
+var CACHE = 'oop-20261105-1';
 
 /* Paths are relative to this file, which sits at the site root, so
    they resolve the same whether the course is served from a domain
@@ -76,6 +76,7 @@ var PRECACHE = [
   "assets/data/traces-chapter-04.js",
   "assets/data/traces-chapter-05.js",
   "assets/data/traces.js",
+  "assets/img/shams.jpg",
   "assets/js/anchors.js",
   "assets/js/app.js",
   "assets/js/assess.js",
