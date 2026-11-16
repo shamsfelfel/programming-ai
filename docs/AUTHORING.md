@@ -214,9 +214,14 @@ shown — the group has a title of its own. To add one: write
 `BANK_FILE`, add a page entry to `APPENDICES` with `kind: "appendix"`, and
 add a card to the appendix grid in `src/content/home.html`.
 
-A new top-level directory of pages also has to be added to `DIRS` in
-`scripts/build-sw.py` and to `PAGE_DIRS` in `tools/verify_chapter.py`, or the
-pages will not be precached and the verifier will not see them.
+A new top-level directory of pages also has to be added to `precache` in
+[`sw.config.json`](../sw.config.json) and to `PAGE_DIRS` in
+`tools/verify_chapter.py`, or the pages will not be precached and the verifier
+will not see them. Do not edit `scripts/build-sw.py` for this: that file is the
+service-worker generator shared, byte-for-byte, by all seven apps on this
+origin, and everything specific to this course belongs in the config beside it.
+An edit to the vendored copy is caught by `python scripts/build-sw.py --check`,
+which the suite runs.
 
 ## Checks before committing
 
